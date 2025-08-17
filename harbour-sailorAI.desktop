@@ -1,0 +1,30 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=harbour-sailorAI
+Exec=sailfish-qml harbour-sailorAI
+Name=SailorAI
+Name[de]=SailorAI
+Name[fr]=SailorAI
+Name[fi]=SailorAI
+
+# Übersetzbare Beschreibung
+Comment=Chat with your favourite LLM
+Comment[de]=
+Comment[fr]=
+Comment[fi]=
+
+# Kategorien für den Store
+Categories=Network;Monitor;Utility
+# Version der App
+X-Nemo-Application-Version=1.0.0
+
+[X-Sailjail]
+#OrganizationName=de.mneuroth
+ApplicationName=harbour-sailorAI
+# Benötigte Berechtigungen
+Permissions=Internet;WebView
+
+# Optional: Sharing-Funktionalität
+[X-Nemo-Sharing]
+Shares=none
