@@ -7,6 +7,7 @@ import "../js/DatabaseQueries.js" as DatabaseQueries
 
 Page {
     id: page
+    objectName: "conversationListPage"
 
     ListModel {
         id: conversationList
@@ -104,6 +105,53 @@ Page {
         }
     }
 
+    function updateCoverStatistics() {
+        // Update app-wide statistics for cover
+        app.activeProviderCount = getActiveProviderCount();
+        app.conversationCount = conversationList.count;
+        app.hasActiveProviders = hasActiveProviders();
+        
+        DebugLogger.logVerbose("ConversationListPage", "Updated cover stats: " + 
+            app.activeProviderCount + " providers, " + 
+            app.conversationCount + " conversations, " +
+            "active: " + app.hasActiveProviders);
+    }
+    
+    function getActiveProviderCount() {
+        var aliases = LLMApi.getProviderAliases();
+        var count = 0;
+        for (var i = 0; i < aliases.length; i++) {
+            var alias = LLMApi.getProviderAlias(aliases[i]);
+            if (alias && (alias.api_key || alias.type === "ollama")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    function hasActiveProviders() {
+        var aliases = LLMApi.getProviderAliases();
+        DebugLogger.logInfo("ConversationListPage", "=== CHECKING ACTIVE PROVIDERS ===");
+        DebugLogger.logInfo("ConversationListPage", "Found " + aliases.length + " total aliases");
+        
+        for (var i = 0; i < aliases.length; i++) {
+            var aliasId = aliases[i];
+            var alias = LLMApi.getProviderAlias(aliasId);
+            DebugLogger.logInfo("ConversationListPage", "Alias " + aliasId + ": type=" + (alias ? alias.type : "null") + ", api_key=" + (alias && alias.api_key ? "***SET***" : "empty"));
+            
+            if (alias && alias.api_key && alias.type !== "ollama") {
+                DebugLogger.logInfo("ConversationListPage", "✓ Active provider found: " + aliasId + " (" + alias.type + ")");
+                return true;
+            } else if (alias && alias.type === "ollama") {
+                // Ollama doesn't require API key
+                DebugLogger.logInfo("ConversationListPage", "✓ Active Ollama provider found: " + aliasId);
+                return true;
+            }
+        }
+        DebugLogger.logInfo("ConversationListPage", "✗ No active providers found");
+        return false;
+    }
+
     function autoFetchModelsForAllProviders() {
         var aliases = LLMApi.getProviderAliases();
         var fetchCount = 0;
@@ -144,6 +192,9 @@ Page {
                 
                 // Auto-fetch models for all providers with API keys
                 autoFetchModelsForAllProviders();
+                
+                // Update cover statistics after loading providers
+                updateCoverStatistics();
             } catch (e) {
                 DebugLogger.logError("ConversationListPage", "Failed to load provider aliases: " + e.toString());
             }
@@ -182,6 +233,7 @@ Page {
             conversationList.append(conversations[i]);
         }
         DebugLogger.logInfo("ConversationListPage", "Loaded " + conversations.length + " conversations");
+        updateCoverStatistics();
     }
 
     function newConversation() {
@@ -248,6 +300,7 @@ Page {
         if (status === PageStatus.Activating) {
             DebugLogger.logInfo("ConversationListPage", "Page activating - refreshing conversations");
             loadConversations();
+            updateCoverStatistics();
         }
     }
 
@@ -286,6 +339,7 @@ Page {
             Button {
                 text: "New Chat"
                 anchors.horizontalCenter: parent.horizontalCenter
+                enabled: app.hasActiveProviders
                 onClicked: newConversation()
                 onPressAndHold: {
                     // Open provider selection dialog for new chat

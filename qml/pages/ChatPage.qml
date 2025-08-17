@@ -726,7 +726,7 @@ Page {
         width: parent.width
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Theme.paddingMedium
-        spacing: Theme.paddingExtraSmall
+        spacing: Theme.paddingSmall
         
         // Image preview area (shown when images are selected)
         Flickable {
