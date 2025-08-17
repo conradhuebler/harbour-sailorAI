@@ -243,15 +243,18 @@ Dialog {
         var defaultModels = {
             "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
             "anthropic": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
-            "gemini": ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro"],
+            "gemini": [], // No default models - must fetch from API
             "ollama": ["llama3.2", "mistral", "codellama"]
         };
         
         availableModels = defaultModels[type] || [];
         if (availableModels.length > 0) {
             favoriteModel = availableModels[0];
+            DebugLogger.logVerbose("AddProviderAliasDialog", "Loaded " + availableModels.length + " default models for type: " + type);
+        } else {
+            favoriteModel = "";
+            DebugLogger.logInfo("AddProviderAliasDialog", "No default models for " + type + " - API fetch required");
         }
-        DebugLogger.logVerbose("AddProviderAliasDialog", "Loaded " + availableModels.length + " default models for type: " + type);
     }
     
     function fetchModelsFromProvider() {

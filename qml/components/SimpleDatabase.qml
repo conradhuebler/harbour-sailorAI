@@ -80,16 +80,67 @@ QtObject {
             var conversations = [];
             
             db.readTransaction(function(tx) {
-                var rs = tx.executeSql('SELECT * FROM conversations ORDER BY id DESC');
+                // Enhanced query with message count, first/last activity, and last used provider/model
+                var query = "SELECT c.*, " +
+                    "COUNT(m.id) as message_count, " +
+                    "MIN(m.timestamp) as first_activity, " +
+                    "MAX(m.timestamp) as last_activity, " +
+                    "(SELECT m2.provider_alias FROM messages m2 " +
+                    "WHERE m2.conversation_id = c.id AND m2.role = 'bot' " +
+                    "ORDER BY m2.timestamp DESC LIMIT 1) as last_provider, " +
+                    "(SELECT m2.model_name FROM messages m2 " +
+                    "WHERE m2.conversation_id = c.id AND m2.role = 'bot' " +
+                    "ORDER BY m2.timestamp DESC LIMIT 1) as last_model " +
+                    "FROM conversations c " +
+                    "LEFT JOIN messages m ON c.id = m.conversation_id " +
+                    "GROUP BY c.id " +
+                    "ORDER BY COALESCE(last_activity, c.id) DESC";
+                
+                var rs = tx.executeSql(query);
                 for (var i = 0; i < rs.rows.length; i++) {
-                    conversations.push(rs.rows.item(i));
+                    var row = rs.rows.item(i);
+                    // Ensure we have default values for missing data
+                    row.message_count = row.message_count || 0;
+                    row.first_activity = row.first_activity || Date.now();
+                    row.last_activity = row.last_activity || Date.now();
+                    row.last_provider = row.last_provider || null;
+                    row.last_model = row.last_model || null;
+                    conversations.push(row);
                 }
             });
             
-            DebugLogger.logInfo("SimpleDatabase", "Loaded " + conversations.length + " conversations");
+            DebugLogger.logInfo("SimpleDatabase", "Loaded " + conversations.length + " conversations with metadata");
             return conversations;
         } catch (e) {
             DebugLogger.logError("SimpleDatabase", "Failed to load conversations: " + e.toString());
+            // Fallback to simple query if enhanced query fails
+            return loadConversationsSimple();
+        }
+    }
+    
+    function loadConversationsSimple() {
+        try {
+            var db = getDatabase();
+            var conversations = [];
+            
+            db.readTransaction(function(tx) {
+                var rs = tx.executeSql('SELECT * FROM conversations ORDER BY id DESC');
+                for (var i = 0; i < rs.rows.length; i++) {
+                    var row = rs.rows.item(i);
+                    // Add default metadata for compatibility
+                    row.message_count = 0;
+                    row.first_activity = Date.now();
+                    row.last_activity = Date.now();
+                    row.last_provider = null;
+                    row.last_model = null;
+                    conversations.push(row);
+                }
+            });
+            
+            DebugLogger.logInfo("SimpleDatabase", "Loaded " + conversations.length + " conversations (simple mode)");
+            return conversations;
+        } catch (e) {
+            DebugLogger.logError("SimpleDatabase", "Failed to load conversations (simple): " + e.toString());
             return [];
         }
     }

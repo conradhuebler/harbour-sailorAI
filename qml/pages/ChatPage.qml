@@ -94,6 +94,57 @@ Page {
         }
     }
 
+    // Auto-generate conversation title from first user message
+    function autoGenerateConversationTitle(message) {
+        // Only generate title if this is still "New Conversation" and we have a meaningful message
+        if (conversationName !== "New Conversation" || !message || message.trim().length === 0) {
+            return;
+        }
+        
+        // Check if this is the first user message (excluding the title message itself)
+        var userMessageCount = 0;
+        for (var i = 0; i < chatModel.count; i++) {
+            var msg = chatModel.get(i);
+            if (msg.role === "user") {
+                userMessageCount++;
+            }
+        }
+        
+        // Only generate title from the first user message
+        if (userMessageCount !== 1) {
+            return;
+        }
+        
+        // Clean and truncate the message for title
+        var title = message.trim();
+        
+        // Remove line breaks and excessive whitespace
+        title = title.replace(/\s+/g, ' ');
+        
+        // Truncate to reasonable length
+        var maxLength = 40;
+        if (title.length > maxLength) {
+            title = title.substring(0, maxLength) + "...";
+        }
+        
+        // Update conversation name
+        if (app.database.updateConversationName(currentConversationId, title)) {
+            conversationName = title;
+            DebugLogger.logInfo("ChatPage", "Auto-generated conversation title: " + title);
+            
+            // Force refresh of the PageHeader by triggering property change
+            pageHeader.title = conversationName;
+            
+            // Update the conversation list if previous page exists
+            if (pageStack.previousPage && pageStack.previousPage.loadConversations) {
+                pageStack.previousPage.loadConversations();
+                DebugLogger.logVerbose("ChatPage", "Triggered conversation list refresh");
+            }
+        } else {
+            DebugLogger.logError("ChatPage", "Failed to auto-generate conversation title");
+        }
+    }
+
     function loadAliases() {
         availableAliases = LLMApi.getProviderAliases();
         DebugLogger.logInfo("ChatPage", "Loaded " + availableAliases.length + " provider aliases");
@@ -111,10 +162,38 @@ Page {
         }
     }
 
+    function sortModelsByFavorites(models, aliasId) {
+        if (!models || models.length === 0) return [];
+        
+        var favorites = LLMApi.getAliasFavoriteModels(aliasId);
+        var favoriteModels = [];
+        var otherModels = [];
+        
+        // Separate favorites from non-favorites
+        for (var i = 0; i < models.length; i++) {
+            if (favorites.indexOf(models[i]) !== -1) {
+                favoriteModels.push(models[i]);
+            } else {
+                otherModels.push(models[i]);
+            }
+        }
+        
+        // Sort favorites by their order in the favorites list
+        favoriteModels.sort(function(a, b) {
+            return favorites.indexOf(a) - favorites.indexOf(b);
+        });
+        
+        // Return favorites first, then other models
+        return favoriteModels.concat(otherModels);
+    }
+
     function loadModels() {
         if (selectedAliasId) {
             var favoriteModel = LLMApi.getAliasFavoriteModel(selectedAliasId);
-            availableModels = LLMApi.getAliasModels(selectedAliasId);
+            var rawModels = LLMApi.getAliasModels(selectedAliasId);
+            
+            // Sort models with favorites first
+            availableModels = sortModelsByFavorites(rawModels, selectedAliasId);
             
             DebugLogger.logInfo("ChatPage", "Loading models for " + selectedAliasId + " - Available: " + availableModels.length + ", Favorite: " + (favoriteModel || "none"));
             
@@ -250,13 +329,19 @@ Page {
         
         // Check if streaming is supported
         var providerAlias = LLMApi.getProviderAlias(selectedAliasId);
-        var providerTypes = LLMApi.getProviderTypes();
-        var supportsStreaming = providerAlias && providerTypes[providerAlias.type] && providerTypes[providerAlias.type].supportsStreaming;
+        var supportsStreaming = providerAlias && providerAlias.supportsStreaming;
         
         if (supportsStreaming) {
             // Add empty bot message for streaming (will be saved to DB when complete)
             var timestamp = Date.now();
-            chatModel.append({role: "bot", message: "", timestamp: timestamp, conversation_id: currentConversationId});
+            chatModel.append({
+                role: "bot", 
+                message: "", 
+                timestamp: timestamp, 
+                conversation_id: currentConversationId,
+                provider_alias: selectedAliasId,
+                model_name: selectedModel
+            });
             streamingMessageIndex = chatModel.count - 1;
             streamingContent = "";
             DebugLogger.logInfo("ChatPage", "Starting streaming response");
@@ -271,7 +356,14 @@ Page {
             function(response) {
                 if (!supportsStreaming) {
                     // Non-streaming response
-                    chatModel.append({role: "bot", message: response, timestamp: Date.now(), conversation_id: currentConversationId});
+                    chatModel.append({
+                        role: "bot", 
+                        message: response, 
+                        timestamp: Date.now(), 
+                        conversation_id: currentConversationId,
+                        provider_alias: selectedAliasId,
+                        model_name: selectedModel
+                    });
                     DebugLogger.logVerbose("ChatPage", "Added bot response to UI, total count: " + chatModel.count);
                     saveMessage("bot", response, selectedAliasId, selectedModel);
                 } else {
@@ -347,7 +439,14 @@ Page {
                 function(response) {
                     if (!supportsStreaming) {
                         // Non-streaming response
-                        chatModel.append({role: "bot", message: response, timestamp: Date.now(), conversation_id: currentConversationId});
+                        chatModel.append({
+                            role: "bot", 
+                            message: response, 
+                            timestamp: Date.now(), 
+                            conversation_id: currentConversationId,
+                            provider_alias: selectedAliasId,
+                            model_name: selectedModel
+                        });
                         saveMessage("bot", response, selectedAliasId, selectedModel);
                     } else {
                         // Streaming completed - finalize the message
@@ -627,7 +726,7 @@ Page {
         width: parent.width
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Theme.paddingMedium
-        spacing: Theme.paddingSmall
+        spacing: Theme.paddingExtraSmall
         
         // Image preview area (shown when images are selected)
         Flickable {
@@ -641,7 +740,7 @@ Page {
             
             Row {
                 id: imagePreviewRow
-                spacing: Theme.paddingMedium
+                spacing: Theme.paddingSmall
                 
                 Repeater {
                     model: selectedImages
@@ -711,87 +810,12 @@ Page {
         }
         
         // Button row above text input
-        Row {
-            id: buttonRow
-            width: parent.width
-            spacing: Theme.paddingMedium
-            anchors.horizontalCenter: parent.horizontalCenter
-            
-            IconButton {
-                visible: false
-                id: attachButton
-                icon.source: "image://theme/icon-s-attach"
-                onClicked: {
-                    // Open image picker
-                    var picker = pageStack.push("Sailfish.Pickers.ImagePickerPage");
-                    picker.selectedContentChanged.connect(function() {
-                        if (picker.selectedContent) {
-                            var newImages = selectedImages.slice(); // Copy existing images
-                            newImages.push(picker.selectedContent);
-                            selectedImages = newImages;
-                            DebugLogger.logInfo("ChatPage", "Added image: " + picker.selectedContent);
-                        }
-                    });
-                }
-            }
-            
-            IconButton {
-                id: advancedButton
-                icon.source: "image://theme/icon-s-developer"
-                onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/AdvancedSettingsDialog.qml"), {
-                        "temperature": 0.7,
-                        "seed": -1
-                    })
-                }
-            }
 
-            IconButton {
-                id: sendButton
-                icon.source: isGenerating ? "image://theme/icon-s-sync" : "image://theme/icon-s-message"
-                enabled: !isGenerating
-                onClicked: {
-                    var message = textField.text
-                    var hasText = message.trim() !== "";
-                    
-                    if ((hasText || hasImages) && !isGenerating) {
-                        // Create message content with text and images
-                        var messageContent = message;
-                        var images = selectedImages.slice(); // Copy for this message
-                        
-                        // For display purposes, show both text and image info
-                        if (hasImages) {
-                            messageContent = message + (hasText ? "\n" : "") + "[" + selectedImages.length + " image(s) attached]";
-                        }
-                        
-                        chatModel.append({
-                            role: "user", 
-                            message: messageContent, 
-                            timestamp: Date.now(), 
-                            conversation_id: currentConversationId,
-                            images: images
-                        });
-                        DebugLogger.logVerbose("ChatPage", "Added user message to UI with " + selectedImages.length + " images, total count: " + chatModel.count);
-                        
-                        // Save to database (images will be stored as JSON if needed later)
-                        saveMessage("user", messageContent); // User messages don't need provider/model info
-                        
-                        // Generate response with multimodal support
-                        generateResponseWithImages(message, images);
-                        
-                        // Clear input
-                        textField.text = "";
-                        selectedImages = [];
-                    }
-                }
-            }
-        }
 
         // Text input area
         TextArea {
             id: textField
-            width: parent.width - 2 * Theme.horizontalPageMargin
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: parent.width
             placeholderText: hasImages ? "Add a message to your images..." : "Type a message..."
             
             // Ensure the text area can receive focus and input
@@ -820,22 +844,117 @@ Page {
             }
         }
 
-        // Provider and Model selection button
-        Button {
-            text: getProviderDisplayName() + " (" + selectedModel + ")"
-            width: parent.width - 2 * Theme.horizontalPageMargin
-            anchors.horizontalCenter: parent.horizontalCenter
-            onClicked: {
-                var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
-                    "selectedAliasId": selectedAliasId,
-                    "selectedModel": selectedModel
-                })
-                dialog.accepted.connect(function() {
-                    selectedAliasId = dialog.selectedAliasId
-                    selectedModel = dialog.selectedModel
-                    saveCurrentSelection() // Save the new selection
-                    loadModels()
-                })
+        // Button row with proper layout
+        Row {
+            id: buttonRow
+            width: parent.width
+            
+            // Left side buttons
+            Row {
+                id: leftButtons
+                spacing: Theme.paddingSmall
+                
+                IconButton {
+                    id: advancedButton
+                    icon.source: "image://theme/icon-s-developer"
+                    onClicked: {
+                        var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/AdvancedSettingsDialog.qml"), {
+                            "temperature": 0.7,
+                            "seed": -1
+                        })
+                    }
+                }
+                
+                IconButton {
+                    id: modelButton
+                    icon.source: "image://theme/icon-s-setting"
+                    onClicked: {
+                        var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
+                            "selectedAliasId": selectedAliasId,
+                            "selectedModel": selectedModel
+                        })
+                        dialog.accepted.connect(function() {
+                            selectedAliasId = dialog.selectedAliasId
+                            selectedModel = dialog.selectedModel
+                            saveCurrentSelection() // Save the new selection
+                            loadModels()
+                        })
+                    }
+                }
+            }
+            
+            // Spacer to push right buttons to the right
+            Item {
+                width: parent.width - leftButtons.width - rightButtons.width
+                height: 1
+            }
+            
+            // Right side buttons
+            Row {
+                id: rightButtons
+                spacing: Theme.paddingSmall
+                
+                /*
+                IconButton {
+                    id: attachButton
+                    icon.source: "image://theme/icon-s-attach"
+                    onClicked: {
+                        // Open image picker
+                        var picker = pageStack.push("Sailfish.Pickers.ImagePickerPage");
+                        picker.selectedContentChanged.connect(function() {
+                            if (picker.selectedContent) {
+                                var newImages = selectedImages.slice(); // Copy existing images
+                                newImages.push(picker.selectedContent);
+                                selectedImages = newImages;
+                                DebugLogger.logInfo("ChatPage", "Added image: " + picker.selectedContent);
+                            }
+                        });
+                    }
+                }
+                */
+                
+                IconButton {
+                    id: sendButton
+                    icon.source: isGenerating ? "image://theme/icon-s-sync" : "image://theme/icon-s-message"
+                    enabled: !isGenerating
+                    onClicked: {
+                        var message = textField.text
+                        var hasText = message.trim() !== "";
+
+                        if ((hasText || hasImages) && !isGenerating) {
+                            // Create message content with text and images
+                            var messageContent = message;
+                            var images = selectedImages.slice(); // Copy for this message
+
+                            // For display purposes, show both text and image info
+                            if (hasImages) {
+                                messageContent = message + (hasText ? "\n" : "") + "[" + selectedImages.length + " image(s) attached]";
+                            }
+
+                            chatModel.append({
+                                role: "user",
+                                message: messageContent,
+                                timestamp: Date.now(),
+                                conversation_id: currentConversationId,
+                                images: images
+                            });
+                            DebugLogger.logVerbose("ChatPage", "Added user message to UI with " + selectedImages.length + " images, total count: " + chatModel.count);
+
+                            // Save to database (images will be stored as JSON if needed later)
+                            saveMessage("user", messageContent); // User messages don't need provider/model info
+
+                            // Auto-generate conversation title from first user message
+                            autoGenerateConversationTitle(message);
+
+                            // Generate response with multimodal support
+                            generateResponseWithImages(message, images);
+
+                            // Clear input
+                            textField.text = "";
+                            selectedImages = [];
+                        }
+                    }
+                }
             }
         }
     }

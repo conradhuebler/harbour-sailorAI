@@ -236,20 +236,48 @@ Dialog {
         }
     }
     
-    function loadModelsForType(type) {
-        // Load default models as fallback
-        var defaultModels = {
-            "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
-            "anthropic": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
-            "gemini": ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro"],
-            "ollama": ["llama3.2", "mistral", "codellama"]
-        };
+    function sortModelsByFavorites(models, aliasId) {
+        if (!models || models.length === 0) return [];
         
-        availableModels = defaultModels[type] || [];
-        if (availableModels.length > 0) {
-            favoriteModel = availableModels[0];
+        var favorites = LLMApi.getAliasFavoriteModels(aliasId);
+        var favoriteModels = [];
+        var otherModels = [];
+        
+        // Separate favorites from non-favorites
+        for (var i = 0; i < models.length; i++) {
+            if (favorites.indexOf(models[i]) !== -1) {
+                favoriteModels.push(models[i]);
+            } else {
+                otherModels.push(models[i]);
+            }
         }
-        DebugLogger.logVerbose("AddProviderAliasDialog", "Loaded " + availableModels.length + " default models for type: " + type);
+        
+        // Sort favorites by their order in the favorites list
+        favoriteModels.sort(function(a, b) {
+            return favorites.indexOf(a) - favorites.indexOf(b);
+        });
+        
+        // Return favorites first, then other models
+        return favoriteModels.concat(otherModels);
+    }
+
+    function loadModelsForType(type) {
+        // Get alias to access its defaultModels
+        var alias = LLMApi.getProviderAlias(aliasId);
+        if (alias && alias.defaultModels) {
+            var rawModels = alias.defaultModels.slice(); // Copy array
+            // Sort models with favorites first
+            availableModels = sortModelsByFavorites(rawModels, aliasId);
+            if (availableModels.length > 0) {
+                favoriteModel = availableModels[0];
+            }
+            DebugLogger.logVerbose("EditProviderAliasDialog", "Loaded " + availableModels.length + " default models from alias");
+        } else {
+            // Ultimate fallback: empty array
+            availableModels = [];
+            favoriteModel = "";
+            DebugLogger.logWarning("EditProviderAliasDialog", "No default models found for type: " + type);
+        }
     }
     
     function fetchModelsFromProvider() {
@@ -362,7 +390,8 @@ Dialog {
         // First try to get real models from LLMApi
         var realModels = LLMApi.getAliasModels(aliasId);
         if (realModels && realModels.length > 0) {
-            availableModels = realModels;
+            // Sort models with favorites first
+            availableModels = sortModelsByFavorites(realModels, aliasId);
             DebugLogger.logInfo("EditProviderAliasDialog", "Loaded " + realModels.length + " real models from LLMApi");
         } else {
             // Fallback to default models

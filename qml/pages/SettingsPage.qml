@@ -79,8 +79,16 @@ Page {
         var alias = LLMApi.getProviderAlias(aliasId);
         
         if (alias) {
-            // Always show current models first, then fetch fresh ones
-            displayModelList(aliasId, true);
+            // Open the favorite management dialog
+            var favDialog = pageStack.push(Qt.resolvedUrl("../dialogs/FavoriteModelsDialog.qml"), {
+                "selectedAliasId": aliasId
+            });
+            favDialog.accepted.connect(function() {
+                // Refresh the provider list to show updated favorites
+                loadAvailableAliases();
+                loadCurrentAlias();
+                DebugLogger.logInfo("SettingsPage", "Favorites updated for provider: " + aliasId);
+            });
         }
     }
     
@@ -378,8 +386,14 @@ Page {
                                         if (alias) {
                                             var parts = [];
                                             parts.push("Type: " + alias.type);
-                                            if (alias.favoriteModel) {
-                                                parts.push("Favorite: " + alias.favoriteModel);
+                                            // Show multiple favorites
+                                            var favorites = LLMApi.getAliasFavoriteModels(modelData);
+                                            if (favorites && favorites.length > 0) {
+                                                if (favorites.length === 1) {
+                                                    parts.push("Favorite: ★ " + favorites[0]);
+                                                } else {
+                                                    parts.push("Favorites: ★ " + favorites.length);
+                                                }
                                             }
                                             if (alias.api_key) {
                                                 parts.push("API Key: ✓");
@@ -398,6 +412,12 @@ Page {
                     }
                     
                     menu: ContextMenu {
+                        MenuItem {
+                            text: "Manage Favorites"
+                            onClicked: {
+                                showProviderModels(modelData);
+                            }
+                        }
                         MenuItem {
                             text: "Edit"
                             onClicked: {

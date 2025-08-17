@@ -54,6 +54,83 @@ Page {
         defaultValue: ""
     }
 
+    // Date formatting helper function
+    function formatDate(timestamp) {
+        if (!timestamp) return "";
+        
+        var date = new Date(timestamp);
+        var now = new Date();
+        var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        
+        if (messageDate.getTime() === today.getTime()) {
+            // Today: show time only
+            return Qt.formatDateTime(date, "hh:mm");
+        } else if (messageDate.getTime() === today.getTime() - 86400000) {
+            // Yesterday
+            return "Yesterday";
+        } else if (now.getTime() - date.getTime() < 7 * 86400000) {
+            // This week: show day name
+            return Qt.formatDateTime(date, "ddd");
+        } else {
+            // Older: show date
+            return Qt.formatDateTime(date, "dd.MM.yy");
+        }
+    }
+
+    // Format conversation timespan (start - end)
+    function formatConversationTimespan(firstActivity, lastActivity) {
+        if (!firstActivity || !lastActivity) return "";
+        
+        var first = new Date(firstActivity);
+        var last = new Date(lastActivity);
+        var now = new Date();
+        
+        // If same day, show date + time range
+        if (first.toDateString() === last.toDateString()) {
+            var dayLabel = formatDate(lastActivity);
+            if (first.getTime() === last.getTime()) {
+                // Single message
+                return dayLabel;
+            } else {
+                // Time range on same day
+                return dayLabel + " (" + Qt.formatDateTime(first, "hh:mm") + "-" + Qt.formatDateTime(last, "hh:mm") + ")";
+            }
+        } else {
+            // Different days: show start date - end date
+            var firstStr = Qt.formatDateTime(first, "dd.MM");
+            var lastStr = formatDate(lastActivity);
+            return firstStr + " - " + lastStr;
+        }
+    }
+
+    function autoFetchModelsForAllProviders() {
+        var aliases = LLMApi.getProviderAliases();
+        var fetchCount = 0;
+        
+        for (var i = 0; i < aliases.length; i++) {
+            var aliasId = aliases[i];
+            var alias = LLMApi.getProviderAlias(aliasId);
+            
+            if (alias && alias.api_key) {
+                var cachedModels = LLMApi.getAliasModels(aliasId);
+                if (cachedModels.length === 0) {
+                    DebugLogger.logInfo("ConversationListPage", "Auto-fetching models for: " + aliasId);
+                    LLMApi.fetchModelsForAlias(aliasId);
+                    fetchCount++;
+                } else {
+                    DebugLogger.logVerbose("ConversationListPage", "Models already cached for: " + aliasId + " (" + cachedModels.length + " models)");
+                }
+            } else if (alias) {
+                DebugLogger.logVerbose("ConversationListPage", "Skipping model fetch for " + aliasId + " (no API key)");
+            }
+        }
+        
+        if (fetchCount > 0) {
+            DebugLogger.logInfo("ConversationListPage", "Started background model fetch for " + fetchCount + " providers");
+        }
+    }
+
     function loadAllConfigs() {
         // Initialize debug level first
         DebugLogger.setDebugLevel(parseInt(debugLevelConfig.value) || 1);
@@ -64,6 +141,9 @@ Page {
             try {
                 LLMApi.loadProviderAliases(providerAliasesConfig.value);
                 DebugLogger.logInfo("ConversationListPage", "Loaded provider aliases from config");
+                
+                // Auto-fetch models for all providers with API keys
+                autoFetchModelsForAllProviders();
             } catch (e) {
                 DebugLogger.logError("ConversationListPage", "Failed to load provider aliases: " + e.toString());
             }
@@ -110,6 +190,9 @@ Page {
         if (conversationId > 0) {
             DebugLogger.logInfo("ConversationListPage", "Created new conversation with ID: " + conversationId);
             
+            // Refresh the conversation list to show the new conversation
+            loadConversations();
+            
             // Open the new chat AFTER DB operation completes
             pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
                 "conversationId": conversationId,
@@ -120,12 +203,51 @@ Page {
         }
     }
 
+    function newConversationWithProvider(aliasId, model) {
+        // Create new conversation with pre-selected provider/model
+        var conversationId = app.database.createConversation("New Conversation");
+        if (conversationId > 0) {
+            DebugLogger.logInfo("ConversationListPage", "Created new conversation with ID: " + conversationId + " (Provider: " + aliasId + ", Model: " + model + ")");
+            
+            // Refresh the conversation list to show the new conversation
+            loadConversations();
+            
+            // Open the new chat with pre-selected provider/model
+            var chatPage = pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
+                "conversationId": conversationId,
+                "conversationName": "New Conversation"
+            });
+            
+            // Set the selected provider/model after page is loaded
+            if (chatPage) {
+                chatPage.selectedAliasId = aliasId || "";
+                chatPage.selectedModel = model || "";
+                
+                // Save this selection as the new default
+                if (aliasId && model) {
+                    chatPage.saveCurrentSelection();
+                    DebugLogger.logInfo("ConversationListPage", "Pre-selected provider: " + aliasId + " with model: " + model);
+                }
+            }
+        } else {
+            DebugLogger.logError("ConversationListPage", "Failed to create conversation with provider");
+        }
+    }
+
     function deleteConversation(conversationId) {
         if (app.database.deleteConversation(conversationId)) {
             DebugLogger.logInfo("ConversationListPage", "Deleted conversation: " + conversationId);
             loadConversations();
         } else {
             DebugLogger.logError("ConversationListPage", "Failed to delete conversation: " + conversationId);
+        }
+    }
+
+    // Refresh conversations when page becomes active
+    onStatusChanged: {
+        if (status === PageStatus.Activating) {
+            DebugLogger.logInfo("ConversationListPage", "Page activating - refreshing conversations");
+            loadConversations();
         }
     }
 
@@ -165,14 +287,27 @@ Page {
                 text: "New Chat"
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: newConversation()
+                onPressAndHold: {
+                    // Open provider selection dialog for new chat
+                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
+                        "selectedAliasId": "",
+                        "selectedModel": ""
+                    });
+                    dialog.accepted.connect(function() {
+                        // Create new conversation with selected provider/model
+                        newConversationWithProvider(dialog.selectedAliasId, dialog.selectedModel);
+                    });
+                }
             }
 
             SilicaListView {
                 width: parent.width
-                height: conversationList.count > 0 ? conversationList.count * Theme.itemSizeMedium : 200
+                height: conversationList.count > 0 ? conversationList.count * Theme.itemSizeLarge : 200
                 model: conversationList
 
                 delegate: ListItem {
+                    contentHeight: Theme.itemSizeLarge
+                    
                     onClicked: {
                         pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
                             "conversationId": model.id,
@@ -180,12 +315,69 @@ Page {
                         });
                     }
 
-                    Label {
-                        text: model.name || ("Conversation " + model.id)
+                    Column {
                         anchors.left: parent.left
                         anchors.leftMargin: Theme.horizontalPageMargin
+                        anchors.right: messageCountBadge.left
+                        anchors.rightMargin: Theme.paddingMedium
                         anchors.verticalCenter: parent.verticalCenter
-                        color: Theme.primaryColor
+                        spacing: Theme.paddingSmall
+                        
+                        Label {
+                            text: model.name || ("Conversation " + model.id)
+                            width: parent.width
+                            font.pixelSize: Theme.fontSizeMedium
+                            color: Theme.primaryColor
+                            wrapMode: Text.WordWrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
+                        }
+                        
+                        Row {
+                            spacing: Theme.paddingMedium
+                            
+                            Label {
+                                text: formatConversationTimespan(model.first_activity, model.last_activity)
+                                font.pixelSize: Theme.fontSizeExtraSmall
+                                color: Theme.secondaryColor
+                            }
+                            
+                            Label {
+                                visible: model.last_provider && model.last_model
+                                text: {
+                                    if (model.last_provider && model.last_model) {
+                                        // Get provider display name
+                                        var alias = LLMApi.getProviderAlias(model.last_provider);
+                                        var providerName = alias ? alias.name : model.last_provider;
+                                        return providerName + " (" + model.last_model + ")";
+                                    }
+                                    return "";
+                                }
+                                font.pixelSize: Theme.fontSizeExtraSmall
+                                color: Theme.highlightColor
+                                elide: Text.ElideRight
+                            }
+                        }
+                    }
+                    
+                    Rectangle {
+                        id: messageCountBadge
+                        visible: model.message_count > 0
+                        anchors.right: parent.right
+                        anchors.rightMargin: Theme.horizontalPageMargin
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.max(Theme.iconSizeSmall, countLabel.implicitWidth + Theme.paddingSmall * 2)
+                        height: Theme.iconSizeSmall
+                        radius: height / 2
+                        color: Theme.rgba(Theme.highlightBackgroundColor, 0.6)
+                        
+                        Label {
+                            id: countLabel
+                            anchors.centerIn: parent
+                            text: model.message_count
+                            font.pixelSize: Theme.fontSizeExtraSmall
+                            color: Theme.highlightColor
+                        }
                     }
 
                     menu: ContextMenu {
@@ -208,7 +400,11 @@ Page {
                         MenuItem {
                             text: "Delete"
                             onClicked: {
-                                deleteConversation(model.id);
+                                // Find the ListItem to apply remorse action
+                                var listItem = parent.parent.parent; // Navigate from MenuItem -> ContextMenu -> ListItem
+                                listItem.remorseAction("Deleting conversation", function() {
+                                    deleteConversation(model.id);
+                                });
                             }
                         }
                     }

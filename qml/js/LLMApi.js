@@ -36,7 +36,7 @@ var providerTypes = {
     "gemini": {
         "name": "Google Gemini",
         "defaultUrl": "https://generativelanguage.googleapis.com/v1beta/models",
-        "defaultModels": ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro"],
+        "defaultModels": [], // No default models - must fetch from API
         "authHeader": "x-goog-api-key",
         "supportsStreaming": true
     },
@@ -64,17 +64,24 @@ function addProviderAlias(aliasId, name, type, url, apiKey, port, description, t
         return false;
     }
     
+    var typeInfo = providerTypes[type];
     var alias = {
         name: name,
         type: type,
-        url: url || providerTypes[type].defaultUrl,
+        url: url || typeInfo.defaultUrl,
         api_key: apiKey || "",
         port: port || "",
         description: description || "",
         timeout: timeout || 10000,
-        favoriteModel: favoriteModel || providerTypes[type].defaultModels[0],
+        favoriteModel: favoriteModel || typeInfo.defaultModels[0],
+        favoriteModels: favoriteModel ? [favoriteModel] : [typeInfo.defaultModels[0]], // Multiple favorites support
         enableThinking: enableThinking || false,
-        isDefault: false
+        isDefault: false,
+        // Include streaming and auth info directly in alias
+        supportsStreaming: typeInfo.supportsStreaming,
+        authHeader: typeInfo.authHeader,
+        authPrefix: typeInfo.authPrefix,
+        defaultModels: typeInfo.defaultModels
     };
     
     providerAliases[aliasId] = alias;
@@ -121,10 +128,78 @@ function setAliasFavoriteModel(aliasId, model) {
     var alias = providerAliases[aliasId];
     if (alias) {
         alias.favoriteModel = model;
+        // Also update favorites list (keep backward compatibility)
+        if (!alias.favoriteModels) {
+            alias.favoriteModels = [];
+        }
+        if (alias.favoriteModels.indexOf(model) === -1) {
+            alias.favoriteModels.unshift(model); // Add as first favorite
+        }
         logVerbose("LLMApi", "Set favorite model for " + aliasId + ": " + model);
         return true;
     }
     return false;
+}
+
+function getAliasFavoriteModels(aliasId) {
+    var alias = providerAliases[aliasId];
+    if (alias) {
+        // Ensure backward compatibility
+        if (!alias.favoriteModels && alias.favoriteModel) {
+            alias.favoriteModels = [alias.favoriteModel];
+        }
+        return alias.favoriteModels || [];
+    }
+    return [];
+}
+
+function setAliasFavoriteModels(aliasId, models) {
+    var alias = providerAliases[aliasId];
+    if (alias && Array.isArray(models)) {
+        alias.favoriteModels = models.slice(); // Copy array
+        // Update primary favorite to first one
+        alias.favoriteModel = models.length > 0 ? models[0] : "";
+        logInfo("LLMApi", "Set " + models.length + " favorite models for " + aliasId + ": " + models.join(", "));
+        return true;
+    }
+    return false;
+}
+
+function addAliasFavoriteModel(aliasId, model) {
+    var alias = providerAliases[aliasId];
+    if (alias && model) {
+        if (!alias.favoriteModels) {
+            alias.favoriteModels = [];
+        }
+        if (alias.favoriteModels.indexOf(model) === -1) {
+            alias.favoriteModels.push(model);
+            logInfo("LLMApi", "Added favorite model for " + aliasId + ": " + model);
+            return true;
+        }
+    }
+    return false;
+}
+
+function removeAliasFavoriteModel(aliasId, model) {
+    var alias = providerAliases[aliasId];
+    if (alias && model && alias.favoriteModels) {
+        var index = alias.favoriteModels.indexOf(model);
+        if (index !== -1) {
+            alias.favoriteModels.splice(index, 1);
+            // Update primary favorite if removed
+            if (alias.favoriteModel === model) {
+                alias.favoriteModel = alias.favoriteModels.length > 0 ? alias.favoriteModels[0] : "";
+            }
+            logInfo("LLMApi", "Removed favorite model for " + aliasId + ": " + model);
+            return true;
+        }
+    }
+    return false;
+}
+
+function isAliasFavoriteModel(aliasId, model) {
+    var favorites = getAliasFavoriteModels(aliasId);
+    return favorites.indexOf(model) !== -1;
 }
 
 function setAliasThinkingMode(aliasId, enabled) {
@@ -231,13 +306,12 @@ function checkAliasAvailability(aliasId, callback) {
         };
         
         // Set authentication headers
-        var typeInfo = providerTypes[alias.type];
-        if (alias.api_key && typeInfo.authHeader) {
+        if (alias.api_key && alias.authHeader) {
             var authValue = alias.api_key;
-            if (typeInfo.authPrefix) {
-                authValue = typeInfo.authPrefix + authValue;
+            if (alias.authPrefix) {
+                authValue = alias.authPrefix + authValue;
             }
-            xhr.setRequestHeader(typeInfo.authHeader, authValue);
+            xhr.setRequestHeader(alias.authHeader, authValue);
         }
         
         logVerbose("LLMApi", "Sending availability check to: " + pingUrl);
@@ -334,9 +408,10 @@ function fetchModelsForAlias(aliasId) {
                     
                     if (models.length > 0) {
                         aliasModels[aliasId] = models;
-                        logInfo("LLMApi", "Fetched " + models.length + " models for alias: " + aliasId);
+                        logInfo("LLMApi", "✓ Fetched " + models.length + " models for alias " + aliasId + " (" + alias.type + ")");
+                        logInfo("LLMApi", "First 3 models: " + models.slice(0, 3).join(", "));
                     } else {
-                        logInfo("LLMApi", "No models found for alias: " + aliasId);
+                        logInfo("LLMApi", "✗ No models found for alias: " + aliasId + " (" + alias.type + ")");
                     }
                 } catch (e) {
                     logError("LLMApi", "Failed to parse models response for alias " + aliasId + ": " + e.toString());
@@ -429,17 +504,66 @@ function checkAllAliasesAvailability(callback) {
 }
 
 // Configuration persistence
+function cleanupOutdatedProviders() {
+    // Remove any legacy default providers that should no longer exist
+    var outdatedProviders = ["gemini_default", "openai_default", "anthropic_default", "ollama_default"];
+    var removedCount = 0;
+    
+    for (var i = 0; i < outdatedProviders.length; i++) {
+        var providerId = outdatedProviders[i];
+        if (providerAliases[providerId]) {
+            delete providerAliases[providerId];
+            delete aliasAvailability[providerId];
+            delete aliasModels[providerId];
+            removedCount++;
+            logInfo("LLMApi", "Removed outdated default provider: " + providerId);
+        }
+    }
+    
+    if (removedCount > 0) {
+        logInfo("LLMApi", "Cleaned up " + removedCount + " outdated providers");
+    }
+}
+
 function loadProviderAliases(aliasesJson) {
     try {
         var aliases = JSON.parse(aliasesJson);
         for (var aliasId in aliases) {
             if (aliases.hasOwnProperty(aliasId)) {
-                providerAliases[aliasId] = aliases[aliasId];
+                var alias = aliases[aliasId];
+                
+                // Enhance loaded alias with current providerType info (for backward compatibility)
+                var typeInfo = providerTypes[alias.type];
+                if (typeInfo) {
+                    // Add missing properties from current providerTypes
+                    if (alias.supportsStreaming === undefined) {
+                        alias.supportsStreaming = typeInfo.supportsStreaming;
+                    }
+                    if (alias.authHeader === undefined) {
+                        alias.authHeader = typeInfo.authHeader;
+                    }
+                    if (alias.authPrefix === undefined) {
+                        alias.authPrefix = typeInfo.authPrefix;
+                    }
+                    if (!alias.defaultModels || (alias.type === "gemini" && alias.defaultModels.length > 0)) {
+                        // Always update Gemini default models to empty (force API fetch)
+                        alias.defaultModels = typeInfo.defaultModels;
+                        if (alias.type === "gemini") {
+                            logInfo("LLMApi", "Cleared outdated Gemini default models for " + aliasId);
+                        }
+                    }
+                    logVerbose("LLMApi", "Enhanced alias " + aliasId + " with current provider info");
+                }
+                
+                providerAliases[aliasId] = alias;
                 aliasAvailability[aliasId] = "unchecked";
                 aliasModels[aliasId] = []; // Start with empty models - will be filled by API calls when needed
             }
         }
-        logInfo("LLMApi", "Loaded " + Object.keys(aliases).length + " provider aliases");
+        // Clean up any outdated default providers
+        cleanupOutdatedProviders();
+        
+        logInfo("LLMApi", "Loaded " + Object.keys(aliases).length + " provider aliases with enhancements");
     } catch (e) {
         logError("LLMApi", "Failed to load provider aliases: " + e.toString());
     }
@@ -562,7 +686,7 @@ function processStreamChunk(chunk, streamCallback, providerType) {
                                 content = data.delta.text;
                             }
                         } else {
-                            // OpenAI-compatible streaming format
+                            // OpenAI-compatible streaming format (includes ChatAI and others)
                             if (data.choices && data.choices.length > 0 && data.choices[0].delta && data.choices[0].delta.content) {
                                 content = data.choices[0].delta.content;
                             }
