@@ -3,7 +3,11 @@
 
 // Table creation queries
 var CREATE_CONVERSATIONS_TABLE = 'CREATE TABLE IF NOT EXISTS conversations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)';
-var CREATE_MESSAGES_TABLE = 'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id INTEGER, role TEXT, message TEXT, timestamp INTEGER)';
+var CREATE_MESSAGES_TABLE = 'CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id INTEGER, role TEXT, message TEXT, timestamp INTEGER, provider_alias TEXT, model_name TEXT)';
+
+// Schema migration queries for existing databases
+var ADD_PROVIDER_ALIAS_COLUMN = 'ALTER TABLE messages ADD COLUMN provider_alias TEXT';
+var ADD_MODEL_NAME_COLUMN = 'ALTER TABLE messages ADD COLUMN model_name TEXT';
 
 // Conversation queries
 var SELECT_ALL_CONVERSATIONS = 'SELECT * FROM conversations ORDER BY id DESC';
@@ -13,7 +17,7 @@ var DELETE_CONVERSATION = 'DELETE FROM conversations WHERE id = ?';
 
 // Message queries
 var SELECT_MESSAGES_BY_CONVERSATION = 'SELECT * FROM messages WHERE conversation_id = ? ORDER BY timestamp';
-var INSERT_MESSAGE = 'INSERT INTO messages (conversation_id, role, message, timestamp) VALUES (?, ?, ?, ?)';
+var INSERT_MESSAGE = 'INSERT INTO messages (conversation_id, role, message, timestamp, provider_alias, model_name) VALUES (?, ?, ?, ?, ?, ?)';
 var DELETE_MESSAGES_BY_CONVERSATION = 'DELETE FROM messages WHERE conversation_id = ?';
 
 // Helper functions for parameter validation
@@ -49,7 +53,7 @@ function createConversationOperation(name) {
     return createOperation(INSERT_CONVERSATION, [name.trim()]);
 }
 
-function createMessageOperation(conversationId, role, message, timestamp) {
+function createMessageOperation(conversationId, role, message, timestamp, providerAlias, modelName) {
     if (!validateConversationId(conversationId)) {
         throw new Error("Invalid conversation ID");
     }
@@ -61,7 +65,9 @@ function createMessageOperation(conversationId, role, message, timestamp) {
     }
     
     var ts = timestamp || Date.now();
-    return createOperation(INSERT_MESSAGE, [conversationId, role, message.trim(), ts]);
+    var provider = providerAlias || null;
+    var model = modelName || null;
+    return createOperation(INSERT_MESSAGE, [conversationId, role, message.trim(), ts, provider, model]);
 }
 
 function createUpdateConversationNameOperation(conversationId, newName) {
@@ -89,12 +95,14 @@ function buildConversationParams(name) {
     return [validateConversationName(name) ? name.trim() : null];
 }
 
-function buildMessageParams(conversationId, role, message, timestamp) {
+function buildMessageParams(conversationId, role, message, timestamp, providerAlias, modelName) {
     return [
         validateConversationId(conversationId) ? conversationId : null,
         validateMessageRole(role) ? role : null,
         validateMessageText(message) ? message.trim() : null,
-        timestamp || Date.now()
+        timestamp || Date.now(),
+        providerAlias || null,
+        modelName || null
     ];
 }
 

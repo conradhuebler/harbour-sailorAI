@@ -73,6 +73,25 @@ Dialog {
                 cancelText: "Cancel"
             }
             
+            // Current selection info
+            Label {
+                visible: selectedAliasId && selectedModel
+                text: "Current: " + getProviderDisplayName() + " (" + selectedModel + ")"
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.highlightColor
+                wrapMode: Text.WordWrap
+            }
+            
+            function getProviderDisplayName() {
+                if (selectedAliasId) {
+                    var alias = LLMApi.getProviderAlias(selectedAliasId);
+                    return alias ? alias.name : selectedAliasId;
+                }
+                return "";
+            }
+            
             SectionHeader {
                 text: "Provider Alias"
             }
@@ -127,6 +146,13 @@ Dialog {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 currentIndex: availableModels.indexOf(selectedModel)
+                
+                // Update when models or selection changes
+                Component.onCompleted: {
+                    currentIndex = Qt.binding(function() { 
+                        return availableModels.indexOf(selectedModel);
+                    });
+                }
                 menu: ContextMenu {
                     Repeater {
                         model: availableModels
@@ -134,7 +160,16 @@ Dialog {
                             text: {
                                 var favoriteModel = LLMApi.getAliasFavoriteModel(selectedAliasId);
                                 var isFavorite = (modelData === favoriteModel);
-                                return (isFavorite ? "★ " : "") + modelData;
+                                var isCurrent = (modelData === selectedModel);
+                                var prefix = "";
+                                if (isCurrent && isFavorite) {
+                                    prefix = "★✓ ";
+                                } else if (isFavorite) {
+                                    prefix = "★ ";
+                                } else if (isCurrent) {
+                                    prefix = "✓ ";
+                                }
+                                return prefix + modelData;
                             }
                             onClicked: {
                                 selectedModel = modelData;
@@ -145,15 +180,23 @@ Dialog {
             }
             
             Label {
-                visible: selectedModel
+                visible: selectedAliasId
                 text: {
                     var favoriteModel = LLMApi.getAliasFavoriteModel(selectedAliasId);
-                    if (selectedModel === favoriteModel) {
-                        return "★ This is your favorite model for this provider";
+                    var currentModel = selectedModel;
+                    
+                    if (currentModel && favoriteModel) {
+                        if (currentModel === favoriteModel) {
+                            return "★ " + currentModel + " is your favorite model";
+                        } else {
+                            return "Current: " + currentModel + " | Favorite: ★ " + favoriteModel;
+                        }
+                    } else if (currentModel) {
+                        return "Current: " + currentModel + " | No favorite set";
                     } else if (favoriteModel) {
-                        return "Favorite model for this provider: " + favoriteModel;
+                        return "Favorite: ★ " + favoriteModel;
                     }
-                    return "";
+                    return "No model selected";
                 }
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin

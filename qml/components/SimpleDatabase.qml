@@ -16,16 +16,33 @@ QtObject {
                 database = LocalStorage.openDatabaseSync("SailorAI", "1.0", "SailorAI Database", 1000000);
                 DebugLogger.logInfo("SimpleDatabase", "Database connection opened successfully");
                 
-                // Initialize schema immediately
+                // Initialize schema and migrate if needed
                 DebugLogger.logInfo("SimpleDatabase", "Starting schema initialization transaction...");
                 database.transaction(function(tx) {
                     DebugLogger.logVerbose("SimpleDatabase", "Inside transaction - creating conversations table");
                     tx.executeSql('CREATE TABLE IF NOT EXISTS conversations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)');
                     DebugLogger.logVerbose("SimpleDatabase", "Inside transaction - creating messages table");
-                    tx.executeSql('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id INTEGER, role TEXT, message TEXT, timestamp INTEGER)');
+                    tx.executeSql('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id INTEGER, role TEXT, message TEXT, timestamp INTEGER, provider_alias TEXT, model_name TEXT)');
+                    
+                    // Migration for existing databases - add new columns if they don't exist
+                    try {
+                        DebugLogger.logVerbose("SimpleDatabase", "Checking for schema migration...");
+                        tx.executeSql('ALTER TABLE messages ADD COLUMN provider_alias TEXT');
+                        DebugLogger.logInfo("SimpleDatabase", "Added provider_alias column");
+                    } catch (e) {
+                        DebugLogger.logVerbose("SimpleDatabase", "provider_alias column already exists or error: " + e.toString());
+                    }
+                    
+                    try {
+                        tx.executeSql('ALTER TABLE messages ADD COLUMN model_name TEXT');
+                        DebugLogger.logInfo("SimpleDatabase", "Added model_name column");
+                    } catch (e) {
+                        DebugLogger.logVerbose("SimpleDatabase", "model_name column already exists or error: " + e.toString());
+                    }
+                    
                     DebugLogger.logVerbose("SimpleDatabase", "Transaction operations completed");
                 });
-                DebugLogger.logInfo("SimpleDatabase", "Schema initialization transaction completed");
+                DebugLogger.logInfo("SimpleDatabase", "Schema initialization and migration completed");
                 
                 isInitialized = true;
                 DebugLogger.logNormal("SimpleDatabase", "Database initialized successfully");
@@ -134,17 +151,23 @@ QtObject {
         }
     }
     
-    function saveMessage(conversationId, role, message) {
+    function saveMessage(conversationId, role, message, providerAlias, modelName) {
         try {
             var db = getDatabase();
             var timestamp = Date.now();
+            var provider = providerAlias || null;
+            var model = modelName || null;
             
             db.transaction(function(tx) {
-                tx.executeSql('INSERT INTO messages (conversation_id, role, message, timestamp) VALUES (?, ?, ?, ?)', 
-                            [conversationId, role, message, timestamp]);
+                tx.executeSql('INSERT INTO messages (conversation_id, role, message, timestamp, provider_alias, model_name) VALUES (?, ?, ?, ?, ?, ?)', 
+                            [conversationId, role, message, timestamp, provider, model]);
             });
             
-            DebugLogger.logVerbose("SimpleDatabase", "Saved message for conversation " + conversationId + ": " + role);
+            var logDetails = role;
+            if (provider && model) {
+                logDetails += " (" + provider + " / " + model + ")";
+            }
+            DebugLogger.logVerbose("SimpleDatabase", "Saved message for conversation " + conversationId + ": " + logDetails);
             return true;
         } catch (e) {
             DebugLogger.logError("SimpleDatabase", "Failed to save message: " + e.toString());

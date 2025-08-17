@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import Sailfish.Pickers 1.0
 import Nemo.Configuration 1.0
 import "../js/LLMApi.js" as LLMApi
 import "../js/DebugLogger.js" as DebugLogger
@@ -24,6 +25,10 @@ Page {
     property bool isGenerating: false
     property string streamingContent: ""
     property int streamingMessageIndex: -1
+    
+    // Image upload properties
+    property var selectedImages: []
+    property bool hasImages: selectedImages.length > 0
     
     // Configuration for last selected provider/model
     ConfigurationValue {
@@ -75,8 +80,8 @@ Page {
     function finalizeStreamingMessage() {
         if (streamingMessageIndex >= 0) {
             if (streamingContent.length > 0) {
-                // Save the complete streamed content to database
-                saveMessage("bot", streamingContent);
+                // Save the complete streamed content to database with provider/model info
+                saveMessage("bot", streamingContent, selectedAliasId, selectedModel);
                 DebugLogger.logInfo("ChatPage", "Saved streaming message to DB: " + streamingContent.length + " characters");
             } else {
                 // Remove empty streaming message if no content was received
@@ -111,32 +116,39 @@ Page {
             var favoriteModel = LLMApi.getAliasFavoriteModel(selectedAliasId);
             availableModels = LLMApi.getAliasModels(selectedAliasId);
             
-            // Only use favorite model if no model is currently selected or current model is invalid
+            DebugLogger.logInfo("ChatPage", "Loading models for " + selectedAliasId + " - Available: " + availableModels.length + ", Favorite: " + (favoriteModel || "none"));
+            
+            // Always prefer the favorite model for the current provider when switching
             if (availableModels.length > 0) {
-                if (availableModels.indexOf(selectedModel) === -1) {
-                    // Current model not available, try favorite or fallback to first
-                    if (favoriteModel && availableModels.indexOf(favoriteModel) !== -1) {
-                        selectedModel = favoriteModel;
-                        DebugLogger.logVerbose("ChatPage", "Current model invalid, selected favorite: " + selectedModel);
-                    } else {
-                        selectedModel = availableModels[0];
-                        DebugLogger.logVerbose("ChatPage", "Selected first available model: " + selectedModel);
-                    }
+                // Priority: 1) Provider's favorite model, 2) First available model
+                if (favoriteModel && availableModels.indexOf(favoriteModel) !== -1) {
+                    selectedModel = favoriteModel;
+                    DebugLogger.logInfo("ChatPage", "✓ Selected provider's favorite model: " + selectedModel);
                 } else {
-                    DebugLogger.logVerbose("ChatPage", "Keeping current model: " + selectedModel);
+                    selectedModel = availableModels[0];
+                    DebugLogger.logInfo("ChatPage", "Selected first available model: " + selectedModel + " (favorite '" + favoriteModel + "' not in list)");
                 }
-            } else if (!selectedModel && favoriteModel) {
-                // No models available but we have a favorite - use it
-                selectedModel = favoriteModel;
-                DebugLogger.logVerbose("ChatPage", "No models available, using favorite: " + selectedModel);
+            } else {
+                // No models cached - try to fetch them and use favorite as fallback
+                var alias = LLMApi.getProviderAlias(selectedAliasId);
+                if (alias && alias.api_key) {
+                    DebugLogger.logInfo("ChatPage", "No models cached, fetching from API for: " + selectedAliasId);
+                    LLMApi.fetchModelsForAlias(selectedAliasId);
+                    
+                    // Use favorite as temporary selection while fetching
+                    if (favoriteModel) {
+                        selectedModel = favoriteModel;
+                        DebugLogger.logInfo("ChatPage", "Using favorite as temporary selection: " + selectedModel);
+                    }
+                } else if (favoriteModel) {
+                    // No API key but we have a favorite - use it
+                    selectedModel = favoriteModel;
+                    DebugLogger.logInfo("ChatPage", "No API key, using favorite: " + selectedModel);
+                }
             }
             
-            // If we have no models cached and have API key, fetch them
-            var alias = LLMApi.getProviderAlias(selectedAliasId);
-            if (availableModels.length === 0 && alias && alias.api_key) {
-                DebugLogger.logInfo("ChatPage", "No models cached, fetching from API for: " + selectedAliasId);
-                LLMApi.fetchModelsForAlias(selectedAliasId);
-            }
+            // Log final selection
+            DebugLogger.logInfo("ChatPage", "Final model selection: " + selectedModel + " for provider " + selectedAliasId);
         }
     }
 
@@ -158,14 +170,28 @@ Page {
         DebugLogger.logInfo("ChatPage", "Loaded " + messages.length + " messages");
     }
 
-    function saveMessage(role, message) {
+    function saveMessage(role, message, providerAlias, modelName) {
         if (currentConversationId <= 0) {
             DebugLogger.logError("ChatPage", "Cannot save message: no conversation ID");
             return;
         }
         
-        if (app.database.saveMessage(currentConversationId, role, message)) {
-            DebugLogger.logVerbose("ChatPage", "Saved message: " + role + " - " + message.substring(0, 50) + "...");
+        // Use current selection if not provided
+        var provider = providerAlias || (role === "bot" ? selectedAliasId : null);
+        var model = modelName || (role === "bot" ? selectedModel : null);
+        
+        if (app.database.saveMessage(currentConversationId, role, message, provider, model)) {
+            var logDetails = role;
+            if (provider && model) {
+                logDetails += " (" + provider + " / " + model + ")";
+            }
+            DebugLogger.logVerbose("ChatPage", "Saved message: " + logDetails + " - " + message.substring(0, 50) + "...");
+            
+            // Signal that conversation list should be refreshed
+            if (pageStack.previousPage && pageStack.previousPage.loadConversations) {
+                pageStack.previousPage.loadConversations();
+                DebugLogger.logVerbose("ChatPage", "Triggered conversation list refresh");
+            }
         } else {
             DebugLogger.logError("ChatPage", "Failed to save message for conversation " + currentConversationId);
         }
@@ -247,7 +273,7 @@ Page {
                     // Non-streaming response
                     chatModel.append({role: "bot", message: response, timestamp: Date.now(), conversation_id: currentConversationId});
                     DebugLogger.logVerbose("ChatPage", "Added bot response to UI, total count: " + chatModel.count);
-                    saveMessage("bot", response);
+                    saveMessage("bot", response, selectedAliasId, selectedModel);
                 } else {
                     // Streaming completed - finalize the message
                     finalizeStreamingMessage();
@@ -262,25 +288,101 @@ Page {
                 isGenerating = false;
                 DebugLogger.logError("ChatPage", "Generation error: " + error);
             },
-            function(chunk) {
-                // Streaming callback
+            supportsStreaming ? function(chunk) {
+                // Streaming callback (only passed if streaming is supported)
                 if (streamingMessageIndex >= 0) {
                     streamingContent += chunk;
                     chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
                     DebugLogger.logVerbose("ChatPage", "Streaming chunk added, total length: " + streamingContent.length);
                 }
-            }
+            } : null
         );
     }
 
-    SilicaFlickable {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: messageInputContainer.top
-        anchors.bottomMargin: Theme.paddingMedium
-        contentHeight: column.height
+    function generateResponseWithImages(prompt, images) {
+        if (images && images.length > 0) {
+            DebugLogger.logInfo("ChatPage", "Generating multimodal response with " + images.length + " images");
+            
+            // Use the enhanced LLM generation with image support
+            if (!selectedAliasId) {
+                chatModel.append({role: "error", message: "Error: No provider alias selected", timestamp: Date.now()});
+                return;
+            }
+            
+            var alias = LLMApi.getProviderAlias(selectedAliasId);
+            if (!alias) {
+                chatModel.append({role: "error", message: "Error: Provider alias not found: " + selectedAliasId, timestamp: Date.now()});
+                return;
+            }
+            
+            if (!alias.api_key && alias.type !== "ollama") {
+                chatModel.append({role: "error", message: "Error: No API key configured for " + alias.name, timestamp: Date.now()});
+                return;
+            }
+            
+            isGenerating = true;
+            DebugLogger.logInfo("ChatPage", "Generating multimodal response with alias: " + selectedAliasId + ", model: " + selectedModel);
+            
+            // Build history from current chat (excluding the current prompt that was just added)
+            var history = [];
+            for (var i = 0; i < chatModel.count - 1; i++) { // -1 to exclude the message we just added
+                var msg = chatModel.get(i);
+                if (msg.role === "user" || msg.role === "bot") {
+                    history.push(msg);
+                }
+            }
+            
+            // Multimodal requests use non-streaming mode for better compatibility
+            var supportsStreaming = false;
+            DebugLogger.logInfo("ChatPage", "Using non-streaming mode for multimodal request");
+            
+            // Call enhanced API with image support
+            LLMApi.generateContentWithImages(
+                selectedAliasId,
+                selectedModel, 
+                prompt,
+                alias.api_key,
+                history,
+                images, // Pass the image array
+                function(response) {
+                    if (!supportsStreaming) {
+                        // Non-streaming response
+                        chatModel.append({role: "bot", message: response, timestamp: Date.now(), conversation_id: currentConversationId});
+                        saveMessage("bot", response, selectedAliasId, selectedModel);
+                    } else {
+                        // Streaming completed - finalize the message
+                        finalizeStreamingMessage();
+                    }
+                    isGenerating = false;
+                },
+                function(error) {
+                    // Finalize streaming message (will remove if empty or save if has content)
+                    finalizeStreamingMessage();
+                    
+                    chatModel.append({role: "error", message: error, timestamp: Date.now()});
+                    isGenerating = false;
+                    DebugLogger.logError("ChatPage", "Multimodal generation error: " + error);
+                },
+                function(chunk) {
+                    // Streaming callback
+                    if (streamingMessageIndex >= 0) {
+                        streamingContent += chunk;
+                        chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
+                        DebugLogger.logVerbose("ChatPage", "Multimodal streaming chunk added, total length: " + streamingContent.length);
+                    }
+                }
+            );
+        } else {
+            generateResponse(prompt);
+        }
+    }
 
+    // Main content area with proper structure for PullDownMenu
+    SilicaFlickable {
+        id: mainFlickable
+        anchors.fill: parent
+        contentHeight: mainColumn.height
+        
         PullDownMenu {
             MenuItem {
                 text: "Settings"
@@ -308,37 +410,37 @@ Page {
                 }
             }
         }
-
+        
         Column {
-            id: column
+            id: mainColumn
             width: parent.width
-            spacing: Theme.paddingLarge
+            spacing: Theme.paddingMedium
 
             PageHeader {
+                id: pageHeader
                 title: conversationName
                 description: getProviderDisplayName() + " (" + selectedModel + ")"
             }
 
+            // Chat messages area - properly fills remaining space
             SilicaListView {
                 id: chatView
                 width: parent.width
-                height: Math.max(200, page.height - messageInputContainer.height - 200) // Dynamic height with minimum
+                height: page.height - pageHeader.height - messageInputContainer.height - Theme.paddingMedium * 4
                 model: chatModel
                 clip: true
-                
-                property bool manuallyScrolledToBottom: true
-                
-                verticalLayoutDirection: ListView.TopToBottom
-                
-                
-                
-                delegate: ListItem {
+        
+        property bool manuallyScrolledToBottom: true
+        
+        verticalLayoutDirection: ListView.TopToBottom
+        
+        delegate: ListItem {
                     id: messageItem
                     width: chatView.width
                     contentHeight: messageContent.height + Theme.paddingMedium
                     
-                    property bool isOwnMessage: model.role === "user"
-                    property bool isErrorMessage: model.role === "error"
+                    property bool isOwnMessage: model ? model.role === "user" : false
+                    property bool isErrorMessage: model ? model.role === "error" : false
                     
                     Item {
                         id: messageContent
@@ -348,7 +450,7 @@ Page {
                         Rectangle {
                             id: messageBubble
                             width: Math.min(messageText.implicitWidth + 2 * Theme.paddingMedium, parent.width * 0.8)
-                            height: messageText.implicitHeight + timestampLabel.height + 3 * Theme.paddingSmall
+                            height: messageColumn.implicitHeight + 2 * Theme.paddingSmall
                             
                             anchors.right: messageItem.isOwnMessage ? parent.right : undefined
                             anchors.left: messageItem.isOwnMessage ? undefined : parent.left
@@ -363,6 +465,7 @@ Page {
                             }
                             
                             Column {
+                                id: messageColumn
                                 anchors.fill: parent
                                 anchors.margins: Theme.paddingSmall
                                 spacing: Theme.paddingSmall
@@ -370,7 +473,7 @@ Page {
                                 Label {
                                     id: messageText
                                     width: parent.width
-                                    text: model.message
+                                    text: model ? model.message : ""
                                     wrapMode: Text.WordWrap
                                     color: {
                                         if (messageItem.isOwnMessage) return Theme.highlightColor
@@ -380,12 +483,36 @@ Page {
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
                                 
+                                // Provider/Model info for bot messages
+                                Label {
+                                    visible: model && model.role === "bot" && ((model.provider_alias && typeof model.provider_alias === "string" && model.provider_alias !== "") || (model.model_name && typeof model.model_name === "string" && model.model_name !== ""))
+                                    width: parent.width
+                                    text: {
+                                        if (!model) return "";
+                                        if (model.provider_alias && model.model_name) {
+                                            var alias = LLMApi.getProviderAlias(model.provider_alias);
+                                            var providerName = alias ? alias.name : model.provider_alias;
+                                            return "via " + model.model_name + " (" + providerName + ")";
+                                        } else if (model.model_name) {
+                                            return "via " + model.model_name;
+                                        } else if (model.provider_alias) {
+                                            var alias = LLMApi.getProviderAlias(model.provider_alias);
+                                            return "via " + (alias ? alias.name : model.provider_alias);
+                                        }
+                                        return "";
+                                    }
+                                    wrapMode: Text.WordWrap
+                                    font.pixelSize: Theme.fontSizeExtraSmall
+                                    font.italic: true
+                                    color: messageItem.isErrorMessage ? "white" : Theme.secondaryColor
+                                }
+                                
                                 Row {
                                     width: parent.width
                                     
                                     Label {
                                         id: timestampLabel
-                                        text: formatTimestamp(model.timestamp)
+                                        text: model ? formatTimestamp(model.timestamp) : ""
                                         font.pixelSize: Theme.fontSizeExtraSmall
                                         color: messageItem.isOwnMessage ? Theme.secondaryHighlightColor : Theme.secondaryColor
                                         anchors.bottom: parent.bottom
@@ -399,7 +526,7 @@ Page {
                                         height: Theme.iconSizeSmall
                                         anchors.bottom: parent.bottom
                                         onClicked: {
-                                            Clipboard.text = model.message
+                                            Clipboard.text = model ? model.message : ""
                                             console.log("Message copied to clipboard")
                                         }
                                     }
@@ -419,7 +546,7 @@ Page {
                                 // Find the last user message to retry
                                 for (var i = index - 1; i >= 0; i--) {
                                     var prevMessage = chatModel.get(i)
-                                    if (prevMessage.role === "user") {
+                                    if (prevMessage && prevMessage.role === "user") {
                                         generateResponse(prevMessage.message);
                                         break
                                     }
@@ -441,39 +568,57 @@ Page {
                 Connections {
                     target: chatModel
                     function onDataChanged() {
-                        if (streamingMessageIndex >= 0) {
+                        if (streamingMessageIndex >= 0 && manuallyScrolledToBottom) {
+                            // Only auto-scroll if user hasn't manually scrolled away
                             chatView.positionViewAtEnd();
                         }
                     }
                 }
                 
+                // Track user scroll behavior
                 onMovementStarted: {
-                    manuallyScrolledToBottom = atYEnd
+                    manuallyScrolledToBottom = (atYEnd === true);
                 }
-            }
-
-            Label {
-                visible: isGenerating && streamingMessageIndex < 0
-                text: "AI is thinking..."
-                anchors.horizontalCenter: parent.horizontalCenter
-                color: Theme.secondaryColor
-                opacity: 0.8
-            }
-            
-            Label {
-                visible: isGenerating && streamingMessageIndex >= 0
-                text: "AI is responding..."
-                anchors.horizontalCenter: parent.horizontalCenter
-                color: Theme.highlightColor
-                opacity: 0.8
                 
-                SequentialAnimation on opacity {
-                    running: parent.visible
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 0.3; duration: 800 }
-                    NumberAnimation { to: 0.8; duration: 800 }
+                onMovementEnded: {
+                    manuallyScrolledToBottom = (atYEnd === true);
+                }
+                
+                // Ensure we scroll to bottom when content height changes during streaming
+                onContentHeightChanged: {
+                    if (streamingMessageIndex >= 0 && manuallyScrolledToBottom) {
+                        positionViewAtEnd();
+                    }
                 }
             }
+        }
+    }
+
+    // Status indicators positioned between chat and input
+    Label {
+        visible: isGenerating && streamingMessageIndex < 0
+        text: "AI is thinking..."
+        anchors.bottom: messageInputContainer.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottomMargin: Theme.paddingSmall
+        color: Theme.secondaryColor
+        opacity: 0.8
+    }
+    
+    Label {
+        visible: isGenerating && streamingMessageIndex >= 0
+        text: "AI is responding..."
+        anchors.bottom: messageInputContainer.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottomMargin: Theme.paddingSmall
+        color: Theme.highlightColor
+        opacity: 0.8
+        
+        SequentialAnimation on opacity {
+            running: parent.visible
+            loops: Animation.Infinite
+            NumberAnimation { to: 0.3; duration: 800 }
+            NumberAnimation { to: 0.8; duration: 800 }
         }
     }
 
@@ -484,23 +629,108 @@ Page {
         anchors.bottomMargin: Theme.paddingMedium
         spacing: Theme.paddingSmall
         
-
+        // Image preview area (shown when images are selected)
+        Flickable {
+            id: imagePreviewArea
+            visible: hasImages
+            width: parent.width
+            height: visible ? Math.min(Theme.itemSizeLarge * 2, contentHeight) : 0
+            contentHeight: imagePreviewRow.height
+            contentWidth: imagePreviewRow.width
+            clip: true
+            
+            Row {
+                id: imagePreviewRow
+                spacing: Theme.paddingMedium
+                
+                Repeater {
+                    model: selectedImages
+                    delegate: Item {
+                        width: Theme.itemSizeLarge
+                        height: Theme.itemSizeLarge
+                        
+                        Rectangle {
+                            anchors.fill: parent
+                            color: Theme.rgba(Theme.highlightBackgroundColor, 0.3)
+                            radius: Theme.paddingSmall
+                            border.color: Theme.highlightColor
+                            border.width: 1
+                            
+                            Image {
+                                id: previewImage
+                                anchors.fill: parent
+                                anchors.margins: Theme.paddingSmall
+                                source: modelData.toString().indexOf("file://") === 0 ? modelData : "file://" + modelData
+                                fillMode: Image.PreserveAspectCrop
+                                smooth: true
+                                clip: true
+                                
+                                // Debug info
+                                onStatusChanged: {
+                                    if (status === Image.Error) {
+                                        DebugLogger.logError("ChatPage", "Failed to load image: " + source);
+                                    } else if (status === Image.Ready) {
+                                        DebugLogger.logInfo("ChatPage", "Successfully loaded image: " + source);
+                                    }
+                                }
+                            }
+                            
+                            // Fallback text for failed images
+                            Label {
+                                visible: previewImage.status === Image.Error
+                                anchors.centerIn: parent
+                                text: "Image\nPreview"
+                                font.pixelSize: Theme.fontSizeExtraSmall
+                                color: Theme.secondaryColor
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+                            
+                            // Remove button
+                            IconButton {
+                                anchors.top: parent.top
+                                anchors.right: parent.right
+                                anchors.margins: Theme.paddingSmall / 2
+                                icon.source: "image://theme/icon-s-clear"
+                                icon.color: Theme.errorColor
+                                width: Theme.iconSizeSmall
+                                height: Theme.iconSizeSmall
+                                onClicked: {
+                                    var newImages = [];
+                                    for (var i = 0; i < selectedImages.length; i++) {
+                                        if (i !== index) {
+                                            newImages.push(selectedImages[i]);
+                                        }
+                                    }
+                                    selectedImages = newImages;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         
-        // Message input row
+        // Button row above text input
         Row {
-            id: messageInput
+            id: buttonRow
             width: parent.width
             spacing: Theme.paddingMedium
-
-            TextField {
-                id: textField
-                width: parent.width - sendButton.width - advancedButton.width - 2 * Theme.paddingMedium
-                placeholderText: "Type a message..."
-                
-                EnterKey.onClicked: {
-                    if (!isGenerating && textField.text.trim() !== "") {
-                        sendButton.clicked();
-                    }
+            anchors.horizontalCenter: parent.horizontalCenter
+            
+            IconButton {
+                id: attachButton
+                icon.source: "image://theme/icon-s-attach"
+                onClicked: {
+                    // Open image picker
+                    var picker = pageStack.push("Sailfish.Pickers.ImagePickerPage");
+                    picker.selectedContentChanged.connect(function() {
+                        if (picker.selectedContent) {
+                            var newImages = selectedImages.slice(); // Copy existing images
+                            newImages.push(picker.selectedContent);
+                            selectedImages = newImages;
+                            DebugLogger.logInfo("ChatPage", "Added image: " + picker.selectedContent);
+                        }
+                    });
                 }
             }
             
@@ -521,13 +751,70 @@ Page {
                 enabled: !isGenerating
                 onClicked: {
                     var message = textField.text
-                    if (message.trim() !== "" && !isGenerating) {
-                        chatModel.append({role: "user", message: message, timestamp: Date.now(), conversation_id: currentConversationId});
-                        DebugLogger.logVerbose("ChatPage", "Added user message to UI, total count: " + chatModel.count);
-                        saveMessage("user", message);
-                        generateResponse(message);
-                        textField.text = ""
+                    var hasText = message.trim() !== "";
+                    
+                    if ((hasText || hasImages) && !isGenerating) {
+                        // Create message content with text and images
+                        var messageContent = message;
+                        var images = selectedImages.slice(); // Copy for this message
+                        
+                        // For display purposes, show both text and image info
+                        if (hasImages) {
+                            messageContent = message + (hasText ? "\n" : "") + "[" + selectedImages.length + " image(s) attached]";
+                        }
+                        
+                        chatModel.append({
+                            role: "user", 
+                            message: messageContent, 
+                            timestamp: Date.now(), 
+                            conversation_id: currentConversationId,
+                            images: images
+                        });
+                        DebugLogger.logVerbose("ChatPage", "Added user message to UI with " + selectedImages.length + " images, total count: " + chatModel.count);
+                        
+                        // Save to database (images will be stored as JSON if needed later)
+                        saveMessage("user", messageContent); // User messages don't need provider/model info
+                        
+                        // Generate response with multimodal support
+                        generateResponseWithImages(message, images);
+                        
+                        // Clear input
+                        textField.text = "";
+                        selectedImages = [];
                     }
+                }
+            }
+        }
+
+        // Text input area
+        TextArea {
+            id: textField
+            width: parent.width - 2 * Theme.horizontalPageMargin
+            anchors.horizontalCenter: parent.horizontalCenter
+            placeholderText: hasImages ? "Add a message to your images..." : "Type a message..."
+            
+            // Ensure the text area can receive focus and input
+            focus: true
+            enabled: true
+            
+            // Send on Enter (without Shift)
+            onFocusChanged: {
+                if (focus) {
+                    cursorPosition = text.length;
+                }
+            }
+            
+            // Handle Enter key
+            Keys.onPressed: {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    if (!(event.modifiers & Qt.ShiftModifier)) {
+                        // Enter without Shift - send message
+                        if (!isGenerating && (textField.text.trim() !== "" || hasImages)) {
+                            sendButton.clicked();
+                        }
+                        event.accepted = true;
+                    }
+                    // Enter with Shift - new line (default behavior)
                 }
             }
         }

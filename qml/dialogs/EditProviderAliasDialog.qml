@@ -357,7 +357,24 @@ Dialog {
     }
     
     Component.onCompleted: {
-        loadModelsForType(providerType);
+        DebugLogger.logVerbose("EditProviderAliasDialog", "Dialog opened for alias: " + aliasId);
+        
+        // First try to get real models from LLMApi
+        var realModels = LLMApi.getAliasModels(aliasId);
+        if (realModels && realModels.length > 0) {
+            availableModels = realModels;
+            DebugLogger.logInfo("EditProviderAliasDialog", "Loaded " + realModels.length + " real models from LLMApi");
+        } else {
+            // Fallback to default models
+            loadModelsForType(providerType);
+            DebugLogger.logInfo("EditProviderAliasDialog", "Using default models, will try to fetch real ones");
+            
+            // Try to fetch real models in background if API key is available
+            var alias = LLMApi.getProviderAlias(aliasId);
+            if (alias && alias.api_key) {
+                LLMApi.fetchModelsForAlias(aliasId);
+            }
+        }
     }
     
     onAccepted: {

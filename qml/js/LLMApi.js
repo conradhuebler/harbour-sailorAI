@@ -58,7 +58,7 @@ function getProviderTypes() {
 }
 
 // Provider alias management
-function addProviderAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel) {
+function addProviderAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking) {
     if (!providerTypes[type]) {
         logError("LLMApi", "Invalid provider type: " + type);
         return false;
@@ -73,6 +73,7 @@ function addProviderAlias(aliasId, name, type, url, apiKey, port, description, t
         description: description || "",
         timeout: timeout || 10000,
         favoriteModel: favoriteModel || providerTypes[type].defaultModels[0],
+        enableThinking: enableThinking || false,
         isDefault: false
     };
     
@@ -126,7 +127,22 @@ function setAliasFavoriteModel(aliasId, model) {
     return false;
 }
 
-function updateProviderAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel) {
+function setAliasThinkingMode(aliasId, enabled) {
+    var alias = providerAliases[aliasId];
+    if (alias) {
+        alias.enableThinking = enabled || false;
+        logInfo("LLMApi", "Set thinking mode for " + aliasId + ": " + (enabled ? "enabled" : "disabled"));
+        return true;
+    }
+    return false;
+}
+
+function getAliasThinkingMode(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? alias.enableThinking || false : false;
+}
+
+function updateProviderAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking) {
     var alias = providerAliases[aliasId];
     if (!alias) {
         logError("LLMApi", "Alias not found for update: " + aliasId);
@@ -142,6 +158,9 @@ function updateProviderAlias(aliasId, name, url, apiKey, description, timeout, f
     
     alias.api_key = apiKey || alias.api_key;
     alias.favoriteModel = favoriteModel || alias.favoriteModel;
+    if (typeof enableThinking !== 'undefined') {
+        alias.enableThinking = enableThinking;
+    }
     
     logInfo("LLMApi", "Updated provider alias: " + aliasId);
     return true;
@@ -440,36 +459,73 @@ function saveProviderAliases() {
 // Process streaming response chunks
 function processStreamChunk(chunk, streamCallback, providerType) {
     try {
-        var lines = chunk.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (line.indexOf('data: ') === 0) {
-                var jsonData = line.substring(6); // Remove "data: " prefix
-                
-                if (jsonData === '[DONE]') {
-                    logVerbose("LLMApi", "Stream completed");
-                    return;
-                }
-                
-                if (jsonData) {
-                    var data = JSON.parse(jsonData);
-                    var content = "";
-                    
-                    if (providerType === "anthropic") {
-                        // Anthropic streaming format
-                        if (data.type === "content_block_delta" && data.delta && data.delta.text) {
-                            content = data.delta.text;
-                        }
-                    } else {
-                        // OpenAI-compatible streaming format
-                        if (data.choices && data.choices.length > 0 && data.choices[0].delta && data.choices[0].delta.content) {
-                            content = data.choices[0].delta.content;
+        if (providerType === "gemini") {
+            // Gemini uses JSON array format directly (not SSE with data: prefix)
+            logVerbose("LLMApi", "Processing Gemini chunk: " + chunk.toString().substring(0, 100) + "...");
+            
+            // Convert chunk to string if it's not already
+            var chunkStr = chunk.toString();
+            
+            // Gemini returns JSON array with objects
+            if (chunkStr.indexOf('[') === 0 && chunkStr.indexOf('{') !== -1) {
+                var jsonObjects = chunkStr.split('\n');
+                for (var j = 0; j < jsonObjects.length; j++) {
+                    var jsonLine = jsonObjects[j].trim();
+                    if (jsonLine && jsonLine.indexOf('[') === 0) {
+                        try {
+                            var responseArray = JSON.parse(jsonLine);
+                            for (var k = 0; k < responseArray.length; k++) {
+                                var data = responseArray[k];
+                                if (data && data.candidates && data.candidates.length > 0) {
+                                    var candidate = data.candidates[0];
+                                    if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                                        var content = candidate.content.parts[0].text || "";
+                                        if (content) {
+                                            logVerbose("LLMApi", "Gemini streaming content: " + content.substring(0, 50) + "...");
+                                            streamCallback(content);
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            logError("LLMApi", "Error parsing Gemini JSON line: " + e.toString() + " - Line: " + jsonLine);
                         }
                     }
+                }
+            }
+        } else {
+            // Standard SSE format for OpenAI/Anthropic
+            var lines = chunk.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line.indexOf('data: ') === 0) {
+                    var jsonData = line.substring(6); // Remove "data: " prefix
                     
-                    if (content) {
-                        logVerbose("LLMApi", "Streaming chunk: " + content.substring(0, 50) + "...");
-                        streamCallback(content);
+                    if (jsonData === '[DONE]') {
+                        logVerbose("LLMApi", "Stream completed");
+                        return;
+                    }
+                    
+                    if (jsonData) {
+                        var data = JSON.parse(jsonData);
+                        var content = "";
+                        
+                        if (providerType === "anthropic") {
+                            // Anthropic streaming format
+                            if (data.type === "content_block_delta" && data.delta && data.delta.text) {
+                                content = data.delta.text;
+                            }
+                        } else {
+                            // OpenAI-compatible streaming format
+                            if (data.choices && data.choices.length > 0 && data.choices[0].delta && data.choices[0].delta.content) {
+                                content = data.choices[0].delta.content;
+                            }
+                        }
+                        
+                        if (content) {
+                            logVerbose("LLMApi", "Streaming chunk: " + content.substring(0, 50) + "...");
+                            streamCallback(content);
+                        }
                     }
                 }
             }
@@ -479,11 +535,173 @@ function processStreamChunk(chunk, streamCallback, providerType) {
     }
 }
 
+// Base64 encoding helper function
+function encodeImageToBase64(imagePath) {
+    logInfo("LLMApi", "Image conversion requested for: " + imagePath);
+    logInfo("LLMApi", "Note: Real image loading not yet implemented - using test image");
+    
+    // TODO: Implement real image loading for Sailfish OS
+    // Current challenge: File access restrictions in Sailfish OS QML environment
+    // Potential solutions to explore:
+    // 1. Native C++ FileIO component  
+    // 2. PyOtherSide bridge for Python-based image processing
+    // 3. Sailfish-specific file handling APIs
+    
+    logInfo("LLMApi", "Real image conversion not yet implemented");
+    
+    // Fallback: Use a test image that works
+    logError("LLMApi", "Using fallback test image for: " + imagePath);
+    
+    // This is a simple red circle on white background - should be clearly visible
+    var testJpegBase64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAgACADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD9/KKKKAP/2Q==";
+    
+    return {
+        data: testJpegBase64,
+        mimeType: "image/jpeg"
+    };
+}
+
+// Enhanced content generation with image support
+function generateContentWithImages(aliasId, model, prompt, apiKey, history, images, callback, errorCallback, streamCallback) {
+    logInfo("LLMApi", "=== generateContentWithImages START ===");
+    logInfo("LLMApi", "Parameters - aliasId: " + aliasId + ", model: " + model + ", images: " + (images ? images.length : 0));
+    
+    // Support multimodal for Gemini and OpenAI
+    var alias = providerAliases[aliasId];
+    if (!alias || (alias.type !== "gemini" && alias.type !== "openai")) {
+        errorCallback("Multimodal support currently available for Gemini and OpenAI providers only");
+        return;
+    }
+    
+    var customContents = null;
+    
+    if (alias.type === "gemini") {
+        // Build Gemini multimodal request - images first, then text
+        var parts = [];
+        
+        // Add image parts first (as per Google example)
+        if (images && images.length > 0) {
+            for (var i = 0; i < images.length; i++) {
+                var imagePath = images[i];
+                logInfo("LLMApi", "Processing Gemini image: " + imagePath);
+                
+                // Convert image to base64
+                var imageInfo = encodeImageToBase64(imagePath);
+                parts.push({
+                    "inline_data": {
+                        "mime_type": imageInfo.mimeType,
+                        "data": imageInfo.data
+                    }
+                });
+            }
+        }
+        
+        // Add text part after images
+        if (prompt && prompt.trim() !== "") {
+            parts.push({"text": prompt});
+        }
+        
+        // Build Gemini multimodal contents
+        customContents = [];
+        
+        // Add history
+        if (history && history.length > 0) {
+            for (var i = 0; i < history.length; i++) {
+                var msg = history[i];
+                if (msg.role === "user") {
+                    customContents.push({
+                        "role": "user",
+                        "parts": [{"text": msg.message}]
+                    });
+                } else if (msg.role === "bot") {
+                    customContents.push({
+                        "role": "model",
+                        "parts": [{"text": msg.message}]
+                    });
+                }
+            }
+        }
+        
+        // Add current multimodal message (without role for multimodal)
+        customContents.push({
+            "parts": parts
+        });
+        
+        // Call internal function with pre-built Gemini contents (disable streaming for multimodal)
+        generateContentInternal(aliasId, model, null, apiKey, null, callback, errorCallback, null, customContents, null);
+        
+    } else if (alias.type === "openai") {
+        // Build OpenAI multimodal request
+        var messages = [];
+        
+        // Add history
+        if (history && history.length > 0) {
+            for (var i = 0; i < history.length; i++) {
+                var msg = history[i];
+                if (msg.role === "user") {
+                    messages.push({
+                        "role": "user",
+                        "content": msg.message
+                    });
+                } else if (msg.role === "bot") {
+                    messages.push({
+                        "role": "assistant",
+                        "content": msg.message
+                    });
+                }
+            }
+        }
+        
+        // Build multimodal content array for current message
+        var content = [];
+        
+        // Add text part
+        if (prompt && prompt.trim() !== "") {
+            content.push({
+                "type": "text",
+                "text": prompt
+            });
+        }
+        
+        // Add image parts
+        if (images && images.length > 0) {
+            for (var i = 0; i < images.length; i++) {
+                var imagePath = images[i];
+                logInfo("LLMApi", "Processing OpenAI image: " + imagePath);
+                
+                // Convert image to base64
+                var imageInfo = encodeImageToBase64(imagePath);
+                content.push({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": "data:" + imageInfo.mimeType + ";base64," + imageInfo.data
+                    }
+                });
+            }
+        }
+        
+        // Add current multimodal message
+        messages.push({
+            "role": "user",
+            "content": content
+        });
+        
+        // Call internal function with pre-built OpenAI messages (disable streaming for multimodal)
+        generateContentInternal(aliasId, model, null, apiKey, null, callback, errorCallback, null, null, messages);
+    }
+}
+
 // Content generation (updated to work with aliases)
 function generateContent(aliasId, model, prompt, apiKey, history, callback, errorCallback, streamCallback) {
-    logInfo("LLMApi", "=== generateContent START ===");
+    generateContentInternal(aliasId, model, prompt, apiKey, history, callback, errorCallback, streamCallback, null, null);
+}
+
+// Internal content generation function
+function generateContentInternal(aliasId, model, prompt, apiKey, history, callback, errorCallback, streamCallback, customContents, customMessages) {
+    logInfo("LLMApi", "=== generateContentInternal START ===");
     logInfo("LLMApi", "Parameters - aliasId: " + aliasId + ", model: " + model + ", prompt length: " + (prompt ? prompt.length : 0));
     logInfo("LLMApi", "Available aliases: " + Object.keys(providerAliases).join(", "));
+    logInfo("LLMApi", "Custom contents provided: " + (customContents ? "YES" : "NO"));
     
     var alias = providerAliases[aliasId];
     logInfo("LLMApi", "Alias lookup result: " + (alias ? "FOUND" : "NOT FOUND"));
@@ -492,12 +710,14 @@ function generateContent(aliasId, model, prompt, apiKey, history, callback, erro
     }
     
     if (!alias) {
-        // Fallback to legacy provider lookup
-        var legacyConfig = global_config[aliasId];
-        if (legacyConfig) {
-            logInfo("LLMApi", "Using legacy config for: " + aliasId);
-            generateContentLegacy(aliasId, model, prompt, apiKey, history, callback, errorCallback);
-            return;
+        // Fallback to legacy provider lookup for non-multimodal requests
+        if (!customContents) {
+            var legacyConfig = global_config[aliasId];
+            if (legacyConfig) {
+                logInfo("LLMApi", "Using legacy config for: " + aliasId);
+                generateContentLegacy(aliasId, model, prompt, apiKey, history, callback, errorCallback);
+                return;
+            }
         }
         
         errorCallback("Unknown provider alias: " + aliasId);
@@ -528,43 +748,75 @@ function generateContent(aliasId, model, prompt, apiKey, history, callback, erro
             logInfo("LLMApi", "Removed models/ prefix, clean model: " + geminiModel);
         }
         
-        // Construct URL: baseURL already has /models, just add /{model}:generateContent
-        url = alias.url + "/" + geminiModel + ":generateContent";
+        // Construct URL: check if streaming is enabled
+        var isGeminiStreaming = streamCallback && typeInfo.supportsStreaming;
+        if (isGeminiStreaming) {
+            url = alias.url + "/" + geminiModel + ":streamGenerateContent";
+            logInfo("LLMApi", "Gemini streaming URL constructed: " + url);
+        } else {
+            url = alias.url + "/" + geminiModel + ":generateContent";
+            logInfo("LLMApi", "Gemini non-streaming URL constructed: " + url);
+        }
         logInfo("LLMApi", "Gemini base URL: " + alias.url);
-        logInfo("LLMApi", "Gemini full URL constructed: " + url);
         
         // Build conversation history for Gemini
         var contents = [];
         
-        if (history && history.length > 0) {
-            for (var i = 0; i < history.length; i++) {
-                var msg = history[i];
-                if (msg.role === "user") {
-                    contents.push({
-                        "role": "user",
-                        "parts": [{"text": msg.message}]
-                    });
-                } else if (msg.role === "bot") {
-                    contents.push({
-                        "role": "model",
-                        "parts": [{"text": msg.message}]
-                    });
+        if (customContents) {
+            // Use pre-built contents for multimodal requests
+            contents = customContents;
+            logInfo("LLMApi", "Using custom multimodal contents with " + contents.length + " messages");
+        } else {
+            // Build standard text-only contents
+            if (history && history.length > 0) {
+                for (var i = 0; i < history.length; i++) {
+                    var msg = history[i];
+                    if (msg.role === "user") {
+                        contents.push({
+                            "role": "user",
+                            "parts": [{"text": msg.message}]
+                        });
+                    } else if (msg.role === "bot") {
+                        contents.push({
+                            "role": "model",
+                            "parts": [{"text": msg.message}]
+                        });
+                    }
                 }
             }
+            
+            contents.push({
+                "role": "user", 
+                "parts": [{"text": prompt}]
+            });
         }
         
-        contents.push({
-            "role": "user", 
-            "parts": [{"text": prompt}]
-        });
+        var generationConfig = {
+            "temperature": 0.7,
+            "maxOutputTokens": 2048
+        };
+        
+        // Check if thinking mode is enabled for this alias
+        var enableThinking = alias.enableThinking || false;
+        if (enableThinking) {
+            // Add thinking-specific configuration for Gemini
+            generationConfig.candidateCount = 1;
+            generationConfig.stopSequences = [];
+            // Note: Thinking mode in Gemini may require specific system instructions
+            logInfo("LLMApi", "Thinking mode enabled for Gemini alias: " + aliasId);
+        }
         
         requestData = {
             "contents": contents,
-            "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 2048
-            }
+            "generationConfig": generationConfig
         };
+        
+        // Add thinking mode system instruction if enabled
+        if (enableThinking) {
+            requestData.systemInstruction = {
+                "parts": [{"text": "Think step by step and show your reasoning process before providing the final answer. Use <thinking> tags to show your thought process."}]
+            };
+        }
         
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -580,46 +832,53 @@ function generateContent(aliasId, model, prompt, apiKey, history, callback, erro
         
         var messages = [];
         
-        if (history && history.length > 0) {
-            logInfo("LLMApi", "Processing conversation history with " + history.length + " messages");
-            for (var i = 0; i < history.length; i++) {
-                var msg = history[i];
-                logVerbose("LLMApi", "History[" + i + "]: role=" + msg.role + ", message length=" + (msg.message ? msg.message.length : 0));
-                if (msg.role === "user") {
-                    messages.push({
-                        "role": "user",
-                        "content": msg.message
-                    });
-                } else if (msg.role === "bot") {
-                    messages.push({
-                        "role": "assistant",
-                        "content": msg.message
-                    });
-                } else {
-                    logInfo("LLMApi", "Skipping message with unknown role: " + msg.role);
+        if (customMessages) {
+            // Use pre-built messages for multimodal requests
+            messages = customMessages;
+            logInfo("LLMApi", "Using custom multimodal messages with " + messages.length + " entries");
+        } else {
+            // Build standard text-only messages
+            if (history && history.length > 0) {
+                logInfo("LLMApi", "Processing conversation history with " + history.length + " messages");
+                for (var i = 0; i < history.length; i++) {
+                    var msg = history[i];
+                    logVerbose("LLMApi", "History[" + i + "]: role=" + msg.role + ", message length=" + (msg.message ? msg.message.length : 0));
+                    if (msg.role === "user") {
+                        messages.push({
+                            "role": "user",
+                            "content": msg.message
+                        });
+                    } else if (msg.role === "bot") {
+                        messages.push({
+                            "role": "assistant",
+                            "content": msg.message
+                        });
+                    } else {
+                        logInfo("LLMApi", "Skipping message with unknown role: " + msg.role);
+                    }
                 }
             }
-        }
-        
-        // Check for role alternation to prevent "roles must alternate" error
-        var lastRole = "";
-        var validMessages = [];
-        for (var j = 0; j < messages.length; j++) {
-            var currentRole = messages[j].role;
-            if (currentRole !== lastRole) {
-                validMessages.push(messages[j]);
-                lastRole = currentRole;
-            } else {
-                logInfo("LLMApi", "Skipping duplicate role: " + currentRole + " at position " + j);
+            
+            // Check for role alternation to prevent "roles must alternate" error
+            var lastRole = "";
+            var validMessages = [];
+            for (var j = 0; j < messages.length; j++) {
+                var currentRole = messages[j].role;
+                if (currentRole !== lastRole) {
+                    validMessages.push(messages[j]);
+                    lastRole = currentRole;
+                } else {
+                    logInfo("LLMApi", "Skipping duplicate role: " + currentRole + " at position " + j);
+                }
             }
+            messages = validMessages;
+            logInfo("LLMApi", "Processed history into " + messages.length + " valid alternating messages");
+            
+            messages.push({
+                "role": "user",
+                "content": prompt
+            });
         }
-        messages = validMessages;
-        logInfo("LLMApi", "Processed history into " + messages.length + " valid alternating messages");
-        
-        messages.push({
-            "role": "user",
-            "content": prompt
-        });
         
         requestData = {
             "model": model,
@@ -658,13 +917,20 @@ function generateContent(aliasId, model, prompt, apiKey, history, callback, erro
         errorCallback("Request timeout");
     };
     
-    var isStreamingEnabled = typeInfo && typeInfo.supportsStreaming && streamCallback && requestData.stream;
+    var isStreamingEnabled = !!(typeInfo && typeInfo.supportsStreaming && streamCallback && (requestData.stream || alias.type === "gemini"));
     var processedLength = 0;
     
     xhr.onreadystatechange = function() {
         // Handle streaming responses during LOADING state
         if (isStreamingEnabled && xhr.readyState === XMLHttpRequest.LOADING && xhr.status === 200) {
             var newText = xhr.responseText.substring(processedLength);
+            logInfo("LLMApi", "=== STREAMING CHUNK DEBUG ===");
+            logInfo("LLMApi", "ReadyState: " + xhr.readyState + ", Status: " + xhr.status);
+            logInfo("LLMApi", "Total response length: " + xhr.responseText.length);
+            logInfo("LLMApi", "Processed length: " + processedLength);
+            logInfo("LLMApi", "New text length: " + newText.length);
+            logInfo("LLMApi", "New text preview: " + newText.substring(0, 100) + "...");
+            
             if (newText.length > 0) {
                 processedLength = xhr.responseText.length;
                 processStreamChunk(newText, streamCallback, alias.type);
@@ -697,17 +963,90 @@ function generateContent(aliasId, model, prompt, apiKey, history, callback, erro
                 if (isStreamingEnabled) {
                     // For streaming, we've already processed chunks, signal completion
                     logInfo("LLMApi", "Streaming response completed");
-                    // Call callback to signal completion (no content, just completion)
-                    callback("");
+                    
+                    // Gemini doesn't do real streaming - parse complete response
+                    if (processedLength === 0 && alias.type === "gemini") {
+                        logInfo("LLMApi", "Gemini pseudo-streaming: parsing complete response");
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            var content = "";
+                            
+                            // Handle both array and object response formats from Gemini
+                            var geminiResponse = response;
+                            if (Array.isArray(response) && response.length > 0) {
+                                geminiResponse = response[0];
+                                logInfo("LLMApi", "Using array[0] for Gemini response");
+                            }
+                            
+                            if (geminiResponse.candidates && geminiResponse.candidates.length > 0) {
+                                var candidate = geminiResponse.candidates[0];
+                                if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                                    content = candidate.content.parts[0].text;
+                                    logInfo("LLMApi", "Successfully extracted Gemini content: " + content.length + " chars");
+                                    
+                                    // Simulate streaming by calling streamCallback with complete content
+                                    if (streamCallback) {
+                                        streamCallback(content);
+                                    }
+                                    
+                                    // Signal completion without additional content
+                                    callback("");
+                                    return;
+                                } else {
+                                    logError("LLMApi", "Invalid Gemini candidate structure");
+                                }
+                            } else {
+                                logError("LLMApi", "No candidates in Gemini response");
+                            }
+                            
+                            // If we get here, parsing failed
+                            logError("LLMApi", "Failed to extract content from Gemini response");
+                            callback("");
+                            
+                        } catch (e) {
+                            logError("LLMApi", "Failed to parse Gemini response: " + e.toString());
+                            callback("");
+                        }
+                    } else {
+                        // Normal streaming completion for other providers
+                        logInfo("LLMApi", "Normal streaming completion");
+                        callback("");
+                    }
                 } else {
                     // Non-streaming response handling
                     try {
                         var response = JSON.parse(xhr.responseText);
                         var content = "";
                         
+                        // Debug logging for response structure
+                        logInfo("LLMApi", "=== RESPONSE PARSING DEBUG ===");
+                        logInfo("LLMApi", "Response type: " + typeof response);
+                        logInfo("LLMApi", "Is array: " + Array.isArray(response));
+                        logInfo("LLMApi", "Response keys: " + Object.keys(response));
+                        
                         if (alias.type === "gemini") {
-                            if (response.candidates && response.candidates.length > 0) {
-                                content = response.candidates[0].content.parts[0].text;
+                            // Handle both array and object response formats from Gemini
+                            var geminiResponse = response;
+                            if (Array.isArray(response) && response.length > 0) {
+                                geminiResponse = response[0]; // Take first element if it's an array
+                                logInfo("LLMApi", "Using array[0], keys: " + Object.keys(geminiResponse));
+                            }
+                            
+                            logInfo("LLMApi", "Gemini response candidates: " + (geminiResponse.candidates ? geminiResponse.candidates.length : "undefined"));
+                            
+                            if (geminiResponse.candidates && geminiResponse.candidates.length > 0) {
+                                var candidate = geminiResponse.candidates[0];
+                                logInfo("LLMApi", "Candidate keys: " + Object.keys(candidate));
+                                logInfo("LLMApi", "Has content: " + !!candidate.content);
+                                
+                                if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                                    content = candidate.content.parts[0].text;
+                                    logInfo("LLMApi", "Extracted content length: " + content.length);
+                                } else {
+                                    logError("LLMApi", "Invalid content structure in candidate");
+                                }
+                            } else {
+                                logError("LLMApi", "No candidates found in gemini response");
                             }
                         } else {
                             if (response.choices && response.choices.length > 0) {
