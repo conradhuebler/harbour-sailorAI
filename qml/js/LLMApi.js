@@ -38,7 +38,7 @@ var providerTypes = {
         "defaultUrl": "https://generativelanguage.googleapis.com/v1beta/models",
         "defaultModels": ["gemini-2.0-flash-exp", "gemini-1.5-flash", "gemini-1.5-pro"],
         "authHeader": "x-goog-api-key",
-        "supportsStreaming": false
+        "supportsStreaming": true
     },
     "ollama": {
         "name": "Ollama Local",
@@ -456,43 +456,89 @@ function saveProviderAliases() {
 
 // Legacy compatibility functions removed - use alias-based functions directly
 
+// Global variable to accumulate Gemini streaming response
+var geminiStreamBuffer = "";
+
 // Process streaming response chunks
 function processStreamChunk(chunk, streamCallback, providerType) {
     try {
         if (providerType === "gemini") {
-            // Gemini uses JSON array format directly (not SSE with data: prefix)
-            logVerbose("LLMApi", "Processing Gemini chunk: " + chunk.toString().substring(0, 100) + "...");
+            // Gemini streaming: accumulate chunks to parse complete JSON objects
+            logVerbose("LLMApi", "Processing Gemini streaming chunk: " + chunk.substring(0, 100) + "...");
             
-            // Convert chunk to string if it's not already
-            var chunkStr = chunk.toString();
+            // Accumulate this chunk
+            geminiStreamBuffer += chunk;
+            logVerbose("LLMApi", "Gemini buffer length: " + geminiStreamBuffer.length);
             
-            // Gemini returns JSON array with objects
-            if (chunkStr.indexOf('[') === 0 && chunkStr.indexOf('{') !== -1) {
-                var jsonObjects = chunkStr.split('\n');
-                for (var j = 0; j < jsonObjects.length; j++) {
-                    var jsonLine = jsonObjects[j].trim();
-                    if (jsonLine && jsonLine.indexOf('[') === 0) {
+            // Try to extract complete JSON objects from the buffer
+            var remaining = geminiStreamBuffer;
+            var objectStart = 0;
+            var braceCount = 0;
+            var inString = false;
+            var escaped = false;
+            
+            for (var i = 0; i < remaining.length; i++) {
+                var char = remaining.charAt(i);
+                
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                
+                if (char === '\\') {
+                    escaped = true;
+                    continue;
+                }
+                
+                if (char === '"') {
+                    inString = !inString;
+                    continue;
+                }
+                
+                if (inString) {
+                    continue;
+                }
+                
+                if (char === '{') {
+                    if (braceCount === 0) {
+                        objectStart = i;
+                    }
+                    braceCount++;
+                } else if (char === '}') {
+                    braceCount--;
+                    if (braceCount === 0) {
+                        // Found complete object
+                        var jsonObject = remaining.substring(objectStart, i + 1);
                         try {
-                            var responseArray = JSON.parse(jsonLine);
-                            for (var k = 0; k < responseArray.length; k++) {
-                                var data = responseArray[k];
-                                if (data && data.candidates && data.candidates.length > 0) {
-                                    var candidate = data.candidates[0];
-                                    if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-                                        var content = candidate.content.parts[0].text || "";
-                                        if (content) {
-                                            logVerbose("LLMApi", "Gemini streaming content: " + content.substring(0, 50) + "...");
-                                            streamCallback(content);
-                                        }
+                            var response = JSON.parse(jsonObject);
+                            
+                            // Extract content from this complete object
+                            var candidates = response.candidates;
+                            if (candidates && candidates.length > 0) {
+                                var candidate = candidates[0];
+                                if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+                                    var content = candidate.content.parts[0].text || "";
+                                    if (content) {
+                                        logInfo("LLMApi", "=== GEMINI STREAM OBJECT ===");
+                                        logInfo("LLMApi", "Gemini stream object content: " + content.substring(0, 50) + "...");
+                                        streamCallback(content);
                                     }
                                 }
                             }
                         } catch (e) {
-                            logError("LLMApi", "Error parsing Gemini JSON line: " + e.toString() + " - Line: " + jsonLine);
+                            logError("LLMApi", "Error parsing Gemini JSON object: " + e.toString());
                         }
+                        
+                        // Remove processed object from buffer (keep any remaining text)
+                        remaining = remaining.substring(i + 1);
+                        i = -1; // Reset loop
+                        objectStart = 0;
                     }
                 }
             }
+            
+            // Update buffer with remaining unparsed text
+            geminiStreamBuffer = remaining;
         } else {
             // Standard SSE format for OpenAI/Anthropic
             var lines = chunk.split('\n');
@@ -703,6 +749,9 @@ function generateContentInternal(aliasId, model, prompt, apiKey, history, callba
     logInfo("LLMApi", "Available aliases: " + Object.keys(providerAliases).join(", "));
     logInfo("LLMApi", "Custom contents provided: " + (customContents ? "YES" : "NO"));
     
+    // Reset Gemini stream buffer for new request
+    geminiStreamBuffer = "";
+    
     var alias = providerAliases[aliasId];
     logInfo("LLMApi", "Alias lookup result: " + (alias ? "FOUND" : "NOT FOUND"));
     if (alias) {
@@ -889,8 +938,13 @@ function generateContentInternal(aliasId, model, prompt, apiKey, history, callba
         
         // Add streaming if supported and streamCallback is provided
         if (typeInfo && typeInfo.supportsStreaming && streamCallback) {
-            requestData.stream = true;
-            logInfo("LLMApi", "Enabled streaming for " + alias.type);
+            // Only add stream parameter for non-Gemini providers
+            if (alias.type !== "gemini") {
+                requestData.stream = true;
+                logInfo("LLMApi", "Enabled streaming for " + alias.type);
+            } else {
+                logInfo("LLMApi", "Gemini streaming enabled via URL endpoint (no stream parameter needed)");
+            }
         }
         
         xhr.open("POST", url, true);
@@ -921,6 +975,8 @@ function generateContentInternal(aliasId, model, prompt, apiKey, history, callba
     var processedLength = 0;
     
     xhr.onreadystatechange = function() {
+        logVerbose("LLMApi", "XHR state change - readyState: " + xhr.readyState + ", status: " + xhr.status + ", isStreaming: " + isStreamingEnabled);
+        
         // Handle streaming responses during LOADING state
         if (isStreamingEnabled && xhr.readyState === XMLHttpRequest.LOADING && xhr.status === 200) {
             var newText = xhr.responseText.substring(processedLength);

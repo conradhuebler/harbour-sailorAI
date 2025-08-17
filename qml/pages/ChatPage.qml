@@ -718,6 +718,7 @@ Page {
             anchors.horizontalCenter: parent.horizontalCenter
             
             IconButton {
+                visible: false
                 id: attachButton
                 icon.source: "image://theme/icon-s-attach"
                 onClicked: {
