@@ -27,6 +27,17 @@ DISTFILES += qml/harbour-sailorAI.qml \
     rpm/harbour-sailorAI.yaml \
     harbour-sailorAI.desktop
 
+# Copy API abstraction layer JS files from source to qml/js/ at build time
+API_JS_SRC = $$PWD/api-abstraction-layer/src/js
+API_JS_DEST = $$PWD/qml/js
+API_JS_FILES = ApiAbstraction.js AliasManager.js EndpointBuilder.js ConfigLoader.js
+
+for(file, API_JS_FILES) {
+    src = $$API_JS_SRC/$$file
+    dst = $$API_JS_DEST/$$file
+    QMAKE_POST_LINK += $$QMAKE_COPY $$shell_path($$src) $$shell_path($$dst) $$escape_expand(\\n\\t)
+}
+
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172
 
 # to disable building translations every time, comment out the

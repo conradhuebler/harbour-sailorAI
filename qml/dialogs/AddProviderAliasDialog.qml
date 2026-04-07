@@ -5,7 +5,7 @@ import "../js/LLMApi.js" as LLMApi
 
 Dialog {
     id: dialog
-    
+
     property string aliasName: ""
     property string providerType: "openai"
     property string apiUrl: ""
@@ -14,32 +14,36 @@ Dialog {
     property string favoriteModel: ""
     property var availableModels: []
     property bool fetchingModels: false
-    
+
     // Auto-generate aliasId from aliasName
     property string aliasId: aliasName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
-    
+
+    // Provider types from config
+    property var providerTypes: LLMApi.getProviderTypes()
+    property var providerTypeIds: Object.keys(providerTypes)
+
     canAccept: aliasName.trim() !== "" && favoriteModel !== "" && !fetchingModels
-    
+
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
-        
+
         Column {
             id: column
             width: parent.width
             spacing: Theme.paddingLarge * 1.5
-            
+
             DialogHeader {
                 title: "Create Provider Alias"
                 acceptText: "Create"
                 cancelText: "Cancel"
             }
-            
+
             // Section 1: Basic Information
             SectionHeader {
                 text: "Basic Information"
             }
-            
+
             TextField {
                 id: aliasNameField
                 label: "Provider Name"
@@ -48,9 +52,8 @@ Dialog {
                 placeholderText: "My Gemini Account"
                 text: aliasName
                 onTextChanged: aliasName = text
-                
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
@@ -59,61 +62,37 @@ Dialog {
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingMedium }
-            
+
             ComboBox {
                 id: providerTypeComboBox
                 label: "Provider Type"
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
-                currentIndex: {
-                    var types = ["openai", "anthropic", "gemini", "ollama"];
-                    return types.indexOf(providerType);
-                }
+                currentIndex: providerTypeIds.indexOf(providerType)
                 menu: ContextMenu {
-                    MenuItem { 
-                        text: "OpenAI Compatible"
-                        onClicked: {
-                            providerType = "openai";
-                            apiUrl = "https://api.openai.com/v1";
-                            loadModelsForType("openai");
-                        }
-                    }
-                    MenuItem { 
-                        text: "Anthropic Claude"
-                        onClicked: {
-                            providerType = "anthropic";
-                            apiUrl = "https://api.anthropic.com/v1";
-                            loadModelsForType("anthropic");
-                        }
-                    }
-                    MenuItem { 
-                        text: "Google Gemini"
-                        onClicked: {
-                            providerType = "gemini";
-                            apiUrl = "https://generativelanguage.googleapis.com/v1beta/models";
-                            loadModelsForType("gemini");
-                        }
-                    }
-                    MenuItem { 
-                        text: "Ollama Local"
-                        onClicked: {
-                            providerType = "ollama";
-                            apiUrl = "http://localhost:11434/v1";
-                            loadModelsForType("ollama");
+                    Repeater {
+                        model: providerTypeIds
+                        MenuItem {
+                            text: providerTypes[modelData] ? providerTypes[modelData].name : modelData
+                            onClicked: {
+                                providerType = modelData;
+                                apiUrl = providerTypes[modelData] ? providerTypes[modelData].defaultUrl : "";
+                                loadModelsForType(modelData);
+                            }
                         }
                     }
                 }
             }
-            
+
             Item { height: Theme.paddingLarge }
-            
+
             // Section 2: API Configuration
             SectionHeader {
                 text: "API Configuration"
             }
-            
+
             TextField {
                 id: apiUrlField
                 label: "API URL"
@@ -123,18 +102,18 @@ Dialog {
                 onTextChanged: apiUrl = text
                 placeholderText: "https://api.example.com/v1"
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Base URL for the API endpoint (automatically set based on provider type)"
+                text: "Base URL (auto-filled from provider type)"
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingMedium }
-            
+
             TextField {
                 id: apiKeyField
                 label: "API Key"
@@ -143,20 +122,20 @@ Dialog {
                 text: apiKey
                 onTextChanged: apiKey = text
                 echoMode: TextInput.Password
-                placeholderText: "Enter your API key..."
+                placeholderText: providerType === "ollama" ? "API Key (optional for local Ollama)" : "Enter your API key..."
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Your API key for authentication (required for most providers, except Ollama)"
+                text: providerType === "ollama" ? "Ollama doesn't require an API key for local use" : "Your API key for authentication"
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingSmall }
-            
+
             Button {
                 id: fetchModelsButton
                 text: fetchingModels ? "Fetching Models..." : "Fetch Available Models"
@@ -165,30 +144,29 @@ Dialog {
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: fetchModelsFromProvider()
             }
-            
+
             Label {
                 visible: fetchingModels
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "⚠ Fetching models from provider, please wait..."
+                text: "Fetching models from provider, please wait..."
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.highlightColor
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
             }
-            
+
             Item { height: Theme.paddingLarge }
-            
+
             // Section 3: Model Selection
             SectionHeader {
                 text: "Model Selection"
             }
-            
-            
+
             ComboBox {
                 id: favoriteModelComboBox
                 label: "Favorite Model"
-                description: availableModels.length > 0 ? 
+                description: availableModels.length > 0 ?
                     "Select from " + availableModels.length + " available models" :
                     "Fetch models first to select"
                 width: parent.width - 2 * Theme.horizontalPageMargin
@@ -207,14 +185,14 @@ Dialog {
                     }
                 }
             }
-            
+
             Item { height: Theme.paddingLarge }
-            
+
             // Section 4: Additional Settings
             SectionHeader {
                 text: "Additional Settings"
             }
-            
+
             TextField {
                 id: descriptionField
                 label: "Description (Optional)"
@@ -224,7 +202,7 @@ Dialog {
                 onTextChanged: description = text
                 placeholderText: "Personal account, company proxy, etc."
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
@@ -233,138 +211,49 @@ Dialog {
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingLarge }
         }
     }
-    
+
     function loadModelsForType(type) {
-        // Load default models as fallback
-        var defaultModels = {
-            "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
-            "anthropic": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
-            "gemini": [], // No default models - must fetch from API
-            "ollama": ["llama3.2", "mistral", "codellama"]
-        };
-        
-        availableModels = defaultModels[type] || [];
-        if (availableModels.length > 0) {
-            favoriteModel = availableModels[0];
-            DebugLogger.logVerbose("AddProviderAliasDialog", "Loaded " + availableModels.length + " default models for type: " + type);
-        } else {
-            favoriteModel = "";
-            DebugLogger.logInfo("AddProviderAliasDialog", "No default models for " + type + " - API fetch required");
-        }
+        // No hardcoded defaults - models are fetched dynamically
+        availableModels = [];
+        favoriteModel = "";
+        DebugLogger.logInfo("AddProviderAliasDialog", "Provider type set to: " + type + " - fetch models to see available options");
     }
-    
+
     function fetchModelsFromProvider() {
         if (!apiUrl.trim()) {
             DebugLogger.logError("AddProviderAliasDialog", "No API URL provided for model fetching");
             return;
         }
-        
+
         fetchingModels = true;
-        DebugLogger.logInfo("AddProviderAliasDialog", "Fetching models from: " + apiUrl);
-        
-        // Create temporary alias for model fetching
-        var tempAlias = {
-            type: providerType,
-            url: apiUrl,
-            api_key: apiKey.trim(), // Use provided API key if available
-            timeout: 10000
-        };
-        
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                fetchingModels = false;
-                
-                if (xhr.status === 200) {
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        var models = parseModelsResponse(response, providerType);
-                        
-                        if (models.length > 0) {
-                            availableModels = models;
-                            favoriteModel = models[0];
-                            DebugLogger.logInfo("AddProviderAliasDialog", "Fetched " + models.length + " models successfully");
-                        } else {
-                            DebugLogger.logError("AddProviderAliasDialog", "No models found in response");
-                        }
-                    } catch (e) {
-                        DebugLogger.logError("AddProviderAliasDialog", "Failed to parse models response: " + e.toString());
-                    }
-                } else {
-                    DebugLogger.logError("AddProviderAliasDialog", "Model fetch failed with status: " + xhr.status);
-                }
-            }
-        };
-        
-        try {
-            var modelsUrl = apiUrl;
-            if (providerType === "ollama" || providerType === "openai" || providerType === "anthropic") {
-                if (modelsUrl.indexOf("/models") === -1) {
-                    modelsUrl += "/models";
-                }
-            }
-            
-            xhr.open("GET", modelsUrl, true);
-            xhr.timeout = 10000;
-            
-            // Add authentication headers if API key is provided
-            if (apiKey.trim() !== "") {
-                if (providerType === "gemini") {
-                    xhr.setRequestHeader("x-goog-api-key", apiKey.trim());
-                } else if (providerType === "openai" || providerType === "anthropic" || providerType === "ollama") {
-                    xhr.setRequestHeader("Authorization", "Bearer " + apiKey.trim());
-                }
-            }
-            
-            xhr.send();
-        } catch (e) {
+        DebugLogger.logInfo("AddProviderAliasDialog", "Fetching models for type: " + providerType + " from: " + apiUrl);
+
+        LLMApi.fetchModelsForType(providerType, apiUrl, apiKey.trim(), function(models) {
             fetchingModels = false;
-            DebugLogger.logError("AddProviderAliasDialog", "Failed to initiate model fetch: " + e.toString());
-        }
-    }
-    
-    function parseModelsResponse(response, type) {
-        var models = [];
-        
-        try {
-            if (type === "gemini") {
-                if (response.models) {
-                    for (var i = 0; i < response.models.length; i++) {
-                        var model = response.models[i];
-                        var modelName = (typeof model === "string") ? model : model.name;
-                        if (modelName && modelName.startsWith && modelName.startsWith("models/")) {
-                            modelName = modelName.substring(7);
-                        }
-                        if (modelName) {
-                            models.push(modelName);
-                        }
-                    }
-                }
-            } else if (type === "openai" || type === "anthropic" || type === "ollama") {
-                if (response.data) {
-                    for (var j = 0; j < response.data.length; j++) {
-                        var modelObj = response.data[j];
-                        if (modelObj.id) {
-                            models.push(modelObj.id);
-                        }
-                    }
-                }
+            if (models.length > 0) {
+                availableModels = models;
+                favoriteModel = models[0];
+                DebugLogger.logInfo("AddProviderAliasDialog", "Fetched " + models.length + " models successfully");
+            } else {
+                DebugLogger.logInfo("AddProviderAliasDialog", "No models found for " + providerType);
             }
-        } catch (e) {
-            DebugLogger.logError("AddProviderAliasDialog", "Error parsing models: " + e.toString());
-        }
-        
-        return models;
+        }, function(error) {
+            fetchingModels = false;
+            DebugLogger.logError("AddProviderAliasDialog", "Model fetch failed: " + error);
+        });
     }
-    
+
     Component.onCompleted: {
-        loadModelsForType(providerType);
+        // Auto-fill URL from provider config
+        if (providerTypes[providerType]) {
+            apiUrl = providerTypes[providerType].defaultUrl;
+        }
     }
-    
+
     onAccepted: {
         DebugLogger.logInfo("AddProviderAliasDialog", "Creating alias: " + aliasId + " (" + aliasName + ") with favorite model: " + favoriteModel);
     }

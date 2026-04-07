@@ -236,16 +236,12 @@ class TestAPICompatibility(unittest.TestCase):
                            f"Feature {feature} for {provider_id} should be {expected}")
 
     def test_default_models(self):
-        """Test default models configuration"""
-        # OpenAI should have default models
+        """Test default models configuration - defaults are empty, models fetched dynamically"""
         openai_models = self.config['api_endpoints']['openai']['defaultModels']
         self.assertIsInstance(openai_models, list)
-        self.assertGreater(len(openai_models), 0)
 
-        # Gemini typically has empty defaults (dynamic fetching)
         gemini_models = self.config['api_endpoints']['gemini']['defaultModels']
         self.assertIsInstance(gemini_models, list)
-        # Could be empty, that's valid
 
     def test_custom_provider(self):
         """Test custom provider configuration (moved to examples)"""
