@@ -294,6 +294,26 @@ function buildRequestData(provider, model, messages, options) {
                 parts: [{text: "Think step by step and show your reasoning process."}]
             };
         }
+    } else if (providerType === 'ollama_native') {
+        // Ollama native format: /api/chat
+        requestData.model = model;
+        requestData.messages = [];
+
+        // Convert messages to Ollama native format
+        if (messages && Array.isArray(messages)) {
+            for (var n = 0; n < messages.length; n++) {
+                var msg = messages[n];
+                var ollamaRole = msg.role === 'bot' ? 'assistant' : msg.role;
+                requestData.messages.push({
+                    role: ollamaRole,
+                    content: msg.message || msg.content
+                });
+            }
+        }
+
+        requestData.stream = Boolean(options.streaming);
+
+        logInfo("EndpointBuilder", "Built Ollama native request data");
     } else if (providerType === 'anthropic') {
         // Anthropic format
         requestData.model = model;

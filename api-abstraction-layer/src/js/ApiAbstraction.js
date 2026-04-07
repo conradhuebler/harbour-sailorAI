@@ -159,7 +159,10 @@ ApiAbstraction.prototype.sendRequest = function(request, successCallback, errorC
                 logError("ApiAbstraction", "HTTP error " + xhr.status + ": " + xhr.statusText);
                 try {
                     var errorResponse = JSON.parse(xhr.responseText);
-                    var errorMsg = errorResponse.error ? errorResponse.error.message : "HTTP " + xhr.status;
+                    var errorMsg = "HTTP " + xhr.status;
+                    if (errorResponse.error) {
+                        errorMsg = typeof errorResponse.error === 'string' ? errorResponse.error : (errorResponse.error.message || errorMsg);
+                    }
                     errorCallback && errorCallback(errorMsg);
                 } catch (e) {
                     errorCallback && errorCallback("HTTP " + xhr.status + ": " + xhr.statusText);
@@ -301,8 +304,11 @@ function processStreamingChunk(chunkText, streamCallback, providerType) {
         if (providerType === 'gemini') {
             // Gemini streaming format - incremental brace-counting parser
             processGeminiStream(chunkText, streamCallback);
+        } else if (providerType === 'ollama_native') {
+            // Ollama native API uses NDJSON (one JSON per line, not SSE)
+            processNDJSONStream(chunkText, streamCallback);
         } else {
-            // Standard SSE format (OpenAI, Anthropic, Ollama)
+            // Standard SSE format (OpenAI, Anthropic, Ollama OpenAI-compat)
             processSSEStream(chunkText, streamCallback, providerType);
         }
     } catch (e) {
@@ -349,6 +355,29 @@ function processSSEStream(chunkText, streamCallback, providerType) {
                     // Partial JSON - will be completed in next chunk
                 }
             }
+        }
+    }
+}
+
+/**
+ * Process NDJSON streaming format (Ollama native API)
+ * Each line is a complete JSON object: {"message":{"role":"assistant","content":"chunk"},"done":false}
+ * @param {string} chunkText - Chunk text
+ * @param {function} streamCallback - Streaming callback
+ */
+function processNDJSONStream(chunkText, streamCallback) {
+    var lines = chunkText.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line) continue;
+
+        try {
+            var data = JSON.parse(line);
+            if (data.message && data.message.content) {
+                streamCallback && streamCallback(data.message.content);
+            }
+        } catch (e) {
+            // Partial JSON line - will be completed in next chunk
         }
     }
 }
@@ -447,6 +476,11 @@ function extractContent(response, provider) {
         if (geminiResponse.candidates && geminiResponse.candidates[0] && geminiResponse.candidates[0].content) {
             return geminiResponse.candidates[0].content.parts[0].text || '';
         }
+    } else if (providerType === 'ollama_native') {
+        // Ollama native format: {"message": {"role": "assistant", "content": "text"}, "done": true}
+        if (response.message && response.message.content) {
+            return response.message.content;
+        }
     } else if (providerType === 'anthropic') {
         // Anthropic format
         if (response.content && Array.isArray(response.content)) {
@@ -496,6 +530,18 @@ function extractModels(response, provider) {
                         modelName = modelName.substring(7);
                     }
                     models.push(modelName);
+                }
+            }
+        }
+    } else if (providerType === 'ollama_native') {
+        // Ollama native /api/tags format: {"models": [{"name": "llama3.3", ...}]}
+        if (response.models) {
+            for (var m = 0; m < response.models.length; m++) {
+                var model = response.models[m];
+                if (typeof model === 'string') {
+                    models.push(model);
+                } else if (model.name) {
+                    models.push(model.name);
                 }
             }
         }
@@ -743,32 +789,35 @@ ApiAbstraction.prototype.generate = function(aliasId, model, prompt, history, ca
                     errorCallback && errorCallback("Failed to parse response: " + e.toString());
                 }
             } else {
-                try {
-                    var errorResponse = JSON.parse(xhr.responseText);
-                    var errorMsg = errorResponse.error ? errorResponse.error.message : "HTTP " + xhr.status;
-                    errorCallback && errorCallback(errorMsg);
-                } catch (e) {
-                    errorCallback && errorCallback("HTTP " + xhr.status + ": " + xhr.statusText);
+                    try {
+                        var errorResponse = JSON.parse(xhr.responseText);
+                        var errorMsg = "HTTP " + xhr.status;
+                        if (errorResponse.error) {
+                            errorMsg = typeof errorResponse.error === 'string' ? errorResponse.error : (errorResponse.error.message || errorMsg);
+                        }
+                        errorCallback && errorCallback(errorMsg);
+                    } catch (e) {
+                        errorCallback && errorCallback("HTTP " + xhr.status + ": " + xhr.statusText);
+                    }
                 }
             }
+        };
+
+        try {
+            xhr.open('POST', url, true);
+            for (var headerName in headers) {
+                if (headers.hasOwnProperty(headerName)) {
+                    xhr.setRequestHeader(headerName, headers[headerName]);
+                }
+            }
+            xhr.send(JSON.stringify(requestData));
+        } catch (e) {
+            errorCallback && errorCallback("Failed to send request: " + e.toString());
         }
     };
 
-    try {
-        xhr.open('POST', url, true);
-        for (var headerName in headers) {
-            if (headers.hasOwnProperty(headerName)) {
-                xhr.setRequestHeader(headerName, headers[headerName]);
-            }
-        }
-        xhr.send(JSON.stringify(requestData));
-    } catch (e) {
-        errorCallback && errorCallback("Failed to send request: " + e.toString());
-    }
-};
-
-/**
- * Generate content with images using an alias
+    /**
+     * Generate content with images using an alias
  * @param {string} aliasId - Alias identifier
  * @param {string} model - Model name
  * @param {string} prompt - User's text prompt
@@ -957,20 +1006,23 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
                     errorCallback && errorCallback("Failed to parse response: " + e.toString());
                 }
             } else {
-                try {
-                    var errorResponse = JSON.parse(xhr.responseText);
-                    var errorMsg = errorResponse.error ? errorResponse.error.message : "HTTP " + xhr.status;
-                    errorCallback && errorCallback(errorMsg);
-                } catch (e) {
-                    errorCallback && errorCallback("HTTP " + xhr.status + ": " + xhr.statusText);
+                    try {
+                        var errorResponse = JSON.parse(xhr.responseText);
+                        var errorMsg = "HTTP " + xhr.status;
+                        if (errorResponse.error) {
+                            errorMsg = typeof errorResponse.error === 'string' ? errorResponse.error : (errorResponse.error.message || errorMsg);
+                        }
+                        errorCallback && errorCallback(errorMsg);
+                    } catch (e) {
+                        errorCallback && errorCallback("HTTP " + xhr.status + ": " + xhr.statusText);
+                    }
                 }
             }
-        }
-    };
+        };
 
-    try {
-        xhr.open('POST', url, true);
-        for (var headerName in headers) {
+        try {
+            xhr.open('POST', url, true);
+            for (var headerName in headers) {
             if (headers.hasOwnProperty(headerName)) {
                 xhr.setRequestHeader(headerName, headers[headerName]);
             }

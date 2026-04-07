@@ -101,6 +101,30 @@ var testConfig = {
                 "required": ["Content-Type"],
                 "optional": {}
             }
+        },
+        "ollama_native": {
+            "name": "Ollama (Native API)",
+            "type": "ollama_native",
+            "base_url": "https://ollama.com",
+            "endpoints": {
+                "chat": "/api/chat",
+                "models": "/api/tags",
+                "streaming": "/api/chat"
+            },
+            "authentication": {
+                "header": "Authorization",
+                "prefix": "Bearer "
+            },
+            "features": {
+                "supportsStreaming": true,
+                "supportsImages": true,
+                "supportsThinking": false
+            },
+            "defaultModels": ["gpt-oss:120b", "llama3.3", "mistral-small", "deepseek-r1"],
+            "headers": {
+                "required": ["Content-Type", "Authorization"],
+                "optional": {}
+            }
         }
     }
 };

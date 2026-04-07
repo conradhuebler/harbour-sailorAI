@@ -246,6 +246,8 @@ function checkAvailability(aliasId, config, callback) {
         var pingUrl = alias.url;
         if (alias.type === "ollama") {
             pingUrl += "/models";
+        } else if (alias.type === "ollama_native") {
+            pingUrl += "/api/tags";
         } else if (alias.type === "openai") {
             pingUrl += "/models";
         } else if (alias.type === "gemini") {

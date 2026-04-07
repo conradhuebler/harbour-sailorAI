@@ -25,7 +25,7 @@ Page {
                 "aliasName": alias ? alias.name : ids[i],
                 "aliasType": alias ? alias.type : "",
                 "aliasUrl": alias ? alias.url : "",
-                "hasKey": alias ? (alias.api_key && alias.api_key.length > 0) : false,
+                "hasKey": alias ? Boolean(alias.api_key && alias.api_key.length > 0) : false,
                 "isDefault": alias ? alias.isDefault : false,
                 "status": status,
                 "modelCount": models.length
