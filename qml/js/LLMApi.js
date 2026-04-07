@@ -306,12 +306,70 @@ function generateContentWithImages(aliasId, model, prompt, apiKey, history, imag
     _api.generateWithImages(aliasId, model, prompt, history, images, callback, errorCallback, streamCallback);
 }
 
-// --- Image encoding (TODO: real implementation) ---
+// --- Image encoding ---
+// Claude Generated - Copyright (C) 2024-2025 Conrad Hübler <Conrad.Huebler@gmx.net>
 
-function encodeImageToBase64(imagePath) {
-    // Placeholder - real implementation needed for Sailfish OS
-    var testJpegBase64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0HycyPTA1Ni4wMjI1Mjf/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAyADIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAFBABAAAAAAAAAAAAAAAAAAAACf/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AOIAA//Z";
-    return { data: testJpegBase64, mimeType: "image/jpeg" };
+function encodeImageToBase64(imagePath, callback) {
+    var cleanPath = imagePath;
+    if (cleanPath.indexOf("file://") === 0) {
+        cleanPath = cleanPath.substring(7);
+    }
+
+    var mimeType = "image/jpeg";
+    var ext = cleanPath.split('.').pop().toLowerCase();
+    if (ext === "png") mimeType = "image/png";
+    else if (ext === "gif") mimeType = "image/gif";
+    else if (ext === "webp") mimeType = "image/webp";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "file://" + cleanPath, true);
+    xhr.responseType = "arraybuffer";
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200 || xhr.status === 0) {
+                try {
+                    var arrayBuffer = xhr.response;
+                    var bytes = new Uint8Array(arrayBuffer);
+                    var binary = "";
+                    for (var i = 0; i < bytes.length; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    var base64 = Qt.btoa(binary);
+                    logInfo("encodeImageToBase64", "Encoded image: " + cleanPath + " (" + bytes.length + " bytes, " + mimeType + ")");
+                    callback({ data: base64, mimeType: mimeType });
+                } catch (e) {
+                    logError("encodeImageToBase64", "Failed to encode image: " + e);
+                    callback(null);
+                }
+            } else {
+                logError("encodeImageToBase64", "Failed to read image file: " + cleanPath + " (status: " + xhr.status + ")");
+                callback(null);
+            }
+        }
+    };
+    xhr.send();
+}
+
+function encodeImages(imagePaths, callback) {
+    if (!imagePaths || imagePaths.length === 0) {
+        callback([]);
+        return;
+    }
+    var results = [];
+    var completed = 0;
+    var total = imagePaths.length;
+    for (var i = 0; i < total; i++) {
+        encodeImageToBase64(imagePaths[i], function(result) {
+            if (result) {
+                results.push(result);
+            }
+            completed++;
+            if (completed === total) {
+                logInfo("encodeImages", "Encoded " + results.length + "/" + total + " images successfully");
+                callback(results);
+            }
+        });
+    }
 }
 
 logNormal("LLMApi", "Initialized with ApiAbstraction layer (" + _api.getProviderIds().length + " providers)");

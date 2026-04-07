@@ -5,6 +5,7 @@ import Nemo.Configuration 1.0
 import "../js/LLMApi.js" as LLMApi
 import "../js/DebugLogger.js" as DebugLogger
 import "../js/DatabaseQueries.js" as DatabaseQueries
+import "../js/ExportFunctions.js" as ExportFunctions
 
 Page {
     id: page
@@ -394,27 +395,27 @@ Page {
     function generateResponseWithImages(prompt, images) {
         if (images && images.length > 0) {
             DebugLogger.logInfo("ChatPage", "Generating multimodal response with " + images.length + " images");
-            
+
             // Use the enhanced LLM generation with image support
             if (!selectedAliasId) {
                 chatModel.append({role: "error", message: "Error: No provider alias selected", timestamp: Date.now()});
                 return;
             }
-            
+
             var alias = LLMApi.getProviderAlias(selectedAliasId);
             if (!alias) {
                 chatModel.append({role: "error", message: "Error: Provider alias not found: " + selectedAliasId, timestamp: Date.now()});
                 return;
             }
-            
+
             if (!alias.api_key && alias.type !== "ollama") {
                 chatModel.append({role: "error", message: "Error: No API key configured for " + alias.name, timestamp: Date.now()});
                 return;
             }
-            
+
             isGenerating = true;
             DebugLogger.logInfo("ChatPage", "Generating multimodal response with alias: " + selectedAliasId + ", model: " + selectedModel);
-            
+
             // Build history from current chat (excluding the current prompt that was just added)
             var history = [];
             for (var i = 0; i < chatModel.count - 1; i++) { // -1 to exclude the message we just added
@@ -423,54 +424,66 @@ Page {
                     history.push(msg);
                 }
             }
-            
+
             // Multimodal requests use non-streaming mode for better compatibility
             var supportsStreaming = false;
             DebugLogger.logInfo("ChatPage", "Using non-streaming mode for multimodal request");
-            
-            // Call enhanced API with image support
-            LLMApi.generateContentWithImages(
-                selectedAliasId,
-                selectedModel, 
-                prompt,
-                alias.api_key,
-                history,
-                images, // Pass the image array
-                function(response) {
-                    if (!supportsStreaming) {
-                        // Non-streaming response
-                        chatModel.append({
-                            role: "bot", 
-                            message: response, 
-                            timestamp: Date.now(), 
-                            conversation_id: currentConversationId,
-                            provider_alias: selectedAliasId,
-                            model_name: selectedModel
-                        });
-                        saveMessage("bot", response, selectedAliasId, selectedModel);
-                    } else {
-                        // Streaming completed - finalize the message
-                        finalizeStreamingMessage();
-                    }
+
+            // Asynchronously encode images to base64 before sending
+            LLMApi.encodeImages(images, function(encodedImages) {
+                if (encodedImages.length === 0 && images.length > 0) {
+                    chatModel.append({role: "error", message: "Error: Failed to process images", timestamp: Date.now()});
                     isGenerating = false;
-                },
-                function(error) {
-                    // Finalize streaming message (will remove if empty or save if has content)
-                    finalizeStreamingMessage();
-                    
-                    chatModel.append({role: "error", message: error, timestamp: Date.now()});
-                    isGenerating = false;
-                    DebugLogger.logError("ChatPage", "Multimodal generation error: " + error);
-                },
-                function(chunk) {
-                    // Streaming callback
-                    if (streamingMessageIndex >= 0) {
-                        streamingContent += chunk;
-                        chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
-                        DebugLogger.logVerbose("ChatPage", "Multimodal streaming chunk added, total length: " + streamingContent.length);
-                    }
+                    DebugLogger.logError("ChatPage", "Image encoding failed for all " + images.length + " images");
+                    return;
                 }
-            );
+
+                DebugLogger.logInfo("ChatPage", "Encoded " + encodedImages.length + " images successfully");
+
+                // Call enhanced API with image support
+                LLMApi.generateContentWithImages(
+                    selectedAliasId,
+                    selectedModel,
+                    prompt,
+                    alias.api_key,
+                    history,
+                    encodedImages, // Base64-encoded image objects instead of file URLs
+                    function(response) {
+                        if (!supportsStreaming) {
+                            // Non-streaming response
+                            chatModel.append({
+                                role: "bot",
+                                message: response,
+                                timestamp: Date.now(),
+                                conversation_id: currentConversationId,
+                                provider_alias: selectedAliasId,
+                                model_name: selectedModel
+                            });
+                            saveMessage("bot", response, selectedAliasId, selectedModel);
+                        } else {
+                            // Streaming completed - finalize the message
+                            finalizeStreamingMessage();
+                        }
+                        isGenerating = false;
+                    },
+                    function(error) {
+                        // Finalize streaming message (will remove if empty or save if has content)
+                        finalizeStreamingMessage();
+
+                        chatModel.append({role: "error", message: error, timestamp: Date.now()});
+                        isGenerating = false;
+                        DebugLogger.logError("ChatPage", "Multimodal generation error: " + error);
+                    },
+                    function(chunk) {
+                        // Streaming callback
+                        if (streamingMessageIndex >= 0) {
+                            streamingContent += chunk;
+                            chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
+                            DebugLogger.logVerbose("ChatPage", "Multimodal streaming chunk added, total length: " + streamingContent.length);
+                        }
+                    }
+                );
+            });
         } else {
             generateResponse(prompt);
         }
@@ -506,6 +519,15 @@ Page {
                 text: "Back to Conversations"
                 onClicked: {
                     pageStack.pop()
+                }
+            }
+            MenuItem {
+                text: "Export chat"
+                onClicked: {
+                    // Open an export dialog for the current conversation
+                    var dlg = pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
+                        "conversationId": currentConversationId
+                    })
                 }
             }
         }
@@ -894,7 +916,6 @@ Page {
                 id: rightButtons
                 spacing: Theme.paddingSmall
                 
-                /*
                 IconButton {
                     id: attachButton
                     icon.source: "image://theme/icon-s-attach"
@@ -911,7 +932,6 @@ Page {
                         });
                     }
                 }
-                */
                 
                 IconButton {
                     id: sendButton

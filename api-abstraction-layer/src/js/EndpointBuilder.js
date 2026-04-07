@@ -253,6 +253,19 @@ function buildRequestData(provider, model, messages, options) {
             if (supportsStreaming(provider) && options.streaming) {
                 requestData.stream = true;
             }
+        } else if (providerType === 'ollama') {
+            // Ollama native multimodal: custom messages + images
+            requestData.model = model;
+            requestData.messages = options.customMessages;
+            requestData.stream = Boolean(options.streaming);
+
+            // Add images if provided (Ollama native format: top-level images array)
+            if (options.images && Array.isArray(options.images)) {
+                requestData.images = [];
+                for (var img = 0; img < options.images.length; img++) {
+                    requestData.images.push(options.images[img].data || options.images[img]);
+                }
+            }
         } else {
             // OpenAI-compatible with custom messages
             requestData.model = model;
@@ -263,7 +276,7 @@ function buildRequestData(provider, model, messages, options) {
                 requestData.stream = true;
             }
         }
-        logInfo("EndpointBuilder", "Built request data with custom messages (multimodal)");
+        logInfo("EndpointBuilder", "Built request data with custom messages (multimodal) for " + providerType);
         return requestData;
     }
 

@@ -873,6 +873,7 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
     var messages = [];
     var customContents = null;
     var customMessages = null;
+    var ollamaImageArray = null;
 
     if (providerType === 'gemini') {
         // Gemini multimodal: parts array with inline_data + text
@@ -956,22 +957,10 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
         customMessages = filterRoleAlternation(ollamaMessages);
 
         // Ollama native: images go as a separate top-level array, not in messages
-        var ollamaImages = [];
+        ollamaImageArray = [];
         for (var img = 0; img < images.length; img++) {
-            ollamaImages.push(images[img].data);
+            ollamaImageArray.push(images[img].data);
         }
-
-        // Pass images via options for buildRequestData to pick up
-        var options = {
-            apiKey: apiKey,
-            streaming: Boolean(streamCallback && supportsStreaming(resolved)),
-            timeout: resolved._timeout * 3,
-            enableThinking: resolved._enableThinking,
-            temperature: 0.7,
-            maxTokens: 2048,
-            customMessages: customMessages,
-            images: ollamaImages
-        };
     } else {
         // OpenAI multimodal: content array with image_url
         var contentArray = [];
@@ -1015,6 +1004,11 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
         customMessages: customMessages
     };
 
+    // Add Ollama images to options (set in ollama branch above)
+    if (ollamaImageArray) {
+        options.images = ollamaImageArray;
+    }
+
     // Build and send request (reuse the same XHR pattern as generate)
     var endpointType = options.streaming ? 'streaming' : 'chat';
     var url = buildEndpointUrl(resolved, endpointType, {model: model}, {apiKey: apiKey});
@@ -1056,11 +1050,13 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
                     if (isStreaming) {
                         callback && callback('');
                     } else {
+                        logInfo("generateWithImages", "Response length: " + xhr.responseText.length + ", status: " + xhr.status);
                         var response = JSON.parse(xhr.responseText);
                         var content = extractContent(response, resolved);
                         callback && callback(content);
                     }
                 } catch (e) {
+                    logError("generateWithImages", "Parse error: " + e.toString() + ", response length: " + xhr.responseText.length + ", first 200: " + (xhr.responseText ? xhr.responseText.substring(0, 200) : "empty"));
                     errorCallback && errorCallback("Failed to parse response: " + e.toString());
                 }
             } else {
