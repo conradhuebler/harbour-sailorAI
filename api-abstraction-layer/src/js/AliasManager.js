@@ -57,6 +57,69 @@ function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, 
 }
 
 /**
+ * Initialize default aliases from provider config
+ * Creates one alias per provider type with sensible defaults
+ * @param {object} config - Loaded API configuration
+ */
+function initDefaultAliases(config) {
+    if (!config || !config.api_endpoints) return;
+
+    var defaults = {
+        "openai": {
+            aliasId: "openai",
+            name: "ChatGPT",
+            description: "OpenAI API (GPT-4o, GPT-4o-mini)"
+        },
+        "anthropic": {
+            aliasId: "anthropic",
+            name: "Claude",
+            description: "Anthropic Claude API"
+        },
+        "gemini": {
+            aliasId: "gemini",
+            name: "Gemini",
+            description: "Google Gemini API"
+        },
+        "ollama": {
+            aliasId: "ollama",
+            name: "Ollama",
+            description: "Ollama local server"
+        }
+    };
+
+    for (var type in defaults) {
+        if (!defaults.hasOwnProperty(type)) continue;
+        if (!config.api_endpoints[type]) continue;
+
+        var def = defaults[type];
+        var template = config.api_endpoints[type];
+
+        // Skip if alias already exists
+        if (providerAliases[def.aliasId]) continue;
+
+        var alias = {
+            name: def.name,
+            type: type,
+            url: template.base_url,
+            api_key: "",
+            port: "",
+            description: def.description,
+            timeout: 30000,
+            favoriteModel: "",
+            favoriteModels: [],
+            enableThinking: false,
+            isDefault: true
+        };
+
+        providerAliases[def.aliasId] = alias;
+        aliasAvailability[def.aliasId] = "unchecked";
+        aliasModels[def.aliasId] = [];
+    }
+
+    logInfo("AliasManager", "Initialized default aliases: " + Object.keys(providerAliases).join(", "));
+}
+
+/**
  * Remove a provider alias (cannot remove defaults)
  * @param {string} aliasId - Alias identifier
  * @returns {boolean} True if removed
@@ -245,8 +308,6 @@ function checkAvailability(aliasId, config, callback) {
         // Build ping URL based on provider type
         var pingUrl = alias.url;
         if (alias.type === "ollama") {
-            pingUrl += "/models";
-        } else if (alias.type === "ollama_native") {
             pingUrl += "/api/tags";
         } else if (alias.type === "openai") {
             pingUrl += "/models";

@@ -129,7 +129,7 @@ Page {
                     }
 
                     Text {
-                        text: model.modelCount + " models"
+                        text: model.modelCount > 0 ? model.modelCount + " models" : ""
                         color: "#888"
                         font.pixelSize: 11
                     }
@@ -149,7 +149,7 @@ Page {
 
     Dialog {
         id: addDialog
-        title: "Add Provider Alias"
+        title: "Add Provider"
         modal: true
         width: 400
 
@@ -157,11 +157,46 @@ Page {
 
         onAboutToShow: {
             addTypeCombo.model = addDialog.providerTypes;
+            // Reset fields
+            addId.text = "";
+            addName.text = "";
+            addUrl.text = "";
+            addApiKey.text = "";
+            addModel.text = "";
+            addTypeCombo.currentIndex = 0;
+            addDialog.autoFillFromType(0);
+        }
+
+        function autoFillFromType(index) {
+            if (!api || index < 0 || index >= addDialog.providerTypes.length) return;
+            var typeStr = addDialog.providerTypes[index];
+            var provider = api.getProvider(typeStr);
+            if (!provider) return;
+
+            // Auto-fill name from provider config
+            addName.text = provider.name || typeStr;
+            addName.placeholderText = provider.name || typeStr;
+
+            // Auto-fill URL from provider config
+            addUrl.text = provider.base_url || "";
+            addUrl.placeholderText = provider.base_url || "Base URL";
+
+            // Ollama doesn't need an API key
+            addApiKey.placeholderText = typeStr === "ollama" ? "API Key (optional for Ollama)" : "API Key";
         }
 
         Column {
             width: parent.width
             spacing: 8
+
+            ComboBox {
+                id: addTypeCombo
+                width: parent.width
+                model: addDialog.providerTypes
+                onActivated: {
+                    addDialog.autoFillFromType(currentIndex);
+                }
+            }
 
             TextField {
                 id: addId
@@ -172,19 +207,13 @@ Page {
             TextField {
                 id: addName
                 width: parent.width
-                placeholderText: "Display name (e.g. My Ollama)"
-            }
-
-            ComboBox {
-                id: addTypeCombo
-                width: parent.width
-                model: addDialog.providerTypes
+                placeholderText: "Display name"
             }
 
             TextField {
                 id: addUrl
                 width: parent.width
-                placeholderText: "Base URL (leave empty for default)"
+                placeholderText: "Base URL"
             }
 
             TextField {
@@ -231,12 +260,6 @@ Page {
                     console.log("Availability for " + newAliasId + ": " + status);
                     refreshAliases();
                 });
-
-                addId.text = "";
-                addName.text = "";
-                addUrl.text = "";
-                addApiKey.text = "";
-                addModel.text = "";
             }
         }
 

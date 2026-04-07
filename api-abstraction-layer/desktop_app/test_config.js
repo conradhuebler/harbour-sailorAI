@@ -21,7 +21,7 @@ var testConfig = {
                 "supportsImages": true,
                 "supportsThinking": false
             },
-            "defaultModels": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
+            "defaultModels": [],
             "headers": {
                 "required": ["Content-Type", "Authorization"],
                 "optional": {}
@@ -45,7 +45,7 @@ var testConfig = {
                 "supportsImages": true,
                 "supportsThinking": true
             },
-            "defaultModels": ["claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022", "claude-3-opus-20240229"],
+            "defaultModels": [],
             "headers": {
                 "required": ["Content-Type", "x-api-key"],
                 "optional": {
@@ -79,33 +79,9 @@ var testConfig = {
             }
         },
         "ollama": {
-            "name": "Ollama Local",
+            "name": "Ollama",
             "type": "ollama",
-            "base_url": "http://127.0.0.1:11434/v1",
-            "endpoints": {
-                "chat": "/chat/completions",
-                "models": "/models",
-                "streaming": "/chat/completions"
-            },
-            "authentication": {
-                "header": "Authorization",
-                "prefix": "Bearer "
-            },
-            "features": {
-                "supportsStreaming": true,
-                "supportsImages": false,
-                "supportsThinking": false
-            },
-            "defaultModels": ["minimax-m2.7:cloud", "glm-5:cloud", "gemma4:31b-cloud", "qwen3.5:cloud"],
-            "headers": {
-                "required": ["Content-Type"],
-                "optional": {}
-            }
-        },
-        "ollama_native": {
-            "name": "Ollama (Native API)",
-            "type": "ollama_native",
-            "base_url": "https://ollama.com",
+            "base_url": "http://127.0.0.1:11434",
             "endpoints": {
                 "chat": "/api/chat",
                 "models": "/api/tags",
@@ -120,9 +96,9 @@ var testConfig = {
                 "supportsImages": true,
                 "supportsThinking": false
             },
-            "defaultModels": ["gpt-oss:120b", "llama3.3", "mistral-small", "deepseek-r1"],
+            "defaultModels": [],
             "headers": {
-                "required": ["Content-Type", "Authorization"],
+                "required": ["Content-Type"],
                 "optional": {}
             }
         }

@@ -226,7 +226,7 @@ class TestAPICompatibility(unittest.TestCase):
             ('openai', 'supportsImages', True),
             ('anthropic', 'supportsImages', True),  # Claude 3+ supports images
             ('gemini', 'supportsImages', True),
-            ('ollama', 'supportsImages', False),
+            ('ollama', 'supportsImages', True),  # Ollama native /api/chat supports images
         ]
 
         for provider_id, feature, expected in feature_tests:

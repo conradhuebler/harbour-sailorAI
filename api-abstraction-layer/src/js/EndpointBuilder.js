@@ -294,7 +294,7 @@ function buildRequestData(provider, model, messages, options) {
                 parts: [{text: "Think step by step and show your reasoning process."}]
             };
         }
-    } else if (providerType === 'ollama_native') {
+    } else if (providerType === 'ollama') {
         // Ollama native format: /api/chat
         requestData.model = model;
         requestData.messages = [];
@@ -312,6 +312,14 @@ function buildRequestData(provider, model, messages, options) {
         }
 
         requestData.stream = Boolean(options.streaming);
+
+        // Add images if provided (Ollama native format: top-level images array)
+        if (options.images && Array.isArray(options.images)) {
+            requestData.images = [];
+            for (var img = 0; img < options.images.length; img++) {
+                requestData.images.push(options.images[img].data || options.images[img]);
+            }
+        }
 
         logInfo("EndpointBuilder", "Built Ollama native request data");
     } else if (providerType === 'anthropic') {

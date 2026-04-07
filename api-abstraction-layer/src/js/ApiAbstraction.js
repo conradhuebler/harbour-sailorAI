@@ -304,7 +304,7 @@ function processStreamingChunk(chunkText, streamCallback, providerType) {
         if (providerType === 'gemini') {
             // Gemini streaming format - incremental brace-counting parser
             processGeminiStream(chunkText, streamCallback);
-        } else if (providerType === 'ollama_native') {
+        } else if (providerType === 'ollama') {
             // Ollama native API uses NDJSON (one JSON per line, not SSE)
             processNDJSONStream(chunkText, streamCallback);
         } else {
@@ -476,7 +476,7 @@ function extractContent(response, provider) {
         if (geminiResponse.candidates && geminiResponse.candidates[0] && geminiResponse.candidates[0].content) {
             return geminiResponse.candidates[0].content.parts[0].text || '';
         }
-    } else if (providerType === 'ollama_native') {
+    } else if (providerType === 'ollama') {
         // Ollama native format: {"message": {"role": "assistant", "content": "text"}, "done": true}
         if (response.message && response.message.content) {
             return response.message.content;
@@ -533,7 +533,7 @@ function extractModels(response, provider) {
                 }
             }
         }
-    } else if (providerType === 'ollama_native') {
+    } else if (providerType === 'ollama') {
         // Ollama native /api/tags format: {"models": [{"name": "llama3.3", ...}]}
         if (response.models) {
             for (var m = 0; m < response.models.length; m++) {
@@ -914,8 +914,45 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
             customMessages = historyMessages.concat(customMessages);
         }
         customMessages = filterRoleAlternation(customMessages);
+    } else if (providerType === 'ollama') {
+        // Ollama native format: top-level images array with base64 strings
+        var ollamaMessages = [];
+
+        if (history && Array.isArray(history)) {
+            for (var h = 0; h < history.length; h++) {
+                var histRole = history[h].role === 'bot' ? 'assistant' : history[h].role;
+                ollamaMessages.push({
+                    role: histRole,
+                    content: history[h].message || history[h].content
+                });
+            }
+        }
+
+        if (prompt) {
+            ollamaMessages.push({role: "user", content: prompt});
+        }
+
+        customMessages = filterRoleAlternation(ollamaMessages);
+
+        // Ollama native: images go as a separate top-level array, not in messages
+        var ollamaImages = [];
+        for (var img = 0; img < images.length; img++) {
+            ollamaImages.push(images[img].data);
+        }
+
+        // Pass images via options for buildRequestData to pick up
+        var options = {
+            apiKey: apiKey,
+            streaming: Boolean(streamCallback && supportsStreaming(resolved)),
+            timeout: resolved._timeout * 3,
+            enableThinking: resolved._enableThinking,
+            temperature: 0.7,
+            maxTokens: 2048,
+            customMessages: customMessages,
+            images: ollamaImages
+        };
     } else {
-        // OpenAI/Ollama multimodal: content array with image_url
+        // OpenAI multimodal: content array with image_url
         var contentArray = [];
         if (prompt) {
             contentArray.push({type: "text", text: prompt});
