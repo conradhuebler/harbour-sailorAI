@@ -1,0 +1,49 @@
+{
+  "api_endpoints": {
+    "openai": {
+      "name": "OpenAI Compatible",
+      "base_url": "https://api.openai.com/v1",
+      "endpoints": {"chat": "/chat/completions", "models": "/models", "streaming": "/chat/completions"},
+      "authentication": {"header": "Authorization", "prefix": "Bearer "},
+      "features": {"supportsStreaming": true, "supportsImages": true, "supportsThinking": false},
+      "defaultModels": ["gpt-4o"],
+      "headers": {"required": ["Content-Type", "Authorization"], "optional": {}}
+    },
+    "gemini": {
+      "name": "Google Gemini",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/models",
+      "endpoints": {"chat": "{model}:generateContent", "models": "", "streaming": "{model}:streamGenerateContent"},
+      "authentication": {"header": "x-goog-api-key", "prefix": ""},
+      "features": {"supportsStreaming": true, "supportsImages": true, "supportsThinking": true},
+      "defaultModels": [],
+      "headers": {"required": ["Content-Type", "x-goog-api-key"], "optional": {}}
+    }
+  },
+  "test_providers": {
+    "chatai": {
+      "api_key": "24b579f8e208d098a1aa3321392429ad",
+      "test_models": ["gemma-3-27b-it"],
+      "enabled": true
+    },
+    "gemini": {
+      "api_key": "AIzaSyDfYDTVvpJveVYj7UWoleU1iZJVwJyFxB0",
+      "test_models": ["gemini-2.5-flash"],
+      "enabled": true
+    }
+  },
+  "test_scenarios": {
+    "basic_chat": {
+      "messages": [{"role": "user", "content": "Hello! Please respond with a simple greeting."}],
+      "expected_patterns": ["hello", "hi", "greeting"]
+    },
+    "streaming_test": {
+      "messages": [{"role": "user", "content": "Count from 1 to 5 slowly."}],
+      "streaming_expected": true,
+      "min_chunks": 2
+    },
+    "error_handling": {
+      "invalid_model": "nonexistent-model-12345",
+      "expected_status": [400, 404, 422]
+    }
+  }
+}

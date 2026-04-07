@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC>
+    <qresource prefix="/">
+        <file>ChatTestApp.qml</file>
+        <file>main.cpp</file>
+        <file>resources/chat_logic.js</file>
+        <file>resources/config/test_providers.json</file>
+        <file alias="src/js/EndpointBuilder.js">../../src/js/EndpointBuilder.js</file>
+    <file alias="src/js/ConfigLoader.js">../../src/js/ConfigLoader.js</file>
+    <file alias="src/js/ApiAbstraction.js">../../src/js/ApiAbstraction.js</file>
+
+</qresource>
+</RCC>

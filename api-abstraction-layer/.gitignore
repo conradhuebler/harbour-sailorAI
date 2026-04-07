@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+*.o
+*.pro.user
+.qmake.stash
+
+# Python
+__pycache__/
+*.pyc
+
+# Test logs
+logs/
+*.log
+
+# Temp files
+integration_test.qml

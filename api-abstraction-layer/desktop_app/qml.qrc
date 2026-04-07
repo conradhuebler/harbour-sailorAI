@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Main.qml</file>
+        <file>ChatPage.qml</file>
+        <file>AliasPage.qml</file>
+        <file>StatusPage.qml</file>
+        <file>SettingsPage.qml</file>
+        <file>test_config.js</file>
+        <file alias="src/js/DebugLogger.js">../src/js/DebugLogger.js</file>
+        <file alias="src/js/ConfigLoader.js">../src/js/ConfigLoader.js</file>
+        <file alias="src/js/EndpointBuilder.js">../src/js/EndpointBuilder.js</file>
+        <file alias="src/js/AliasManager.js">../src/js/AliasManager.js</file>
+        <file alias="src/js/ApiAbstraction.js">../src/js/ApiAbstraction.js</file>
+    </qresource>
+</RCC>

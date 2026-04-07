@@ -1,0 +1,223 @@
+{
+  "api_endpoints": {
+    "openai": {
+      "name": "OpenAI",
+      "base_url": "https://api.openai.com/v1",
+      "endpoints": {
+        "chat": "/chat/completions",
+        "models": "/models",
+        "streaming": "/chat/completions"
+      },
+      "authentication": {
+        "header": "Authorization",
+        "prefix": "Bearer "
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": true,
+        "supportsThinking": false
+      },
+      "defaultModels": ["gpt-4", "gpt-3.5-turbo"],
+      "headers": {
+        "required": ["Content-Type", "Authorization"],
+        "optional": {}
+      }
+    },
+    "anthropic": {
+      "name": "Anthropic Claude",
+      "base_url": "https://api.anthropic.com/v1",
+      "endpoints": {
+        "chat": "/messages",
+        "models": "/models",
+        "streaming": "/messages"
+      },
+      "authentication": {
+        "header": "x-api-key",
+        "prefix": ""
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": false,
+        "supportsThinking": true
+      },
+      "defaultModels": ["claude-3-5-sonnet-20241022"],
+      "headers": {
+        "required": ["Content-Type", "x-api-key"],
+        "optional": {
+          "anthropic-version": "2023-06-01"
+        }
+      }
+    },
+    "gemini": {
+      "name": "Google Gemini",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/models",
+      "endpoints": {
+        "chat": "/{model}:generateContent",
+        "models": "",
+        "streaming": "/{model}:streamGenerateContent"
+      },
+      "authentication": {
+        "header": "x-goog-api-key",
+        "prefix": ""
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": true,
+        "supportsThinking": false
+      },
+      "defaultModels": ["gemini-2.0-flash"],
+      "headers": {
+        "required": ["Content-Type", "x-goog-api-key"],
+        "optional": {}
+      }
+    },
+    "ollama": {
+      "name": "Ollama",
+      "base_url": "http://localhost:11434",
+      "endpoints": {
+        "chat": "/api/chat",
+        "models": "/api/tags",
+        "streaming": "/api/chat"
+      },
+      "authentication": {
+        "header": "",
+        "prefix": ""
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": false,
+        "supportsThinking": false
+      },
+      "defaultModels": ["llama3.2"],
+      "headers": {
+        "required": ["Content-Type"],
+        "optional": {}
+      }
+    },
+    "chatai": {
+      "name": "GWDG Academic Cloud ChatAI",
+      "base_url": "https://chat-ai.academiccloud.de/v1",
+      "endpoints": {
+        "chat": "/chat/completions",
+        "models": "/models",
+        "streaming": "/chat/completions"
+      },
+      "authentication": {
+        "header": "Authorization",
+        "prefix": "Bearer "
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": false,
+        "supportsThinking": false
+      },
+      "defaultModels": ["gemma-3-27b-it"],
+      "headers": {
+        "required": ["Content-Type", "Authorization"],
+        "optional": {}
+      }
+    },
+    "llmachine_openai": {
+      "name": "LLMachine OpenAI Compatible",
+      "base_url": "http://139.20.140.163:11434/v1",
+      "endpoints": {
+        "chat": "/chat/completions",
+        "models": "/models",
+        "streaming": "/chat/completions"
+      },
+      "authentication": {
+        "header": "Authorization",
+        "prefix": "Bearer "
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": false,
+        "supportsThinking": false
+      },
+      "defaultModels": ["deepcogito/cogito-v1-preview-qwen-32B"],
+      "headers": {
+        "required": ["Content-Type"],
+        "optional": {}
+      }
+    },
+    "ollama_com": {
+      "name": "Ollama.com",
+      "base_url": "https://ollama.com",
+      "endpoints": {
+        "chat": "/api/chat",
+        "models": "/api/tags",
+        "streaming": "/api/chat"
+      },
+      "authentication": {
+        "header": "Authorization",
+        "prefix": "Bearer "
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": false,
+        "supportsThinking": false
+      },
+      "defaultModels": ["deepseek-v3.1:671b"],
+      "headers": {
+        "required": ["Content-Type", "Authorization"],
+        "optional": {}
+      }
+    }
+  },
+  "test_providers": {
+    "gemini": {
+      "api_key": "AIzaSyDfYDTVvpJveVYj7UWoleU1iZJVwJyFxB0",
+      "test_models": ["gemini-2.0-flash", "gemini-2.5-pro"],
+      "enabled": true
+    },
+    "chatai": {
+      "api_key": "24b579f8e208d098a1aa3321392429ad",
+      "test_models": ["gemma-3-27b-it", "meta-llama-3.1-8b-instruct"],
+      "enabled": true
+    },
+    "llmachine_openai": {
+      "api_key": "None",
+      "test_models": ["deepcogito/cogito-v1-preview-qwen-32B"],
+      "enabled": true
+    },
+    "ollama": {
+      "api_key": "",
+      "test_models": ["qwen2.5vl:latest", "cogito:32b"],
+      "enabled": true
+    },
+    "ollama_com": {
+      "api_key": "7137dd85825749f3adcfba97e9a97517.h2vKekcVLBaZdFfj7Gbh_anT",
+      "test_models": ["deepseek-v3.1:671b", "qwen3-coder:480b"],
+      "enabled": true
+    }
+  },
+  "test_scenarios": {
+    "basic_chat": {
+      "messages": [
+        {"role": "user", "content": "Hello! Please respond with a simple greeting."}
+      ],
+      "expected_patterns": ["hello", "hi", "greeting"]
+    },
+    "streaming_test": {
+      "messages": [
+        {"role": "user", "content": "Count from 1 to 5 slowly."}
+      ],
+      "streaming_expected": true,
+      "min_chunks": 2
+    },
+    "error_handling": {
+      "invalid_model": "nonexistent-model-12345",
+      "expected_status": [400, 404, 422]
+    },
+    "rate_limit_test": {
+      "rapid_requests": 5,
+      "expected_behavior": "process_or_limit"
+    },
+    "long_message": {
+      "messages": [
+        {"role": "user", "content": "Please analyze this complex text: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
+      ],
+      "max_response_time": 30
+    }
+  }
+}

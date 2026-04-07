@@ -1,0 +1,30 @@
+{
+  "api_endpoints": {
+    "custom_provider": {
+      "name": "Custom LLM Provider",
+      "type": "custom",
+      "base_url": "https://api.custom.com/v2",
+      "endpoints": {
+        "chat": "/completions",
+        "models": "/available-models",
+        "streaming": "/completions/stream"
+      },
+      "authentication": {
+        "header": "X-API-Key",
+        "prefix": ""
+      },
+      "features": {
+        "supportsStreaming": true,
+        "supportsImages": false,
+        "supportsThinking": true
+      },
+      "defaultModels": ["custom-model-1", "custom-model-2"],
+      "headers": {
+        "required": ["Content-Type", "X-API-Key"],
+        "optional": {
+          "X-Custom-Header": "custom-value"
+        }
+      }
+    }
+  }
+}

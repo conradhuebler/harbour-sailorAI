@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "api_endpoints": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z][a-z0-9_-]*$": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Human-readable name for the provider"
+            },
+            "base_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Base URL for the API endpoints"
+            },
+            "endpoints": {
+              "type": "object",
+              "properties": {
+                "chat": {
+                  "type": "string",
+                  "description": "Chat completion endpoint template, supports {model} variable"
+                },
+                "models": {
+                  "type": "string",
+                  "description": "Models list endpoint"
+                },
+                "streaming": {
+                  "type": "string",
+                  "description": "Streaming endpoint template, supports {model} variable"
+                }
+              },
+              "required": ["chat", "models", "streaming"]
+            },
+            "authentication": {
+              "type": "object",
+              "properties": {
+                "header": {
+                  "type": "string",
+                  "description": "HTTP header name for authentication"
+                },
+                "prefix": {
+                  "type": "string",
+                  "description": "Prefix to add before API key"
+                }
+              },
+              "required": ["header", "prefix"]
+            },
+            "features": {
+              "type": "object",
+              "properties": {
+                "supportsStreaming": {
+                  "type": "boolean",
+                  "description": "Whether provider supports streaming responses"
+                },
+                "supportsImages": {
+                  "type": "boolean",
+                  "description": "Whether provider supports multimodal images"
+                },
+                "supportsThinking": {
+                  "type": "boolean",
+                  "description": "Whether provider supports thinking mode"
+                }
+              },
+              "required": ["supportsStreaming", "supportsImages", "supportsThinking"]
+            },
+            "defaultModels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Default available models for this provider"
+            },
+            "headers": {
+              "type": "object",
+              "properties": {
+                "required": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Required HTTP headers for all requests"
+                },
+                "optional": {
+                  "type": "object",
+                  "patternProperties": {
+                        ".*": {
+                          "type": "string"
+                        }
+                  },
+                  "description": "Optional HTTP headers with default values"
+                }
+              },
+              "required": ["required"]
+            }
+          },
+          "required": ["name", "base_url", "endpoints", "authentication", "features", "defaultModels", "headers"]
+        }
+      }
+    }
+  },
+  "required": ["api_endpoints"]
+}

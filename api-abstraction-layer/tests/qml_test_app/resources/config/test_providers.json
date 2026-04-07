@@ -1,0 +1,26 @@
+{
+  "test_providers": {
+    "openai": {
+      "api_key": "${OPENAI_API_KEY}",
+      "test_models": ["gpt-4o-mini"],
+      "enabled": true
+    },
+    "gemini": {
+      "api_key": "${GEMINI_API_KEY}",
+      "test_models": ["gemini-2.5-flash"],
+      "enabled": true
+    },
+    "ollama_local": {
+      "api_key": "",
+      "base_url": "http://localhost:11434",
+      "test_models": ["qwen2.5vl:latest"],
+      "enabled": true
+    },
+    "ollama_cloud": {
+      "api_key": "${OLLAMA_API_KEY}",
+      "base_url": "https://ollama.com",
+      "test_models": ["gpt-oss:120b"],
+      "enabled": true
+    }
+  }
+}
