@@ -15,7 +15,8 @@ Dialog {
     property string favoriteModel: ""
     property var availableModels: []
     property bool fetchingModels: false
-    
+    property string serverPreset: ""
+
     canAccept: aliasName.trim() !== "" && favoriteModel !== "" && !fetchingModels
     
     SilicaFlickable {
@@ -70,48 +71,103 @@ Dialog {
                     return types.indexOf(providerType);
                 }
                 menu: ContextMenu {
-                    MenuItem { 
+                    MenuItem {
                         text: "OpenAI Compatible"
                         onClicked: {
                             providerType = "openai";
                             apiUrl = "https://api.openai.com/v1";
+                            serverPreset = "";
                             loadModelsForType("openai");
                         }
                     }
-                    MenuItem { 
+                    MenuItem {
                         text: "Anthropic Claude"
                         onClicked: {
                             providerType = "anthropic";
                             apiUrl = "https://api.anthropic.com/v1";
+                            serverPreset = "";
                             loadModelsForType("anthropic");
                         }
                     }
-                    MenuItem { 
+                    MenuItem {
                         text: "Google Gemini"
                         onClicked: {
                             providerType = "gemini";
                             apiUrl = "https://generativelanguage.googleapis.com/v1beta/models";
+                            serverPreset = "";
                             loadModelsForType("gemini");
                         }
                     }
-                    MenuItem { 
+                    MenuItem {
                         text: "Ollama Local"
                         onClicked: {
                             providerType = "ollama";
-                            apiUrl = "http://localhost:11434/v1";
+                            apiUrl = "https://ollama.com";
+                            serverPreset = "";
                             loadModelsForType("ollama");
                         }
                     }
                 }
             }
-            
+
+            Item { height: Theme.paddingMedium }
+
+            ComboBox {
+                id: serverPresetComboBox
+                label: "Server / Endpoint"
+                visible: providerType === "openai" || providerType === "anthropic"
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                x: Theme.horizontalPageMargin
+                currentIndex: {
+                    if (serverPreset === "official") return 0;
+                    if (serverPreset === "ollama") return 1;
+                    if (serverPreset === "custom") return 2;
+                    return -1;
+                }
+                menu: ContextMenu {
+                    MenuItem {
+                        text: "Official API"
+                        onClicked: {
+                            serverPreset = "official";
+                            if (providerType === "openai") apiUrl = "https://api.openai.com/v1";
+                            else if (providerType === "anthropic") apiUrl = "https://api.anthropic.com/v1";
+                        }
+                    }
+                    MenuItem {
+                        text: "Ollama Compatible"
+                        onClicked: {
+                            serverPreset = "ollama";
+                            if (providerType === "openai") apiUrl = "https://ollama.com/v1";
+                            else if (providerType === "anthropic") apiUrl = "https://ollama.com/v1";
+                        }
+                    }
+                    MenuItem {
+                        text: "Custom"
+                        onClicked: {
+                            serverPreset = "custom";
+                            apiUrl = "";
+                        }
+                    }
+                }
+            }
+
+            Label {
+                visible: serverPresetComboBox.visible
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: "Select the API server to use"
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+            }
+
             Item { height: Theme.paddingLarge }
-            
+
             // Section 2: API Configuration
             SectionHeader {
                 text: "API Configuration"
             }
-            
+
             TextField {
                 id: apiUrlField
                 label: "API URL"
@@ -141,13 +197,13 @@ Dialog {
                 text: apiKey
                 onTextChanged: apiKey = text
                 echoMode: TextInput.Password
-                placeholderText: "Enter your API key..."
+                placeholderText: apiUrl.indexOf("localhost:11434") !== -1 ? "API Key (optional for local Ollama)" : "Enter your API key..."
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Your API key for authentication (required for most providers, except Ollama)"
+                text: apiUrl.indexOf("localhost:11434") !== -1 ? "Ollama doesn't require an API key for local use" : "Your API key for authentication (required for most providers)"
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap

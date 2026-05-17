@@ -135,7 +135,8 @@ Page {
         var count = 0;
         for (var i = 0; i < aliases.length; i++) {
             var alias = LLMApi.getProviderAlias(aliases[i]);
-            if (alias && (alias.api_key || alias.type === "ollama")) {
+            var isLocalhostOllama = alias.url && alias.url.indexOf("localhost:11434") !== -1;
+            if (alias && (alias.api_key || isLocalhostOllama)) {
                 count++;
             }
         }
@@ -152,12 +153,9 @@ Page {
             var alias = LLMApi.getProviderAlias(aliasId);
             DebugLogger.logInfo("ConversationListPage", "Alias " + aliasId + ": type=" + (alias ? alias.type : "null") + ", api_key=" + (alias && alias.api_key ? "***SET***" : "empty"));
             
-            if (alias && alias.api_key && alias.type !== "ollama") {
+            var isLocalhostOllama = alias.url && alias.url.indexOf("localhost:11434") !== -1;
+            if (alias && (alias.api_key || isLocalhostOllama)) {
                 DebugLogger.logInfo("ConversationListPage", "✓ Active provider found: " + aliasId + " (" + alias.type + ")");
-                return true;
-            } else if (alias && alias.type === "ollama") {
-                // Ollama doesn't require API key
-                DebugLogger.logInfo("ConversationListPage", "✓ Active Ollama provider found: " + aliasId);
                 return true;
             }
         }

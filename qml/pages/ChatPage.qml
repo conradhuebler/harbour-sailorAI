@@ -459,11 +459,12 @@ Page {
             return;
         }
         
-        if (!alias.api_key && alias.type !== "ollama") {
+        var isLocalhostOllama = alias.url && alias.url.indexOf("localhost:11434") !== -1;
+        if (!alias.api_key && !isLocalhostOllama) {
             chatModel.append({role: "error", message: "Error: No API key configured for " + alias.name, timestamp: Date.now()});
             return;
         }
-        
+
         isGenerating = true;
         DebugLogger.logInfo("ChatPage", "Generating response with alias: " + selectedAliasId + ", model: " + selectedModel);
         
@@ -557,7 +558,8 @@ Page {
                 return;
             }
 
-            if (!alias.api_key && alias.type !== "ollama") {
+            var isLocalhostOllama2 = alias.url && alias.url.indexOf("localhost:11434") !== -1;
+            if (!alias.api_key && !isLocalhostOllama2) {
                 chatModel.append({role: "error", message: "Error: No API key configured for " + alias.name, timestamp: Date.now()});
                 return;
             }

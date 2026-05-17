@@ -783,8 +783,9 @@ ApiAbstraction.prototype.generate = function(aliasId, model, prompt, history, ca
     var apiKey = resolved._apiKey;
     var providerType = resolved.type || resolved._type || '';
 
-    // Check API key (Ollama doesn't need one)
-    if (!apiKey && providerType !== 'ollama') {
+    // Check API key (only localhost Ollama doesn't need one)
+    var isLocalhostOllama = resolved.base_url && resolved.base_url.indexOf('localhost:11434') !== -1;
+    if (!apiKey && !isLocalhostOllama) {
         errorCallback && errorCallback("No API key configured for alias: " + aliasId);
         return;
     }
@@ -919,7 +920,8 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
     var apiKey = resolved._apiKey;
     var providerType = resolved.type || resolved._type || '';
 
-    if (!apiKey && providerType !== 'ollama') {
+    var isLocalhostOllama = resolved.base_url && resolved.base_url.indexOf('localhost:11434') !== -1;
+    if (!apiKey && !isLocalhostOllama) {
         errorCallback && errorCallback("No API key configured for alias: " + aliasId);
         return;
     }

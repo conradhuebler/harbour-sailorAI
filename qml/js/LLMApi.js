@@ -44,7 +44,7 @@ var _apiConfig = {
             "base_url": "https://api.anthropic.com/v1",
             "endpoints": {
                 "chat": "/messages",
-                "models": "",
+                "models": "/models",
                 "streaming": "/messages"
             },
             "authentication": {
@@ -92,7 +92,7 @@ var _apiConfig = {
         "ollama": {
             "name": "Ollama",
             "type": "ollama",
-            "base_url": "http://localhost:11434",
+            "base_url": "https://ollama.com",
             "endpoints": {
                 "chat": "/api/chat",
                 "models": "/api/tags",

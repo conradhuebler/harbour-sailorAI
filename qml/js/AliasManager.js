@@ -282,8 +282,9 @@ function checkAvailability(aliasId, config, callback) {
         return;
     }
 
-    // No API key needed for Ollama
-    if (!alias.api_key && alias.type !== "ollama") {
+    // No API key needed only for localhost Ollama
+    var isLocalhostOllama = alias.url && alias.url.indexOf('localhost:11434') !== -1;
+    if (!alias.api_key && !isLocalhostOllama) {
         aliasAvailability[aliasId] = "no_key";
         callback && callback(false, "No API key configured");
         return;
@@ -325,8 +326,7 @@ function checkAvailability(aliasId, config, callback) {
         } else if (alias.type === "gemini") {
             pingUrl = alias.url; // Already includes models base
         } else if (alias.type === "anthropic") {
-            // Anthropic has no models endpoint - just ping the base
-            pingUrl += "/messages";
+            pingUrl += "/models";
         }
 
         xhr.open("GET", pingUrl, true);
@@ -476,14 +476,6 @@ function fetchModels(aliasId, config, callback, errorCallback) {
     var resolved = resolveAlias(aliasId, config);
     if (!resolved) {
         errorCallback && errorCallback("Failed to resolve alias");
-        return;
-    }
-
-    // Anthropic has no models endpoint
-    if (alias.type === 'anthropic') {
-        var defaults = resolved.defaultModels || [];
-        aliasModels[aliasId] = defaults;
-        callback && callback(defaults);
         return;
     }
 
