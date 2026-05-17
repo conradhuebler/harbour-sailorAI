@@ -3,6 +3,7 @@ import Sailfish.Silica 1.0
 import Nemo.Configuration 1.0
 import "../js/LLMApi.js" as LLMApi
 import "../js/DebugLogger.js" as DebugLogger
+import "../js/DateUtils.js" as DateUtils
 import "../js/DatabaseQueries.js" as DatabaseQueries
 
 Page {
@@ -230,10 +231,35 @@ Page {
         conversationList.clear();
         var conversations = app.database.loadConversations();
         for (var i = 0; i < conversations.length; i++) {
-            conversationList.append(conversations[i]);
+            var c = conversations[i];
+            c.section_key = DateUtils.getDateSectionKey(c.last_activity);
+            conversationList.append(c);
         }
         DebugLogger.logInfo("ConversationListPage", "Loaded " + conversations.length + " conversations");
         updateCoverStatistics();
+    }
+
+    // Map DateUtils section key -> localized header text.
+    // Kept in QML so qsTr() can pick the strings up at extraction time.
+    function sectionLabel(key) {
+        if (!key) return ""
+        if (key === "today")      return qsTr("Today")
+        if (key === "yesterday")  return qsTr("Yesterday")
+        if (key === "this_week")  return qsTr("This week")
+        if (key === "last_week")  return qsTr("Last week")
+        if (key === "older")      return qsTr("Older")
+        if (key.indexOf("month:") === 0) {
+            var parts = key.substring(6).split("-")
+            var monthNames = [
+                qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"),
+                qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"),
+                qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")
+            ]
+            var idx = parseInt(parts[1]) - 1
+            if (idx < 0 || idx > 11) return key
+            return monthNames[idx] + " " + parts[0]
+        }
+        return key
     }
 
     function newConversation() {
@@ -356,8 +382,15 @@ Page {
 
             SilicaListView {
                 width: parent.width
-                height: conversationList.count > 0 ? conversationList.count * Theme.itemSizeLarge : 200
+                // Bind to contentHeight so section headers expand the list naturally.
+                height: contentHeight > 0 ? contentHeight : 200
+                interactive: false  // outer SilicaFlickable handles scrolling
                 model: conversationList
+
+                section.property: "section_key"
+                section.delegate: SectionHeader {
+                    text: sectionLabel(section)
+                }
 
                 delegate: ListItem {
                     contentHeight: Theme.itemSizeLarge
