@@ -256,7 +256,10 @@ Dialog {
         favoriteModels.sort(function(a, b) {
             return favorites.indexOf(a) - favorites.indexOf(b);
         });
-        
+
+        // Sort non-favorites alphabetically
+        otherModels.sort();
+
         // Return favorites first, then other models
         return favoriteModels.concat(otherModels);
     }
@@ -282,106 +285,28 @@ Dialog {
     
     function fetchModelsFromProvider() {
         if (!apiUrl.trim()) {
-            DebugLogger.logError("AddProviderAliasDialog", "No API URL provided for model fetching");
+            DebugLogger.logError("EditProviderAliasDialog", "No API URL provided for model fetching");
             return;
         }
-        
+
         fetchingModels = true;
-        DebugLogger.logInfo("AddProviderAliasDialog", "Fetching models from: " + apiUrl);
-        
-        // Create temporary alias for model fetching
-        var tempAlias = {
-            type: providerType,
-            url: apiUrl,
-            api_key: apiKey.trim(), // Use provided API key if available
-            timeout: 10000
-        };
-        
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                fetchingModels = false;
-                
-                if (xhr.status === 200) {
-                    try {
-                        var response = JSON.parse(xhr.responseText);
-                        var models = parseModelsResponse(response, providerType);
-                        
-                        if (models.length > 0) {
-                            availableModels = models;
-                            favoriteModel = models[0];
-                            DebugLogger.logInfo("AddProviderAliasDialog", "Fetched " + models.length + " models successfully");
-                        } else {
-                            DebugLogger.logError("AddProviderAliasDialog", "No models found in response");
-                        }
-                    } catch (e) {
-                        DebugLogger.logError("AddProviderAliasDialog", "Failed to parse models response: " + e.toString());
-                    }
-                } else {
-                    DebugLogger.logError("AddProviderAliasDialog", "Model fetch failed with status: " + xhr.status);
-                }
-            }
-        };
-        
-        try {
-            var modelsUrl = apiUrl;
-            if (providerType === "ollama" || providerType === "openai" || providerType === "anthropic") {
-                if (modelsUrl.indexOf("/models") === -1) {
-                    modelsUrl += "/models";
-                }
-            }
-            
-            xhr.open("GET", modelsUrl, true);
-            xhr.timeout = 10000;
-            
-            // Add authentication headers if API key is provided
-            if (apiKey.trim() !== "") {
-                if (providerType === "gemini") {
-                    xhr.setRequestHeader("x-goog-api-key", apiKey.trim());
-                } else if (providerType === "openai" || providerType === "anthropic" || providerType === "ollama") {
-                    xhr.setRequestHeader("Authorization", "Bearer " + apiKey.trim());
-                }
-            }
-            
-            xhr.send();
-        } catch (e) {
+        DebugLogger.logInfo("EditProviderAliasDialog", "Fetching models for type: " + providerType + " from: " + apiUrl);
+
+        LLMApi.fetchModelsForType(providerType, apiUrl, apiKey.trim(), function(models) {
             fetchingModels = false;
-            DebugLogger.logError("AddProviderAliasDialog", "Failed to initiate model fetch: " + e.toString());
-        }
-    }
-    
-    function parseModelsResponse(response, type) {
-        var models = [];
-        
-        try {
-            if (type === "gemini") {
-                if (response.models) {
-                    for (var i = 0; i < response.models.length; i++) {
-                        var model = response.models[i];
-                        var modelName = (typeof model === "string") ? model : model.name;
-                        if (modelName && modelName.startsWith && modelName.startsWith("models/")) {
-                            modelName = modelName.substring(7);
-                        }
-                        if (modelName) {
-                            models.push(modelName);
-                        }
-                    }
+            if (models.length > 0) {
+                availableModels = sortModelsByFavorites(models, aliasId);
+                if (favoriteModel === "" && availableModels.length > 0) {
+                    favoriteModel = availableModels[0];
                 }
-            } else if (type === "openai" || type === "anthropic" || type === "ollama") {
-                if (response.data) {
-                    for (var j = 0; j < response.data.length; j++) {
-                        var modelObj = response.data[j];
-                        if (modelObj.id) {
-                            models.push(modelObj.id);
-                        }
-                    }
-                }
+                DebugLogger.logInfo("EditProviderAliasDialog", "Fetched " + models.length + " models successfully");
+            } else {
+                DebugLogger.logInfo("EditProviderAliasDialog", "No models returned for " + providerType);
             }
-        } catch (e) {
-            DebugLogger.logError("AddProviderAliasDialog", "Error parsing models: " + e.toString());
-        }
-        
-        return models;
+        }, function(error) {
+            fetchingModels = false;
+            DebugLogger.logError("EditProviderAliasDialog", "Model fetch failed: " + error);
+        });
     }
     
     Component.onCompleted: {

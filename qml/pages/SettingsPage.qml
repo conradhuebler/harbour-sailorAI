@@ -29,6 +29,12 @@ Page {
         defaultValue: ""
     }
 
+    ConfigurationValue {
+        id: imageMaxDimensionConfig
+        key: "/SailorAI/image_max_dimension"
+        defaultValue: 1280
+    }
+
     // Legacy configs for backward compatibility
     ConfigurationValue {
         id: geminiConfig
@@ -55,6 +61,7 @@ Page {
     }
 
     function loadAvailableAliases() {
+        availableAliases = [];
         availableAliases = LLMApi.getProviderAliases();
         DebugLogger.logInfo("SettingsPage", "Loaded " + availableAliases.length + " provider aliases");
         
@@ -84,7 +91,7 @@ Page {
                 "selectedAliasId": aliasId
             });
             favDialog.accepted.connect(function() {
-                // Refresh the provider list to show updated favorites
+                providerAliasesConfig.value = LLMApi.saveProviderAliases();
                 loadAvailableAliases();
                 loadCurrentAlias();
                 DebugLogger.logInfo("SettingsPage", "Favorites updated for provider: " + aliasId);
@@ -300,6 +307,52 @@ Page {
             }
 
             SectionHeader {
+                text: "Image Settings"
+            }
+
+            ComboBox {
+                id: imageMaxDimensionComboBox
+                label: "Max Image Size (resize threshold)"
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                x: Theme.horizontalPageMargin
+                currentIndex: {
+                    var v = imageMaxDimensionConfig.value;
+                    if (v <= 512) return 0;
+                    if (v <= 768) return 1;
+                    if (v <= 1024) return 2;
+                    if (v <= 1280) return 3;
+                    if (v <= 1920) return 4;
+                    return 5;
+                }
+                menu: ContextMenu {
+                    MenuItem {
+                        text: "512 px — compact (low bandwidth)"
+                        onClicked: imageMaxDimensionConfig.value = 512;
+                    }
+                    MenuItem {
+                        text: "768 px — medium"
+                        onClicked: imageMaxDimensionConfig.value = 768;
+                    }
+                    MenuItem {
+                        text: "1024 px — good quality"
+                        onClicked: imageMaxDimensionConfig.value = 1024;
+                    }
+                    MenuItem {
+                        text: "1280 px — default"
+                        onClicked: imageMaxDimensionConfig.value = 1280;
+                    }
+                    MenuItem {
+                        text: "1920 px — high quality"
+                        onClicked: imageMaxDimensionConfig.value = 1920;
+                    }
+                    MenuItem {
+                        text: "Original — no resize"
+                        onClicked: imageMaxDimensionConfig.value = 99999;
+                    }
+                }
+            }
+
+            SectionHeader {
                 text: "Provider Aliases"
             }
             
@@ -347,7 +400,8 @@ Page {
                                         case "no_key": statusIcon = "⚷"; break;
                                         case "error":
                                         case "timeout": statusIcon = "✗"; break;
-                                        default: statusIcon = "?"; break;
+                                        case "unchecked":
+                                        default: statusIcon = "○"; break;
                                     }
                                     return statusIcon;
                                 }
@@ -360,6 +414,7 @@ Page {
                                         case "no_key": return Theme.secondaryColor;
                                         case "error":
                                         case "timeout": return Theme.errorColor;
+                                        case "unchecked":
                                         default: return Theme.secondaryColor;
                                     }
                                 }

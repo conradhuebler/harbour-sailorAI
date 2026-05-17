@@ -219,6 +219,18 @@ function getAliasModels(aliasId) {
     return _api.getAliasModels(aliasId);
 }
 
+function getModelInfo(aliasId, modelName) {
+    return _api.getModelInfo(aliasId, modelName);
+}
+
+function isModelVisionCapable(aliasId, modelName) {
+    return _api.isModelVisionCapable(aliasId, modelName);
+}
+
+function checkOllamaModelVision(aliasId, modelName, callback) {
+    return _api.checkOllamaModelVision(aliasId, modelName, callback);
+}
+
 function fetchModelsForAlias(aliasId) {
     _api.fetchModelsForAlias(aliasId, null, null);
 }

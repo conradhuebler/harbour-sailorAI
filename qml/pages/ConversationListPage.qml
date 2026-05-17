@@ -430,7 +430,7 @@ Page {
                             }
                             
                             Label {
-                                visible: model.last_provider && model.last_model
+                                visible: !!model.last_provider && !!model.last_model
                                 text: {
                                     if (model.last_provider && model.last_model) {
                                         // Get provider display name

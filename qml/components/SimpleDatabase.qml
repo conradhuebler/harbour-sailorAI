@@ -39,7 +39,14 @@ QtObject {
                     } catch (e) {
                         DebugLogger.logVerbose("SimpleDatabase", "model_name column already exists or error: " + e.toString());
                     }
-                    
+
+                    try {
+                        tx.executeSql('ALTER TABLE messages ADD COLUMN image_paths TEXT');
+                        DebugLogger.logInfo("SimpleDatabase", "Added image_paths column");
+                    } catch (e) {
+                        DebugLogger.logVerbose("SimpleDatabase", "image_paths column already exists or error: " + e.toString());
+                    }
+
                     DebugLogger.logVerbose("SimpleDatabase", "Transaction operations completed");
                 });
                 DebugLogger.logInfo("SimpleDatabase", "Schema initialization and migration completed");
@@ -186,10 +193,17 @@ QtObject {
             db.readTransaction(function(tx) {
                 var rs = tx.executeSql('SELECT * FROM messages WHERE conversation_id = ? ORDER BY timestamp', [conversationId]);
                 for (var i = 0; i < rs.rows.length; i++) {
-                    var item = rs.rows.item(i);
-                    if (!item.timestamp) {
-                        item.timestamp = Date.now();
-                    }
+                    var row = rs.rows.item(i);
+                    var item = {
+                        id: row.id,
+                        conversation_id: row.conversation_id,
+                        role: row.role,
+                        message: row.message,
+                        timestamp: row.timestamp || Date.now(),
+                        provider_alias: row.provider_alias,
+                        model_name: row.model_name,
+                        images_json: row.image_paths || "[]"
+                    };
                     messages.push(item);
                 }
             });
@@ -202,16 +216,19 @@ QtObject {
         }
     }
     
-    function saveMessage(conversationId, role, message, providerAlias, modelName) {
+    function saveMessage(conversationId, role, message, providerAlias, modelName, imagePaths) {
         try {
             var db = getDatabase();
             var timestamp = Date.now();
             var provider = providerAlias || null;
             var model = modelName || null;
-            
+            var pathsJson = (imagePaths && imagePaths.length > 0)
+                ? JSON.stringify(imagePaths.map(function(p) { return p.toString(); }))
+                : null;
+
             db.transaction(function(tx) {
-                tx.executeSql('INSERT INTO messages (conversation_id, role, message, timestamp, provider_alias, model_name) VALUES (?, ?, ?, ?, ?, ?)', 
-                            [conversationId, role, message, timestamp, provider, model]);
+                tx.executeSql('INSERT INTO messages (conversation_id, role, message, timestamp, provider_alias, model_name, image_paths) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                            [conversationId, role, message, timestamp, provider, model, pathsJson]);
             });
             
             var logDetails = role;

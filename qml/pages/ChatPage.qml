@@ -20,6 +20,27 @@ Page {
     property int currentConversationId: conversationId
     property string selectedAliasId: ""
     property string selectedModel: "gemini-1.5-flash"
+    property bool currentModelSupportsVision: true
+
+    function updateVisionCapability() {
+        // Don't hide button during transient empty states while loading
+        if (!selectedAliasId) return;
+        var alias = LLMApi.getProviderAlias(selectedAliasId);
+        if (!alias || alias.type !== "ollama") { currentModelSupportsVision = true; return; }
+        if (!selectedModel) return;
+        currentModelSupportsVision = true; // optimistic while /api/show is in flight
+        var snapAlias = selectedAliasId;
+        var snapModel = selectedModel;
+        LLMApi.checkOllamaModelVision(snapAlias, snapModel, function(hasVision) {
+            // Discard stale callbacks from a previous model selection
+            if (selectedAliasId !== snapAlias || selectedModel !== snapModel) return;
+            currentModelSupportsVision = hasVision;
+            if (!hasVision) selectedImages = [];
+        });
+    }
+
+    onSelectedModelChanged: updateVisionCapability()
+    onSelectedAliasIdChanged: updateVisionCapability()
     property var availableAliases: []
     property var availableModels: []
     property bool isGenerating: false
@@ -44,7 +65,8 @@ Page {
         }
     }
 
-    // Canvas for resizing large images before sending to API
+    // Canvas for resizing large images before sending to API.
+    // Must use requestPaint() → onPaint cycle: toDataURL() only works after onPaint.
     Canvas {
         id: imageResizeCanvas
         width: 1
@@ -53,51 +75,57 @@ Page {
 
         property var pendingCallback: null
         property string pendingSource: ""
-        property real pendingOrigW: 0
-        property real pendingOrigH: 0
+        property bool imageReady: false
 
         onImageLoaded: {
-            DebugLogger.logInfo("ChatPage", "Canvas image loaded, resizing from " + pendingOrigW + "x" + pendingOrigH);
+            imageReady = true;
+            requestPaint();
+        }
+
+        onPaint: {
+            if (!imageReady || !pendingSource || !pendingCallback) return;
             var ctx = getContext('2d');
-            var scale = Math.min(1280 / pendingOrigW, 1280 / pendingOrigH, 1.0);
-            var w = Math.round(pendingOrigW * scale);
-            var h = Math.round(pendingOrigH * scale);
-            imageResizeCanvas.width = w;
-            imageResizeCanvas.height = h;
-            ctx.clearRect(0, 0, w, h);
-            ctx.drawImage(pendingSource, 0, 0, w, h);
-            var resizedB64 = imageResizeCanvas.toDataURL('image/jpeg', 0.7);
-            // Strip data URL prefix: "data:image/jpeg;base64,"
-            var b64Data = resizedB64.substring(resizedB64.indexOf(',') + 1);
-            DebugLogger.logInfo("ChatPage", "Resized image from " + pendingOrigW + "x" + pendingOrigH + " to " + w + "x" + h + " (" + b64Data.length + " base64 chars)");
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(pendingSource, 0, 0, width, height);
+            var dataUrl = toDataURL('image/jpeg', 0.7);
+            var b64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
+            DebugLogger.logInfo("ChatPage", "Resized image to " + width + "x" + height + " (" + b64Data.length + " chars)");
             var cb = pendingCallback;
+            var src = pendingSource;
             pendingCallback = null;
+            pendingSource = "";
+            imageReady = false;
+            unloadImage(src);
             if (b64Data.length < 100) {
-                DebugLogger.logError("ChatPage", "Resize produced tiny output (" + b64Data.length + " chars), falling back to original");
+                DebugLogger.logError("ChatPage", "Resize produced tiny output, falling back to original");
                 cb(null);
             } else {
                 cb({ data: b64Data, mimeType: "image/jpeg" });
             }
         }
-
     }
 
-    // Resize a large image using QML Canvas with loadImage
+    // Resize a large image using QML Canvas.
+    // Dimensions are set before loadImage() so the canvas is the right size when onPaint fires.
     function resizeImageFile(imageUrl, maxWidth, maxHeight, callback) {
-        // Get image dimensions first using a temporary Image element
         var tmpImg = Qt.createQmlObject('import QtQuick 2.0; Image { source: "' + imageUrl + '"; cache: false }', page);
         function proceed() {
             var origW = tmpImg.implicitWidth;
             var origH = tmpImg.implicitHeight;
             tmpImg.destroy();
+            if (origW <= 0 || origH <= 0) {
+                DebugLogger.logError("ChatPage", "Image has zero dimensions, skipping resize");
+                callback(null);
+                return;
+            }
             var scale = Math.min(maxWidth / origW, maxHeight / origH, 1.0);
             var w = Math.round(origW * scale);
             var h = Math.round(origH * scale);
             DebugLogger.logInfo("ChatPage", "Resizing image from " + origW + "x" + origH + " to " + w + "x" + h);
             imageResizeCanvas.pendingCallback = callback;
             imageResizeCanvas.pendingSource = imageUrl;
-            imageResizeCanvas.pendingOrigW = origW;
-            imageResizeCanvas.pendingOrigH = origH;
+            imageResizeCanvas.imageReady = false;
+            // Set dimensions first, then load — onPaint from dimension change is ignored (imageReady=false)
             imageResizeCanvas.width = w;
             imageResizeCanvas.height = h;
             imageResizeCanvas.loadImage(imageUrl);
@@ -120,12 +148,8 @@ Page {
         }
     }
 
-    // Maximum base64 size for images before resizing. Ollama cloud accepts
-    // ~2.5 MB payloads fine (verified). The Canvas-based resize path below is
-    // currently broken (onImageLoaded never fires), so keep this generous and
-    // let typical phone photos through unresized.
-    property int maxImageBase64Size: 4000000
-
+    // Threshold: base64 chars above this triggers canvas resize
+    property int maxImageBase64Size: imageMaxDimension.value > 0 ? imageMaxDimension.value * imageMaxDimension.value * 2 : 4000000
 
     // Configuration for last selected provider/model
     ConfigurationValue {
@@ -136,10 +160,16 @@ Page {
     
     ConfigurationValue {
         id: lastSelectedModel
-        key: "/SailorAI/last_selected_model"  
+        key: "/SailorAI/last_selected_model"
         defaultValue: ""
     }
-    
+
+    ConfigurationValue {
+        id: imageMaxDimension
+        key: "/SailorAI/image_max_dimension"
+        defaultValue: 1280
+    }
+
 
     function getProviderDisplayName() {
         if (selectedAliasId) {
@@ -171,6 +201,8 @@ Page {
             selectedModel = lastSelectedModel.value;
             DebugLogger.logInfo("ChatPage", "Restored last selected model: " + selectedModel);
         }
+        // Run with final alias+model values after both are restored
+        updateVisionCapability();
     }
     
     // Finalize streaming message - save to DB and clean up
@@ -294,10 +326,11 @@ Page {
             
             DebugLogger.logInfo("ChatPage", "Loading models for " + selectedAliasId + " - Available: " + availableModels.length + ", Favorite: " + (favoriteModel || "none"));
             
-            // Always prefer the favorite model for the current provider when switching
+            // Model selection priority: 1) Keep current if valid, 2) Provider's favorite, 3) First available
             if (availableModels.length > 0) {
-                // Priority: 1) Provider's favorite model, 2) First available model
-                if (favoriteModel && availableModels.indexOf(favoriteModel) !== -1) {
+                if (selectedModel && availableModels.indexOf(selectedModel) !== -1) {
+                    DebugLogger.logInfo("ChatPage", "Keeping current model selection: " + selectedModel);
+                } else if (favoriteModel && availableModels.indexOf(favoriteModel) !== -1) {
                     selectedModel = favoriteModel;
                     DebugLogger.logInfo("ChatPage", "✓ Selected provider's favorite model: " + selectedModel);
                 } else {
@@ -305,19 +338,17 @@ Page {
                     DebugLogger.logInfo("ChatPage", "Selected first available model: " + selectedModel + " (favorite '" + favoriteModel + "' not in list)");
                 }
             } else {
-                // No models cached - try to fetch them and use favorite as fallback
+                // No models cached - try to fetch them; only set favorite if nothing is selected yet
                 var alias = LLMApi.getProviderAlias(selectedAliasId);
                 if (alias && alias.api_key) {
                     DebugLogger.logInfo("ChatPage", "No models cached, fetching from API for: " + selectedAliasId);
                     LLMApi.fetchModelsForAlias(selectedAliasId);
-                    
-                    // Use favorite as temporary selection while fetching
-                    if (favoriteModel) {
+
+                    if (!selectedModel && favoriteModel) {
                         selectedModel = favoriteModel;
-                        DebugLogger.logInfo("ChatPage", "Using favorite as temporary selection: " + selectedModel);
+                        DebugLogger.logInfo("ChatPage", "Using favorite as initial selection: " + selectedModel);
                     }
-                } else if (favoriteModel) {
-                    // No API key but we have a favorite - use it
+                } else if (!selectedModel && favoriteModel) {
                     selectedModel = favoriteModel;
                     DebugLogger.logInfo("ChatPage", "No API key, using favorite: " + selectedModel);
                 }
@@ -346,17 +377,17 @@ Page {
         DebugLogger.logInfo("ChatPage", "Loaded " + messages.length + " messages");
     }
 
-    function saveMessage(role, message, providerAlias, modelName) {
+    function saveMessage(role, message, providerAlias, modelName, images) {
         if (currentConversationId <= 0) {
             DebugLogger.logError("ChatPage", "Cannot save message: no conversation ID");
             return;
         }
-        
+
         // Use current selection if not provided
         var provider = providerAlias || (role === "bot" ? selectedAliasId : null);
         var model = modelName || (role === "bot" ? selectedModel : null);
-        
-        if (app.database.saveMessage(currentConversationId, role, message, provider, model)) {
+
+        if (app.database.saveMessage(currentConversationId, role, message, provider, model, images)) {
             var logDetails = role;
             if (provider && model) {
                 logDetails += " (" + provider + " / " + model + ")";
@@ -623,7 +654,7 @@ Page {
                             if (encodedImages[idx].data.length > maxImageBase64Size) {
                                 var path = encodedImages[idx].originalPath || "";
                                 var fileUrl = path.indexOf("file://") === 0 ? path : "file://" + path;
-                                resizeImageFile(fileUrl, 1280, 1280, function(resized) {
+                                resizeImageFile(fileUrl, imageMaxDimension.value, imageMaxDimension.value, function(resized) {
                                     resizeCompleted++;
                                     if (resized) {
                                         finalImages.push(resized);
@@ -728,6 +759,11 @@ Page {
                     
                     property bool isOwnMessage: model ? model.role === "user" : false
                     property bool isErrorMessage: model ? model.role === "error" : false
+                    property var itemImages: {
+                        // ListModel can't reliably round-trip JS arrays in Qt5 — store as JSON string
+                        if (!model || !model.images_json) return []
+                        try { return JSON.parse(model.images_json) } catch(e) { return [] }
+                    }
                     
                     Item {
                         id: messageContent
@@ -736,7 +772,13 @@ Page {
                         
                         Rectangle {
                             id: messageBubble
-                            width: Math.min(messageText.implicitWidth + 2 * Theme.paddingMedium, parent.width * 0.85)
+                            width: {
+                                var textW = messageText.implicitWidth + 2 * Theme.paddingMedium
+                                var imgW = messageItem.itemImages.length > 0
+                                    ? (Theme.itemSizeLarge * 2 + 2 * Theme.paddingMedium + 2 * Theme.paddingSmall)
+                                    : 0
+                                return Math.min(Math.max(textW, imgW), parent.width * 0.85)
+                            }
                             height: messageColumn.implicitHeight + 2 * Theme.paddingSmall
                             
                             anchors.right: messageItem.isOwnMessage ? parent.right : undefined
@@ -770,18 +812,58 @@ Page {
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
 
-                                // Image thumbnail for messages with attached images
-                                Image {
-                                    id: imageThumbnail
-                                    visible: messageItem.isOwnMessage && model && model.images && model.images.length > 0
-                                    width: visible ? Theme.itemSizeSmall * 2 : 0
-                                    height: visible ? Theme.itemSizeSmall * 2 : 0
-                                    source: visible ? (model.images[0].toString().indexOf("file://") === 0 ? model.images[0] : "file://" + model.images[0]) : ""
-                                    fillMode: Image.PreserveAspectCrop
-                                    clip: true
-                                    smooth: true
-                                    onStatusChanged: {
-                                        if (status === Image.Error) console.log("[ChatPage] Failed to load thumbnail: " + source)
+                                // Images attached to this message
+                                Flow {
+                                    visible: messageItem.isOwnMessage && messageItem.itemImages.length > 0
+                                    width: visible ? parent.width : 0
+                                    height: visible ? implicitHeight : 0
+                                    spacing: Theme.paddingSmall
+
+                                    Repeater {
+                                        // Use integer count as model to avoid modelData scope issues in Qt5
+                                        model: messageItem.itemImages.length
+
+                                        Item {
+                                            id: chatImageItem
+                                            width: Theme.itemSizeLarge * 2
+                                            height: Theme.itemSizeLarge * 2
+                                            property string imgUrl: ""
+
+                                            Component.onCompleted: {
+                                                var imgs = messageItem.itemImages
+                                                if (imgs && index < imgs.length) {
+                                                    var s = imgs[index].toString()
+                                                    imgUrl = s.indexOf("file://") === 0 ? s : "file://" + s
+                                                }
+                                            }
+
+                                            Image {
+                                                id: chatThumb
+                                                anchors.fill: parent
+                                                source: chatImageItem.imgUrl
+                                                fillMode: Image.PreserveAspectCrop
+                                                clip: true
+                                                smooth: true
+                                                asynchronous: true
+                                                visible: status === Image.Ready
+                                            }
+
+                                            // Placeholder while loading or when file is gone
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                color: Theme.rgba(Theme.highlightBackgroundColor, 0.15)
+                                                radius: Theme.paddingSmall
+                                                visible: chatThumb.status !== Image.Ready
+
+                                                Image {
+                                                    anchors.centerIn: parent
+                                                    source: "image://theme/icon-m-image"
+                                                    opacity: chatThumb.status === Image.Error ? 0.4 : 0.15
+                                                    width: Theme.iconSizeMedium
+                                                    height: Theme.iconSizeMedium
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 
@@ -1099,6 +1181,7 @@ Page {
                 
                 IconButton {
                     id: attachButton
+                    visible: currentModelSupportsVision
                     icon.source: "image://theme/icon-s-attach"
                     onClicked: {
                         // Open image picker
@@ -1125,24 +1208,18 @@ Page {
                         if ((hasText || hasImages) && !isGenerating) {
                             // Create message content with text and images
                             var messageContent = message;
-                            var images = selectedImages.slice(); // Copy for this message
-
-                            // For display purposes, show both text and image info
-                            if (hasImages) {
-                                messageContent = message + (hasText ? "\n" : "") + "[" + selectedImages.length + " image(s) attached]";
-                            }
+                            var images = selectedImages.map(function(p) { return p.toString(); });
 
                             chatModel.append({
                                 role: "user",
                                 message: messageContent,
                                 timestamp: Date.now(),
                                 conversation_id: currentConversationId,
-                                images: images
+                                images_json: JSON.stringify(images)
                             });
                             DebugLogger.logVerbose("ChatPage", "Added user message to UI with " + selectedImages.length + " images, total count: " + chatModel.count);
 
-                            // Save to database (images will be stored as JSON if needed later)
-                            saveMessage("user", messageContent); // User messages don't need provider/model info
+                            saveMessage("user", messageContent, null, null, images);
 
                             // Auto-generate conversation title from first user message
                             autoGenerateConversationTitle(message);

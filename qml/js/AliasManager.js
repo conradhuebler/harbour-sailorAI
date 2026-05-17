@@ -14,6 +14,12 @@ var aliasAvailability = {};
 // Cached models per alias
 var aliasModels = {};
 
+// Cached model metadata per alias: aliasId → {modelName → infoString}
+var aliasModelInfo = {};
+
+// Cached vision capability per alias: aliasId → {modelName → bool}
+var aliasModelVision = {};
+
 /**
  * Add a provider alias
  * @param {string} aliasId - Unique alias identifier
@@ -51,6 +57,8 @@ function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, 
     providerAliases[aliasId] = alias;
     aliasAvailability[aliasId] = "unchecked";
     aliasModels[aliasId] = [];
+    aliasModelInfo[aliasId] = {};
+    aliasModelVision[aliasId] = {};
 
     logInfo("AliasManager", "Added alias: " + aliasId + " (" + name + ") type=" + type);
     return true;
@@ -114,6 +122,7 @@ function initDefaultAliases(config) {
         providerAliases[def.aliasId] = alias;
         aliasAvailability[def.aliasId] = "unchecked";
         aliasModels[def.aliasId] = [];
+        aliasModelInfo[def.aliasId] = {};
     }
 
     logInfo("AliasManager", "Initialized default aliases: " + Object.keys(providerAliases).join(", "));
@@ -138,6 +147,8 @@ function removeAlias(aliasId) {
     delete providerAliases[aliasId];
     delete aliasAvailability[aliasId];
     delete aliasModels[aliasId];
+    delete aliasModelInfo[aliasId];
+    delete aliasModelVision[aliasId];
 
     logInfo("AliasManager", "Removed alias: " + aliasId);
     return true;
@@ -353,6 +364,102 @@ function setModels(aliasId, models) {
 }
 
 /**
+ * Get info string for a specific cached model
+ * @param {string} aliasId - Alias identifier
+ * @param {string} modelName - Model name
+ * @returns {string} Info string or empty string
+ */
+function getModelInfo(aliasId, modelName) {
+    var info = aliasModelInfo[aliasId];
+    return (info && info[modelName]) ? info[modelName] : "";
+}
+
+/**
+ * Store metadata dict for an alias
+ * @param {string} aliasId - Alias identifier
+ * @param {object} infoDict - {modelName → infoString}
+ */
+function setModelInfo(aliasId, infoDict) {
+    aliasModelInfo[aliasId] = infoDict || {};
+}
+
+/**
+ * Check if vision capability is already cached for this model
+ */
+function isModelVisionKnown(aliasId, modelName) {
+    var visionMap = aliasModelVision[aliasId];
+    return !!(visionMap && (modelName in visionMap));
+}
+
+/**
+ * Synchronous vision check from cache only.
+ * For non-Ollama providers: always true.
+ * For Ollama: returns cached value, or false if not yet checked.
+ */
+function isModelVisionCapable(aliasId, modelName) {
+    var alias = providerAliases[aliasId];
+    if (!alias) return false;
+    if (alias.type !== 'ollama') return true;
+    var visionMap = aliasModelVision[aliasId];
+    if (!visionMap || !(modelName in visionMap)) return false;
+    return visionMap[modelName];
+}
+
+/**
+ * Async vision check via Ollama /api/show.
+ * Uses capabilities[] array (Ollama 0.5+) with fallback to details.families "clip".
+ * Caches result in aliasModelVision and calls callback(bool).
+ */
+function checkOllamaModelVision(aliasId, modelName, callback) {
+    var alias = providerAliases[aliasId];
+    if (!alias || alias.type !== 'ollama') {
+        callback && callback(true);
+        return;
+    }
+
+    // Return cached result immediately if available
+    var visionMap = aliasModelVision[aliasId];
+    if (visionMap && (modelName in visionMap)) {
+        callback && callback(visionMap[modelName]);
+        return;
+    }
+
+    var showUrl = alias.url + "/api/show";
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 10000;
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            var hasVision = false;
+            if (xhr.status === 200) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.capabilities) {
+                        hasVision = resp.capabilities.indexOf("vision") !== -1;
+                    }
+                } catch (e) {
+                    logError("AliasManager", "Failed to parse /api/show response: " + e);
+                }
+            }
+            if (!aliasModelVision[aliasId]) aliasModelVision[aliasId] = {};
+            aliasModelVision[aliasId][modelName] = hasVision;
+            logInfo("AliasManager", "Vision check for " + modelName + ": " + hasVision);
+            callback && callback(hasVision);
+        }
+    };
+
+    try {
+        xhr.open("POST", showUrl, true);
+        if (alias.api_key) xhr.setRequestHeader("Authorization", "Bearer " + alias.api_key);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({model: modelName}));
+    } catch (e) {
+        logError("AliasManager", "checkOllamaModelVision failed: " + e);
+        callback && callback(false);
+    }
+}
+
+/**
  * Fetch models from the provider API and cache them
  * @param {string} aliasId - Alias identifier
  * @param {object} config - Loaded API configuration
@@ -402,9 +509,30 @@ function fetchModels(aliasId, config, callback, errorCallback) {
             if (xhr.status === 200) {
                 try {
                     var response = JSON.parse(xhr.responseText);
-                    var models = extractModels(response, resolved);
-                    aliasModels[aliasId] = models;
-                    callback && callback(models);
+                    var modelObjects = extractModelObjects(response, resolved);
+                    var names = [];
+                    var infoDict = {};
+                    var visionDict = {};
+                    for (var i = 0; i < modelObjects.length; i++) {
+                        names.push(modelObjects[i].name);
+                        if (modelObjects[i].info) {
+                            infoDict[modelObjects[i].name] = modelObjects[i].info;
+                        }
+                        // Only cache vision=true from /api/tags (e.g. confirmed CLIP models).
+                        // Leave false/unknown models uncached so checkOllamaModelVision
+                        // can query /api/show for the authoritative answer.
+                        if (modelObjects[i].vision === true) {
+                            visionDict[modelObjects[i].name] = true;
+                        }
+                    }
+                    aliasModels[aliasId] = names;
+                    aliasModelInfo[aliasId] = infoDict;
+                    // Merge: don't wipe /api/show results already cached this session
+                    if (!aliasModelVision[aliasId]) aliasModelVision[aliasId] = {};
+                    for (var vk in visionDict) {
+                        aliasModelVision[aliasId][vk] = visionDict[vk];
+                    }
+                    callback && callback(names);
                 } catch (e) {
                     errorCallback && errorCallback("Failed to parse models response");
                 }
@@ -563,6 +691,8 @@ function loadAliases(jsonStr, config) {
             providerAliases[aliasId] = alias;
             if (!aliasAvailability[aliasId]) aliasAvailability[aliasId] = "unchecked";
             if (!aliasModels[aliasId]) aliasModels[aliasId] = [];
+            if (!aliasModelInfo[aliasId]) aliasModelInfo[aliasId] = {};
+            if (!aliasModelVision[aliasId]) aliasModelVision[aliasId] = {};
         }
 
         logInfo("AliasManager", "Loaded " + Object.keys(providerAliases).length + " aliases");
@@ -586,4 +716,6 @@ function clearAliases() {
     providerAliases = {};
     aliasAvailability = {};
     aliasModels = {};
+    aliasModelInfo = {};
+    aliasModelVision = {};
 }

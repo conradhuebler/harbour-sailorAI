@@ -16,7 +16,7 @@
     </message>
     <message>
         <source>Today</source>
-        <translation>Aujourd'hui</translation>
+        <translation>Aujourd&apos;hui</translation>
     </message>
     <message>
         <source>Yesterday</source>
@@ -107,7 +107,7 @@
     </message>
     <message>
         <source>Select export folder</source>
-        <translation>Sélectionner le dossier d'export</translation>
+        <translation>Sélectionner le dossier d&apos;export</translation>
     </message>
     <message>
         <source>Preview</source>

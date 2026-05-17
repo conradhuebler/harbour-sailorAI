@@ -47,7 +47,10 @@ Dialog {
         favoriteModels.sort(function(a, b) {
             return favorites.indexOf(a) - favorites.indexOf(b);
         });
-        
+
+        // Sort non-favorites alphabetically
+        otherModels.sort();
+
         // Return favorites first, then other models
         return favoriteModels.concat(otherModels);
     }

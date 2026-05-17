@@ -9,7 +9,6 @@ Dialog {
     property string selectedAliasId: ""
     property var selectedFavorites: []
     property var allModels: []
-    property bool isLoading: false
     
     canAccept: selectedFavorites.length > 0
     
@@ -63,18 +62,23 @@ Dialog {
             }
         }
         
-        allModels = combinedModels;
-        DebugLogger.logInfo("FavoriteModelsDialog", "Loaded " + allModels.length + " total models (" + selectedFavorites.length + " favorites)");
-        
-        // Trigger fresh fetch in background if API key available
-        if (alias.api_key) {
-            isLoading = true;
-            DebugLogger.logInfo("FavoriteModelsDialog", "Fetching fresh models from API...");
-            LLMApi.fetchModelsForAlias(selectedAliasId);
-            
-            // We'll refresh the list when models are updated
-            // TODO: Add callback mechanism for model updates
+        // Sort: favorites first (by preference order), then others alphabetically
+        var favoritesOrdered = [];
+        var othersOrdered = [];
+        for (var fi = 0; fi < combinedModels.length; fi++) {
+            if (selectedFavorites.indexOf(combinedModels[fi]) !== -1) {
+                favoritesOrdered.push(combinedModels[fi]);
+            } else {
+                othersOrdered.push(combinedModels[fi]);
+            }
         }
+        favoritesOrdered.sort(function(a, b) {
+            return selectedFavorites.indexOf(a) - selectedFavorites.indexOf(b);
+        });
+        othersOrdered.sort();
+        allModels = favoritesOrdered.concat(othersOrdered);
+
+        DebugLogger.logInfo("FavoriteModelsDialog", "Loaded " + allModels.length + " total models (" + selectedFavorites.length + " favorites)");
     }
     
     function toggleFavorite(model) {
@@ -136,52 +140,44 @@ Dialog {
                 text: "Available Models (" + allModels.length + ")"
             }
             
-            Label {
-                visible: isLoading
-                text: "🔄 Loading models from API..."
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.highlightColor
-            }
-            
             Column {
                 width: parent.width
-                spacing: Theme.paddingSmall
-                
+                spacing: 0
+
                 Repeater {
                     model: allModels
-                    
+
                     ListItem {
                         id: modelItem
                         width: parent.width
-                        contentHeight: Theme.itemSizeSmall
-                        
+                        contentHeight: itemRow.height + Theme.paddingSmall
+
                         property bool isFavorite: selectedFavorites.indexOf(modelData) !== -1
-                        
+
                         onClicked: {
                             toggleFavorite(modelData);
                         }
-                        
+
                         Row {
+                            id: itemRow
                             anchors.left: parent.left
                             anchors.leftMargin: Theme.horizontalPageMargin
                             anchors.right: parent.right
                             anchors.rightMargin: Theme.horizontalPageMargin
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: Theme.paddingMedium
-                            
+
                             // Checkbox indicator
                             Rectangle {
                                 width: Theme.iconSizeSmall
                                 height: Theme.iconSizeSmall
                                 radius: Theme.paddingSmall / 2
                                 anchors.verticalCenter: parent.verticalCenter
-                                
+
                                 color: modelItem.isFavorite ? Theme.highlightColor : "transparent"
                                 border.color: Theme.highlightColor
                                 border.width: 2
-                                
+
                                 Label {
                                     visible: modelItem.isFavorite
                                     text: "✓"
@@ -190,27 +186,31 @@ Dialog {
                                     color: Theme.highlightBackgroundColor
                                 }
                             }
-                            
-                            // Star indicator for existing favorites
-                            Label {
-                                visible: modelItem.isFavorite
-                                text: "★"
+
+                            Column {
+                                width: parent.width - Theme.iconSizeSmall - Theme.paddingMedium
                                 anchors.verticalCenter: parent.verticalCenter
-                                font.pixelSize: Theme.fontSizeSmall
-                                color: Theme.highlightColor
-                            }
-                            
-                            // Model name
-                            Label {
-                                text: modelData
-                                anchors.verticalCenter: parent.verticalCenter
-                                font.pixelSize: Theme.fontSizeSmall
-                                color: modelItem.isFavorite ? Theme.highlightColor : Theme.primaryColor
-                                width: parent.width - Theme.iconSizeSmall - Theme.paddingMedium * 3
-                                elide: Text.ElideRight
+
+                                Label {
+                                    text: (modelItem.isFavorite ? "★ " : "") + modelData
+                                    width: parent.width
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: modelItem.isFavorite ? Theme.highlightColor : Theme.primaryColor
+                                    truncationMode: TruncationMode.Fade
+                                }
+
+                                Label {
+                                    text: LLMApi.getModelInfo(selectedAliasId, modelData)
+                                    width: parent.width
+                                    font.pixelSize: Theme.fontSizeExtraSmall
+                                    color: Theme.secondaryColor
+                                    wrapMode: Text.WordWrap
+                                    visible: text !== ""
+                                    height: visible ? implicitHeight : 0
+                                }
                             }
                         }
-                        
+
                         Rectangle {
                             visible: modelItem.isFavorite
                             anchors.fill: parent
