@@ -378,9 +378,14 @@ Page {
     }
 
     function saveMessage(role, message, providerAlias, modelName, images) {
+        // Lazy conversation creation: new chats start with conversationId=0
         if (currentConversationId <= 0) {
-            DebugLogger.logError("ChatPage", "Cannot save message: no conversation ID");
-            return;
+            currentConversationId = app.database.createConversation(conversationName || "New Conversation");
+            if (currentConversationId <= 0) {
+                DebugLogger.logError("ChatPage", "Cannot create conversation for first message");
+                return;
+            }
+            DebugLogger.logInfo("ChatPage", "Created conversation lazily: " + currentConversationId);
         }
 
         // Use current selection if not provided

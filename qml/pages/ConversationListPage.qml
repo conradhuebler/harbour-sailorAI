@@ -56,6 +56,18 @@ Page {
         defaultValue: ""
     }
 
+    ConfigurationValue {
+        id: lastSelectedAlias
+        key: "/SailorAI/last_selected_alias"
+        defaultValue: ""
+    }
+
+    ConfigurationValue {
+        id: lastSelectedModel
+        key: "/SailorAI/last_selected_model"
+        defaultValue: ""
+    }
+
     // Date formatting helper function
     function formatDate(timestamp) {
         if (!timestamp) return "";
@@ -263,52 +275,26 @@ Page {
     }
 
     function newConversation() {
-        // Fixed deadlock: DB operation BEFORE pageStack.push
-        var conversationId = app.database.createConversation("New Conversation");
-        if (conversationId > 0) {
-            DebugLogger.logInfo("ConversationListPage", "Created new conversation with ID: " + conversationId);
-            
-            // Refresh the conversation list to show the new conversation
-            loadConversations();
-            
-            // Open the new chat AFTER DB operation completes
-            pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
-                "conversationId": conversationId,
-                "conversationName": "New Conversation"
-            });
-        } else {
-            DebugLogger.logError("ConversationListPage", "Failed to create conversation");
-        }
+        // Conversation is created lazily in ChatPage.saveMessage() on first send
+        pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
+            "conversationId": 0,
+            "conversationName": "New Conversation"
+        });
     }
 
     function newConversationWithProvider(aliasId, model) {
-        // Create new conversation with pre-selected provider/model
-        var conversationId = app.database.createConversation("New Conversation");
-        if (conversationId > 0) {
-            DebugLogger.logInfo("ConversationListPage", "Created new conversation with ID: " + conversationId + " (Provider: " + aliasId + ", Model: " + model + ")");
-            
-            // Refresh the conversation list to show the new conversation
-            loadConversations();
-            
-            // Open the new chat with pre-selected provider/model
-            var chatPage = pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
-                "conversationId": conversationId,
-                "conversationName": "New Conversation"
-            });
-            
-            // Set the selected provider/model after page is loaded
-            if (chatPage) {
-                chatPage.selectedAliasId = aliasId || "";
-                chatPage.selectedModel = model || "";
-                
-                // Save this selection as the new default
-                if (aliasId && model) {
-                    chatPage.saveCurrentSelection();
-                    DebugLogger.logInfo("ConversationListPage", "Pre-selected provider: " + aliasId + " with model: " + model);
-                }
+        // Conversation is created lazily in ChatPage.saveMessage() on first send
+        var chatPage = pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
+            "conversationId": 0,
+            "conversationName": "New Conversation"
+        });
+        if (chatPage) {
+            chatPage.selectedAliasId = aliasId || "";
+            chatPage.selectedModel = model || "";
+            if (aliasId && model) {
+                chatPage.saveCurrentSelection();
+                DebugLogger.logInfo("ConversationListPage", "Pre-selected provider: " + aliasId + " with model: " + model);
             }
-        } else {
-            DebugLogger.logError("ConversationListPage", "Failed to create conversation with provider");
         }
     }
 
@@ -368,14 +354,17 @@ Page {
                 enabled: app.hasActiveProviders
                 onClicked: newConversation()
                 onPressAndHold: {
-                    // Open provider selection dialog for new chat
                     var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
-                        "selectedAliasId": "",
-                        "selectedModel": ""
+                        "selectedAliasId": lastSelectedAlias.value,
+                        "selectedModel": lastSelectedModel.value
                     });
                     dialog.accepted.connect(function() {
-                        // Create new conversation with selected provider/model
-                        newConversationWithProvider(dialog.selectedAliasId, dialog.selectedModel);
+                        var aliasId = dialog.selectedAliasId;
+                        var model = dialog.selectedModel;
+                        // Remove dialog from stack immediately so back-navigation
+                        // from ChatPage returns to ConversationListPage, not the dialog
+                        pageStack.pop(null, PageStackAction.Immediate);
+                        newConversationWithProvider(aliasId, model);
                     });
                 }
             }
