@@ -309,10 +309,50 @@ function generateContentWithImages(aliasId, model, prompt, apiKey, history, imag
 // --- Image encoding ---
 // Claude Generated - Copyright (C) 2024-2025 Conrad Hübler <Conrad.Huebler@gmx.net>
 
+// Direct Uint8Array -> base64. Avoids Qt.btoa(), which in Qt5 QML UTF-8-encodes
+// its input string before base64-encoding, doubling and corrupting binary data.
+function _bytesToBase64(bytes) {
+    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    var parts = [];
+    var len = bytes.length;
+    var chunk = "";
+    var chunkCount = 0;
+    var i, b1, b2, b3;
+    for (i = 0; i + 3 <= len; i += 3) {
+        b1 = bytes[i]; b2 = bytes[i + 1]; b3 = bytes[i + 2];
+        chunk += chars.charAt(b1 >> 2)
+              +  chars.charAt(((b1 & 0x03) << 4) | (b2 >> 4))
+              +  chars.charAt(((b2 & 0x0F) << 2) | (b3 >> 6))
+              +  chars.charAt(b3 & 0x3F);
+        if (++chunkCount >= 256) {
+            parts.push(chunk);
+            chunk = "";
+            chunkCount = 0;
+        }
+    }
+    if (chunk.length > 0) parts.push(chunk);
+    var rem = len - i;
+    if (rem === 1) {
+        b1 = bytes[i];
+        parts.push(chars.charAt(b1 >> 2) + chars.charAt((b1 & 0x03) << 4) + "==");
+    } else if (rem === 2) {
+        b1 = bytes[i]; b2 = bytes[i + 1];
+        parts.push(chars.charAt(b1 >> 2)
+                 + chars.charAt(((b1 & 0x03) << 4) | (b2 >> 4))
+                 + chars.charAt((b2 & 0x0F) << 2) + "=");
+    }
+    return parts.join("");
+}
+
 function encodeImageToBase64(imagePath, callback) {
-    var cleanPath = imagePath;
+    // Convert QML Url object to string if needed
+    var cleanPath = imagePath.toString();
     if (cleanPath.indexOf("file://") === 0) {
         cleanPath = cleanPath.substring(7);
+    }
+    // Handle Sailfish content URLs that may have multiple slashes
+    if (cleanPath.indexOf("///") === 0) {
+        cleanPath = cleanPath.substring(2); // "///path" -> "/path"
     }
 
     var mimeType = "image/jpeg";
@@ -320,29 +360,60 @@ function encodeImageToBase64(imagePath, callback) {
     if (ext === "png") mimeType = "image/png";
     else if (ext === "gif") mimeType = "image/gif";
     else if (ext === "webp") mimeType = "image/webp";
+    else if (ext === "bmp") mimeType = "image/bmp";
+
+    console.log("[encodeImageToBase64] Reading image: " + cleanPath + " (mimeType: " + mimeType + ")");
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "file://" + cleanPath, true);
     xhr.responseType = "arraybuffer";
+    xhr.timeout = 30000;
+    xhr.ontimeout = function() {
+        console.log("[encodeImageToBase64] ERROR: Timeout reading image: " + cleanPath);
+        callback(null);
+    };
+    xhr.onerror = function() {
+        console.log("[encodeImageToBase64] ERROR: XHR error reading image: " + cleanPath);
+        callback(null);
+    };
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
+            console.log("[encodeImageToBase64] XHR done, status: " + xhr.status + ", response type: " + typeof xhr.response);
             if (xhr.status === 200 || xhr.status === 0) {
                 try {
                     var arrayBuffer = xhr.response;
-                    var bytes = new Uint8Array(arrayBuffer);
-                    var binary = "";
-                    for (var i = 0; i < bytes.length; i++) {
-                        binary += String.fromCharCode(bytes[i]);
+                    if (!arrayBuffer || !(arrayBuffer instanceof ArrayBuffer)) {
+                        console.log("[encodeImageToBase64] ERROR: No arraybuffer response, trying text fallback");
+                        var textResponse = xhr.responseText;
+                        if (textResponse && textResponse.length > 0) {
+                            console.log("[encodeImageToBase64] Text response length: " + textResponse.length + " (binary data misread as text)");
+                        }
+                        callback(null);
+                        return;
                     }
-                    var base64 = Qt.btoa(binary);
-                    logInfo("encodeImageToBase64", "Encoded image: " + cleanPath + " (" + bytes.length + " bytes, " + mimeType + ")");
-                    callback({ data: base64, mimeType: mimeType });
+                    var bytes = new Uint8Array(arrayBuffer);
+                    // First 8 raw bytes as hex — PNG magic should be 89504E470D0A1A0A
+                    var hex = "";
+                    for (var hi = 0; hi < Math.min(8, bytes.length); hi++) {
+                        var h = bytes[hi].toString(16);
+                        hex += (h.length === 1 ? "0" : "") + h;
+                    }
+                    console.log("[encodeImageToBase64] Read " + bytes.length + " bytes from " + cleanPath + " — first8=" + hex.toUpperCase());
+                    // Qt.btoa() UTF-8-encodes its input before base64-encoding, which corrupts
+                    // binary data (every byte >= 0x80 becomes 2 bytes). Encode bytes directly.
+                    var base64 = _bytesToBase64(bytes);
+                    var head = base64.substring(0, 60);
+                    var tail = base64.substring(Math.max(0, base64.length - 60));
+                    console.log("[encodeImageToBase64] Encoded " + cleanPath + " (" + bytes.length + " bytes) -> " + base64.length + " base64 chars");
+                    console.log("[encodeImageToBase64]   head=" + head);
+                    console.log("[encodeImageToBase64]   tail=" + tail);
+                    callback({ data: base64, mimeType: mimeType, originalPath: cleanPath });
                 } catch (e) {
-                    logError("encodeImageToBase64", "Failed to encode image: " + e);
+                    console.log("[encodeImageToBase64] ERROR: Exception encoding: " + e);
                     callback(null);
                 }
             } else {
-                logError("encodeImageToBase64", "Failed to read image file: " + cleanPath + " (status: " + xhr.status + ")");
+                console.log("[encodeImageToBase64] ERROR: HTTP status " + xhr.status + " reading " + cleanPath);
                 callback(null);
             }
         }
@@ -355,17 +426,21 @@ function encodeImages(imagePaths, callback) {
         callback([]);
         return;
     }
+    console.log("[encodeImages] Starting encoding of " + imagePaths.length + " images");
     var results = [];
     var completed = 0;
     var total = imagePaths.length;
+    var failed = 0;
     for (var i = 0; i < total; i++) {
         encodeImageToBase64(imagePaths[i], function(result) {
             if (result) {
                 results.push(result);
+            } else {
+                failed++;
             }
             completed++;
             if (completed === total) {
-                logInfo("encodeImages", "Encoded " + results.length + "/" + total + " images successfully");
+                console.log("[encodeImages] Done: " + results.length + " success, " + failed + " failed out of " + total);
                 callback(results);
             }
         });

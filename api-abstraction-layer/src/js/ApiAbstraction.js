@@ -961,6 +961,7 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
         for (var img = 0; img < images.length; img++) {
             ollamaImageArray.push(images[img].data);
         }
+        console.log("[generateWithImages] Ollama: built ollamaImageArray with " + ollamaImageArray.length + " images (first len=" + (ollamaImageArray[0] ? ollamaImageArray[0].length : "null") + ")");
     } else {
         // OpenAI multimodal: content array with image_url
         var contentArray = [];
@@ -975,6 +976,7 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
                 }
             });
         }
+        console.log("[generateWithImages] OpenAI: built contentArray with " + contentArray.length + " items (" + images.length + " images)");
         customMessages = [{role: "user", content: contentArray}];
 
         // Add history
@@ -1019,6 +1021,27 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
 
     var headers = buildHeaders(resolved, apiKey);
     var requestData = buildRequestData(resolved, model, customMessages || [], options);
+
+    // Diagnostic: log request details to verify image data is included
+    console.log("[generateWithImages] providerType=" + providerType + " url=" + url);
+    console.log("[generateWithImages] requestData keys: " + Object.keys(requestData).join(", "));
+    console.log("[generateWithImages] requestData.model=" + requestData.model + " stream=" + requestData.stream);
+    // For Ollama, images are inside messages; for others, check top-level
+    if (requestData.images) {
+        console.log("[generateWithImages] requestData.images (top-level) count=" + requestData.images.length);
+    }
+    if (requestData.messages && requestData.messages.length > 0) {
+        var lastMsg = requestData.messages[requestData.messages.length - 1];
+        var msgInfo = "role=" + lastMsg.role + " contentType=" + typeof lastMsg.content;
+        if (lastMsg.images) {
+            msgInfo += " imagesInMsg=" + lastMsg.images.length;
+        }
+        if (typeof lastMsg.content === 'object' && Array.isArray(lastMsg.content)) {
+            msgInfo += " contentItems=" + lastMsg.content.length;
+        }
+        console.log("[generateWithImages] lastMessage: " + msgInfo);
+    }
+    console.log("[generateWithImages] options.images=" + (options.images ? options.images.length : "null") + " options.customMessages=" + (options.customMessages ? options.customMessages.length : "null"));
 
     var xhr = new XMLHttpRequest();
     var isStreaming = options.streaming;

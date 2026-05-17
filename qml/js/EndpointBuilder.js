@@ -254,17 +254,38 @@ function buildRequestData(provider, model, messages, options) {
                 requestData.stream = true;
             }
         } else if (providerType === 'ollama') {
-            // Ollama native multimodal: custom messages + images
+            // Ollama native multimodal: images go inside the user message object
             requestData.model = model;
-            requestData.messages = options.customMessages;
             requestData.stream = Boolean(options.streaming);
 
-            // Add images if provided (Ollama native format: top-level images array)
-            if (options.images && Array.isArray(options.images)) {
-                requestData.images = [];
+            if (options.images && Array.isArray(options.images) && options.images.length > 0) {
+                // Build base64 image strings for Ollama /api/chat format
+                var imageStrings = [];
                 for (var img = 0; img < options.images.length; img++) {
-                    requestData.images.push(options.images[img].data || options.images[img]);
+                    imageStrings.push(options.images[img].data || options.images[img]);
                 }
+                // Insert images into the last user message
+                requestData.messages = [];
+                var messages = options.customMessages || [];
+                var imagesInserted = false;
+                for (var m = messages.length - 1; m >= 0; m--) {
+                    if (!imagesInserted && messages[m].role === 'user') {
+                        // Add images to the last user message
+                        var userMsg = { role: 'user', content: messages[m].content, images: imageStrings };
+                        requestData.messages.unshift(userMsg);
+                        imagesInserted = true;
+                    } else {
+                        requestData.messages.unshift(messages[m]);
+                    }
+                }
+                if (!imagesInserted) {
+                    // No user message found — create one with just the images
+                    requestData.messages.push({ role: 'user', content: '', images: imageStrings });
+                }
+                console.log("[EndpointBuilder] Ollama multimodal: added " + imageStrings.length + " images inside user message, stream=" + requestData.stream);
+            } else {
+                requestData.messages = options.customMessages || [];
+                console.log("[EndpointBuilder] Ollama multimodal: NO images, stream=" + requestData.stream);
             }
         } else {
             // OpenAI-compatible with custom messages
@@ -275,6 +296,17 @@ function buildRequestData(provider, model, messages, options) {
             if (supportsStreaming(provider) && options.streaming) {
                 requestData.stream = true;
             }
+            // Diagnostic: check if messages contain image_url entries
+            var imgCount = 0;
+            for (var mi = 0; mi < requestData.messages.length; mi++) {
+                var c = requestData.messages[mi].content;
+                if (typeof c === 'object' && Array.isArray(c)) {
+                    for (var ci = 0; ci < c.length; ci++) {
+                        if (c[ci].type === 'image_url') imgCount++;
+                    }
+                }
+            }
+            console.log("[EndpointBuilder] OpenAI multimodal: " + imgCount + " image_url entries in messages, stream=" + requestData.stream);
         }
         logInfo("EndpointBuilder", "Built request data with custom messages (multimodal) for " + providerType);
         return requestData;
@@ -309,6 +341,7 @@ function buildRequestData(provider, model, messages, options) {
         }
     } else if (providerType === 'ollama') {
         // Ollama native format: /api/chat
+        // Images go inside the user message object, not as top-level array
         requestData.model = model;
         requestData.messages = [];
 
@@ -326,11 +359,23 @@ function buildRequestData(provider, model, messages, options) {
 
         requestData.stream = Boolean(options.streaming);
 
-        // Add images if provided (Ollama native format: top-level images array)
-        if (options.images && Array.isArray(options.images)) {
-            requestData.images = [];
+        // Add images inside the last user message (Ollama /api/chat format)
+        if (options.images && Array.isArray(options.images) && options.images.length > 0) {
+            var imageStrings = [];
             for (var img = 0; img < options.images.length; img++) {
-                requestData.images.push(options.images[img].data || options.images[img]);
+                imageStrings.push(options.images[img].data || options.images[img]);
+            }
+            // Find last user message and add images
+            var imagesInserted = false;
+            for (var m = requestData.messages.length - 1; m >= 0; m--) {
+                if (requestData.messages[m].role === 'user') {
+                    requestData.messages[m].images = imageStrings;
+                    imagesInserted = true;
+                    break;
+                }
+            }
+            if (!imagesInserted) {
+                requestData.messages.push({ role: 'user', content: '', images: imageStrings });
             }
         }
 

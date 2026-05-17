@@ -5,7 +5,6 @@ import Nemo.Configuration 1.0
 import "../js/LLMApi.js" as LLMApi
 import "../js/DebugLogger.js" as DebugLogger
 import "../js/DatabaseQueries.js" as DatabaseQueries
-import "../js/ExportFunctions.js" as ExportFunctions
 
 Page {
     id: page
@@ -30,7 +29,104 @@ Page {
     // Image upload properties
     property var selectedImages: []
     property bool hasImages: selectedImages.length > 0
-    
+
+    // Safety timeout for image/multimodal requests
+    Timer {
+        id: imageRequestTimer
+        interval: 60000
+        repeat: false
+        onTriggered: {
+            if (isGenerating) {
+                DebugLogger.logError("ChatPage", "Image request timed out after " + interval + " ms");
+                chatModel.append({role: "error", message: "Error: Request timed out", timestamp: Date.now()});
+                isGenerating = false;
+            }
+        }
+    }
+
+    // Canvas for resizing large images before sending to API
+    Canvas {
+        id: imageResizeCanvas
+        width: 1
+        height: 1
+        visible: false
+
+        property var pendingCallback: null
+        property string pendingSource: ""
+        property real pendingOrigW: 0
+        property real pendingOrigH: 0
+
+        onImageLoaded: {
+            DebugLogger.logInfo("ChatPage", "Canvas image loaded, resizing from " + pendingOrigW + "x" + pendingOrigH);
+            var ctx = getContext('2d');
+            var scale = Math.min(1280 / pendingOrigW, 1280 / pendingOrigH, 1.0);
+            var w = Math.round(pendingOrigW * scale);
+            var h = Math.round(pendingOrigH * scale);
+            imageResizeCanvas.width = w;
+            imageResizeCanvas.height = h;
+            ctx.clearRect(0, 0, w, h);
+            ctx.drawImage(pendingSource, 0, 0, w, h);
+            var resizedB64 = imageResizeCanvas.toDataURL('image/jpeg', 0.7);
+            // Strip data URL prefix: "data:image/jpeg;base64,"
+            var b64Data = resizedB64.substring(resizedB64.indexOf(',') + 1);
+            DebugLogger.logInfo("ChatPage", "Resized image from " + pendingOrigW + "x" + pendingOrigH + " to " + w + "x" + h + " (" + b64Data.length + " base64 chars)");
+            var cb = pendingCallback;
+            pendingCallback = null;
+            if (b64Data.length < 100) {
+                DebugLogger.logError("ChatPage", "Resize produced tiny output (" + b64Data.length + " chars), falling back to original");
+                cb(null);
+            } else {
+                cb({ data: b64Data, mimeType: "image/jpeg" });
+            }
+        }
+
+    }
+
+    // Resize a large image using QML Canvas with loadImage
+    function resizeImageFile(imageUrl, maxWidth, maxHeight, callback) {
+        // Get image dimensions first using a temporary Image element
+        var tmpImg = Qt.createQmlObject('import QtQuick 2.0; Image { source: "' + imageUrl + '"; cache: false }', page);
+        function proceed() {
+            var origW = tmpImg.implicitWidth;
+            var origH = tmpImg.implicitHeight;
+            tmpImg.destroy();
+            var scale = Math.min(maxWidth / origW, maxHeight / origH, 1.0);
+            var w = Math.round(origW * scale);
+            var h = Math.round(origH * scale);
+            DebugLogger.logInfo("ChatPage", "Resizing image from " + origW + "x" + origH + " to " + w + "x" + h);
+            imageResizeCanvas.pendingCallback = callback;
+            imageResizeCanvas.pendingSource = imageUrl;
+            imageResizeCanvas.pendingOrigW = origW;
+            imageResizeCanvas.pendingOrigH = origH;
+            imageResizeCanvas.width = w;
+            imageResizeCanvas.height = h;
+            imageResizeCanvas.loadImage(imageUrl);
+        }
+        if (tmpImg.status === Image.Ready) {
+            proceed();
+        } else if (tmpImg.status === Image.Error) {
+            DebugLogger.logError("ChatPage", "Failed to load image for resizing: " + imageUrl);
+            tmpImg.destroy();
+            callback(null);
+        } else {
+            tmpImg.onStatusChanged.connect(function() {
+                if (tmpImg.status === Image.Ready) proceed();
+                else if (tmpImg.status === Image.Error) {
+                    DebugLogger.logError("ChatPage", "Failed to load image for resizing: " + imageUrl);
+                    tmpImg.destroy();
+                    callback(null);
+                }
+            });
+        }
+    }
+
+    // Maximum base64 size for images before resizing. Ollama cloud accepts
+    // ~2.5 MB payloads fine (verified). The Canvas-based resize path below is
+    // currently broken (onImageLoaded never fires), so keep this generous and
+    // let typical phone photos through unresized.
+    property int maxImageBase64Size: 4000000
+
+
     // Configuration for last selected provider/model
     ConfigurationValue {
         id: lastSelectedAlias
@@ -416,6 +512,10 @@ Page {
             isGenerating = true;
             DebugLogger.logInfo("ChatPage", "Generating multimodal response with alias: " + selectedAliasId + ", model: " + selectedModel);
 
+            // Safety timeout: reset isGenerating if no response within 60 seconds
+            imageRequestTimer.interval = 60000;
+            imageRequestTimer.start();
+
             // Build history from current chat (excluding the current prompt that was just added)
             var history = [];
             for (var i = 0; i < chatModel.count - 1; i++) { // -1 to exclude the message we just added
@@ -425,13 +525,29 @@ Page {
                 }
             }
 
-            // Multimodal requests use non-streaming mode for better compatibility
-            var supportsStreaming = false;
-            DebugLogger.logInfo("ChatPage", "Using non-streaming mode for multimodal request");
+            // Check if streaming is supported for multimodal requests
+            var supportsStreaming = alias.supportsStreaming;
+            DebugLogger.logInfo("ChatPage", "Multimodal request streaming: " + supportsStreaming);
+
+            if (supportsStreaming) {
+                // Add empty bot message placeholder for streaming
+                chatModel.append({
+                    role: "bot",
+                    message: "",
+                    timestamp: Date.now(),
+                    conversation_id: currentConversationId,
+                    provider_alias: selectedAliasId,
+                    model_name: selectedModel
+                });
+                streamingMessageIndex = chatModel.count - 1;
+                streamingContent = "";
+                DebugLogger.logInfo("ChatPage", "Starting multimodal streaming response");
+            }
 
             // Asynchronously encode images to base64 before sending
             LLMApi.encodeImages(images, function(encodedImages) {
                 if (encodedImages.length === 0 && images.length > 0) {
+                    imageRequestTimer.stop();
                     chatModel.append({role: "error", message: "Error: Failed to process images", timestamp: Date.now()});
                     isGenerating = false;
                     DebugLogger.logError("ChatPage", "Image encoding failed for all " + images.length + " images");
@@ -439,50 +555,97 @@ Page {
                 }
 
                 DebugLogger.logInfo("ChatPage", "Encoded " + encodedImages.length + " images successfully");
+                for (var ei = 0; ei < encodedImages.length; ei++) {
+                    DebugLogger.logVerbose("ChatPage", "Image " + ei + ": " + encodedImages[ei].mimeType + ", data length=" + encodedImages[ei].data.length);
+                }
 
-                // Call enhanced API with image support
-                LLMApi.generateContentWithImages(
-                    selectedAliasId,
-                    selectedModel,
-                    prompt,
-                    alias.api_key,
-                    history,
-                    encodedImages, // Base64-encoded image objects instead of file URLs
-                    function(response) {
-                        if (!supportsStreaming) {
-                            // Non-streaming response
-                            chatModel.append({
-                                role: "bot",
-                                message: response,
-                                timestamp: Date.now(),
-                                conversation_id: currentConversationId,
-                                provider_alias: selectedAliasId,
-                                model_name: selectedModel
-                            });
-                            saveMessage("bot", response, selectedAliasId, selectedModel);
-                        } else {
-                            // Streaming completed - finalize the message
-                            finalizeStreamingMessage();
-                        }
-                        isGenerating = false;
-                    },
-                    function(error) {
-                        // Finalize streaming message (will remove if empty or save if has content)
-                        finalizeStreamingMessage();
-
-                        chatModel.append({role: "error", message: error, timestamp: Date.now()});
-                        isGenerating = false;
-                        DebugLogger.logError("ChatPage", "Multimodal generation error: " + error);
-                    },
-                    function(chunk) {
-                        // Streaming callback
-                        if (streamingMessageIndex >= 0) {
-                            streamingContent += chunk;
-                            chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
-                            DebugLogger.logVerbose("ChatPage", "Multimodal streaming chunk added, total length: " + streamingContent.length);
-                        }
+                // Send images to API (called directly or after resize)
+                var sendImages = function(imgs) {
+                    DebugLogger.logInfo("ChatPage", "Sending " + imgs.length + " images");
+                    for (var fi2 = 0; fi2 < imgs.length; fi2++) {
+                        DebugLogger.logVerbose("ChatPage", "Final image " + fi2 + ": " + imgs[fi2].mimeType + ", data length=" + imgs[fi2].data.length);
                     }
-                );
+                    LLMApi.generateContentWithImages(
+                        selectedAliasId,
+                        selectedModel,
+                        prompt,
+                        alias.api_key,
+                        history,
+                        imgs,
+                        function(response) {
+                            imageRequestTimer.stop();
+                            if (!supportsStreaming) {
+                                chatModel.append({
+                                    role: "bot",
+                                    message: response,
+                                    timestamp: Date.now(),
+                                    conversation_id: currentConversationId,
+                                    provider_alias: selectedAliasId,
+                                    model_name: selectedModel
+                                });
+                                saveMessage("bot", response, selectedAliasId, selectedModel);
+                            } else {
+                                finalizeStreamingMessage();
+                            }
+                            isGenerating = false;
+                        },
+                        function(error) {
+                            imageRequestTimer.stop();
+                            finalizeStreamingMessage();
+                            chatModel.append({role: "error", message: error, timestamp: Date.now()});
+                            isGenerating = false;
+                            DebugLogger.logError("ChatPage", "Multimodal generation error: " + error);
+                        },
+                        function(chunk) {
+                            if (streamingMessageIndex >= 0) {
+                                streamingContent += chunk;
+                                chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
+                                DebugLogger.logVerbose("ChatPage", "Multimodal streaming chunk added, total length: " + streamingContent.length);
+                            }
+                        }
+                    );
+                };
+
+                // Resize images that exceed the size limit
+                var imagesToResize = 0;
+                var resizeCompleted = 0;
+                var finalImages = [];
+                for (var ri = 0; ri < encodedImages.length; ri++) {
+                    if (encodedImages[ri].data.length > maxImageBase64Size) {
+                        imagesToResize++;
+                    }
+                }
+
+                if (imagesToResize > 0) {
+                    DebugLogger.logInfo("ChatPage", imagesToResize + " image(s) exceed size limit, resizing");
+                    for (var fi = 0; fi < encodedImages.length; fi++) {
+                        (function(idx) {
+                            if (encodedImages[idx].data.length > maxImageBase64Size) {
+                                var path = encodedImages[idx].originalPath || "";
+                                var fileUrl = path.indexOf("file://") === 0 ? path : "file://" + path;
+                                resizeImageFile(fileUrl, 1280, 1280, function(resized) {
+                                    resizeCompleted++;
+                                    if (resized) {
+                                        finalImages.push(resized);
+                                    } else {
+                                        DebugLogger.logError("ChatPage", "Resize failed, sending original");
+                                        finalImages.push({ data: encodedImages[idx].data, mimeType: encodedImages[idx].mimeType });
+                                    }
+                                    if (resizeCompleted === imagesToResize) {
+                                        for (var ni = 0; ni < encodedImages.length; ni++) {
+                                            if (encodedImages[ni].data.length <= maxImageBase64Size) {
+                                                finalImages.push(encodedImages[ni]);
+                                            }
+                                        }
+                                        sendImages(finalImages);
+                                    }
+                                });
+                            }
+                        })(fi);
+                    }
+                } else {
+                    sendImages(encodedImages);
+                }
             });
         } else {
             generateResponse(prompt);
@@ -570,7 +733,7 @@ Page {
                         
                         Rectangle {
                             id: messageBubble
-                            width: Math.min(messageText.implicitWidth + 2 * Theme.paddingMedium, parent.width * 0.8)
+                            width: Math.min(messageText.implicitWidth + 2 * Theme.paddingMedium, parent.width * 0.85)
                             height: messageColumn.implicitHeight + 2 * Theme.paddingSmall
                             
                             anchors.right: messageItem.isOwnMessage ? parent.right : undefined
@@ -603,10 +766,25 @@ Page {
                                     }
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
+
+                                // Image thumbnail for messages with attached images
+                                Image {
+                                    id: imageThumbnail
+                                    visible: messageItem.isOwnMessage && model && model.images && model.images.length > 0
+                                    width: visible ? Theme.itemSizeSmall * 2 : 0
+                                    height: visible ? Theme.itemSizeSmall * 2 : 0
+                                    source: visible ? (model.images[0].toString().indexOf("file://") === 0 ? model.images[0] : "file://" + model.images[0]) : ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    clip: true
+                                    smooth: true
+                                    onStatusChanged: {
+                                        if (status === Image.Error) console.log("[ChatPage] Failed to load thumbnail: " + source)
+                                    }
+                                }
                                 
                                 // Provider/Model info for bot messages
                                 Label {
-                                    visible: model && model.role === "bot" && ((model.provider_alias && typeof model.provider_alias === "string" && model.provider_alias !== "") || (model.model_name && typeof model.model_name === "string" && model.model_name !== ""))
+                                    visible: model && model.role === "bot" && (!!model.provider_alias || !!model.model_name)
                                     width: parent.width
                                     text: {
                                         if (!model) return "";
@@ -755,7 +933,7 @@ Page {
             id: imagePreviewArea
             visible: hasImages
             width: parent.width
-            height: visible ? Math.min(Theme.itemSizeLarge * 2, contentHeight) : 0
+            height: visible ? Theme.itemSizeSmall * 1.5 : 0
             contentHeight: imagePreviewRow.height
             contentWidth: imagePreviewRow.width
             clip: true
@@ -767,8 +945,8 @@ Page {
                 Repeater {
                     model: selectedImages
                     delegate: Item {
-                        width: Theme.itemSizeLarge
-                        height: Theme.itemSizeLarge
+                        width: Theme.itemSizeSmall * 1.5
+                        height: Theme.itemSizeSmall * 1.5
                         
                         Rectangle {
                             anchors.fill: parent
