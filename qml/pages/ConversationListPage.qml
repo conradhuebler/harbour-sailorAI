@@ -461,6 +461,15 @@ Page {
                                 });
                             }
                         }
+                        MenuItem {
+                            text: "Export"
+                            onClicked: {
+                                // Open the ExportDialog for this conversation
+                                var dlg = pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
+                                    "conversationId": model.id
+                                })
+                            }
+                        }
                     }
                 }
 

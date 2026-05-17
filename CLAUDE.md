@@ -31,17 +31,19 @@ SailorAI is a modern Sailfish OS application that provides an AI chat interface 
 ### Frontend (QML)
 - **harbour-sailorAI.qml**: Main application window
 - **pages/ChatPage.qml**: Core chat interface with real-time streaming, conversation management, SQLite persistence, provider/model selection
-- **pages/ConversationListPage.qml**: Conversation management with create/rename/delete functionality
+- **pages/ConversationListPage.qml**: Conversation management with create/rename/delete/export functionality
 - **pages/SettingsPage.qml**: Provider configuration UI with dynamic alias management and debug controls
 - **dialogs/ProviderAliasDialog.qml**: Provider and model selection dialog
 - **dialogs/AddProviderAliasDialog.qml**: Create new provider configurations
 - **dialogs/ModelListDialog.qml**: Display available models with favorites-first sorting
+- **dialogs/ExportDialog.qml**: Export conversation as Markdown or plain text (copy / share via Sailfish.Pickers.SharePage)
 - **cover/CoverPage.qml**: App cover for minimized state
 
 ### Backend (JavaScript)
 - **js/LLMApi.js**: Pure JavaScript unified LLM interface with streaming support, alias-based provider management
 - **js/DebugLogger.js**: Comprehensive logging system with configurable levels (None, Normal, Info, Verbose)
 - **js/DatabaseQueries.js**: SQLite database operations via QtQuick.LocalStorage
+- **js/ExportFunctions.js**: Conversation formatting for Markdown / plain text export
 
 ### Key Components
 - **Provider Alias System**: Dynamic provider configurations with custom names, URLs, API keys, and favorite models
