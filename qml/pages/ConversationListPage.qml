@@ -298,12 +298,78 @@ Page {
         }
     }
 
+    // Claude Generated: Open new chat with a pre-captured photo and pre-filled action prompt
+    function newConversationWithPhotoAction(imagePath, prompt) {
+        pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
+            "conversationId": 0,
+            "conversationName": qsTr("New Conversation"),
+            "initialImages": [imagePath],
+            "initialPrompt": prompt
+        })
+    }
+
+    // Claude Generated: Deferred push after camera page pops (page stack needs to settle)
+    Timer {
+        id: photoActionTimer
+        interval: 50
+        repeat: false
+        property string pendingPath: ""
+        property string pendingPrompt: ""
+        onTriggered: newConversationWithPhotoAction(pendingPath, pendingPrompt)
+    }
+
+    // Claude Generated: Open camera, then on capture pop camera and open new chat with photo
+    function openPhotoAction(prompt) {
+        var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
+        if (camPage) {
+            var capturedPrompt = prompt
+            camPage.photoCaptured.connect(function(path) {
+                pageStack.pop(null, PageStackAction.Immediate)
+                photoActionTimer.pendingPath = path
+                photoActionTimer.pendingPrompt = capturedPrompt
+                photoActionTimer.restart()
+            })
+        }
+    }
+
+    // Claude Generated: Handle image shared/opened from another app (Gallery, Files, etc.)
+    function handleSharedImage(imagePath) {
+        var actionPage = pageStack.push(Qt.resolvedUrl("../dialogs/ShareActionPage.qml"), {
+            "imagePath": imagePath
+        })
+        if (actionPage) {
+            actionPage.actionSelected.connect(function(prompt) {
+                photoActionTimer.pendingPath = imagePath
+                photoActionTimer.pendingPrompt = prompt
+                photoActionTimer.restart()
+            })
+        }
+    }
+
     function deleteConversation(conversationId) {
         if (app.database.deleteConversation(conversationId)) {
             DebugLogger.logInfo("ConversationListPage", "Deleted conversation: " + conversationId);
             loadConversations();
         } else {
             DebugLogger.logError("ConversationListPage", "Failed to delete conversation: " + conversationId);
+        }
+    }
+
+    function _handlePendingSharedImage() {
+        if (app.pendingSharedImage !== "") {
+            var path = app.pendingSharedImage
+            app.pendingSharedImage = ""
+            handleSharedImage(path)
+        }
+    }
+
+    // Pick up images shared while page was not yet active (cover action, ExecDBus start, etc.)
+    Connections {
+        target: app
+        onPendingSharedImageChanged: {
+            if (status === PageStatus.Active) {
+                _handlePendingSharedImage()
+            }
         }
     }
 
@@ -314,15 +380,18 @@ Page {
             loadConversations();
             updateCoverStatistics();
         }
+        if (status === PageStatus.Active) {
+            _handlePendingSharedImage()
+        }
     }
 
     Component.onCompleted: {
         DebugLogger.logNormal("ConversationListPage", "Loading conversations");
-        
+
         // Database initialization handled by DatabaseManager singleton
         // Load provider configs from Settings
         loadAllConfigs();
-        
+
         // Load conversations (DatabaseManager will queue if not initialized yet)
         loadConversations();
     }
@@ -349,7 +418,7 @@ Page {
             }
 
             Button {
-                text: "New Chat"
+                text: qsTr("New Chat")
                 anchors.horizontalCenter: parent.horizontalCenter
                 enabled: app.hasActiveProviders
                 onClicked: newConversation()
@@ -366,6 +435,25 @@ Page {
                         pageStack.pop(null, PageStackAction.Immediate);
                         newConversationWithProvider(aliasId, model);
                     });
+                }
+            }
+
+            Row {
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: Theme.paddingMedium
+
+                Button {
+                    text: qsTr("Describe photo")
+                    enabled: app.hasActiveProviders
+                    onClicked: openPhotoAction(
+                        qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+                }
+
+                Button {
+                    text: qsTr("Translate from photo")
+                    enabled: app.hasActiveProviders
+                    onClicked: openPhotoAction(
+                        qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
                 }
             }
 

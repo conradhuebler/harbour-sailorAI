@@ -13,6 +13,10 @@ Page {
     property int conversationId: -1
     property string conversationName: "Chat"
 
+    // Initial state for photo actions (set by cover or in-app camera actions)
+    property string initialPrompt: ""
+    property var initialImages: []
+
     ListModel {
         id: chatModel
     }
@@ -37,6 +41,19 @@ Page {
             currentModelSupportsVision = hasVision;
             if (!hasVision) selectedImages = [];
         });
+    }
+
+    // Claude Generated: Push camera page and pre-fill chat with photo + prompt on capture
+    function openCameraAction(prompt) {
+        var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
+        if (camPage) {
+            camPage.photoCaptured.connect(function(path) {
+                var newImages = selectedImages.slice()
+                newImages.push(path)
+                selectedImages = newImages
+                textField.text = prompt
+            })
+        }
     }
 
     onSelectedModelChanged: updateVisionCapability()
@@ -1244,11 +1261,19 @@ Page {
 
     Component.onCompleted: {
         DebugLogger.logNormal("ChatPage", "Chat page loaded for conversation: " + conversationId)
-        
+
         loadAliases();
-        
+
         if (currentConversationId > 0) {
             loadChat(currentConversationId);
+        }
+
+        // Apply photo action pre-fill (cover or in-app camera actions)
+        if (currentConversationId <= 0 && initialPrompt.length > 0) {
+            textField.text = initialPrompt
+        }
+        if (currentConversationId <= 0 && initialImages.length > 0) {
+            selectedImages = initialImages
         }
     }
 }

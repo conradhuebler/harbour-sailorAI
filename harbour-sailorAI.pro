@@ -51,3 +51,7 @@ CONFIG += sailfishapp_i18n
 TRANSLATIONS += translations/harbour-sailorAI-de.ts \
                 translations/harbour-sailorAI-fr.ts \
                 translations/harbour-sailorAI-fi.ts
+
+dbus_service.files = dbus/harbour.sailorAI.service
+dbus_service.path = /usr/share/dbus-1/services
+INSTALLS += dbus_service

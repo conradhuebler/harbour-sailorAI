@@ -88,21 +88,24 @@ CoverBackground {
 
     CoverActionList {
         enabled: hasActiveProviders
-        
+
         CoverAction {
-            iconSource: hasActiveProviders ? "image://theme/icon-cover-new" : "image://theme/icon-cover-cancel"
-            onTriggered: {
-                console.log("Cover New Chat triggered, hasActiveProviders:", hasActiveProviders);
-                if (hasActiveProviders) {
-                    // Signal to create new conversation
-                    console.log("Emitting newChatRequested signal");
-                    newChatRequested()
-                } else {
-                    console.log("New Chat disabled - no active providers");
-                }
-            }
+            iconSource: "image://theme/icon-cover-new"
+            onTriggered: newChatRequested()
+        }
+
+        CoverAction {
+            iconSource: "image://theme/icon-cover-camera"
+            onTriggered: describePhotoRequested()
+        }
+
+        CoverAction {
+            iconSource: "image://theme/icon-cover-transfers"
+            onTriggered: translateTextRequested()
         }
     }
-    
+
     signal newChatRequested()
+    signal describePhotoRequested()
+    signal translateTextRequested()
 }

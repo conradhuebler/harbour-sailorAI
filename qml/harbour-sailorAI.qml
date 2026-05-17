@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import Nemo.DBus 2.0
 import "pages"
 import "cover"
 import "components"
@@ -13,61 +14,135 @@ ApplicationWindow
     SimpleDatabase {
         id: simpleDb
     }
-    
+
     // Cover statistics
     property int activeProviderCount: 0
     property int conversationCount: 0
     property bool hasActiveProviders: false
 
+    // Pending shared image path (set by DBusAdaptor, consumed by ConversationListPage)
+    property string pendingSharedImage: ""
+
+    // Claude Generated: D-Bus adaptor — handles "Open with" (X-Maemo-*) and share() from AppShareMethodPlugin.
+    DBusAdaptor {
+        service: "harbour.sailorAI"
+        path: "/harbour/sailorAI"
+        iface: "harbour.sailorAI"
+
+        function openUrl(url) {
+            app.activate()
+            var path = url.toString()
+            if (path.indexOf("file://") === 0) path = path.substring(7)
+            app.pendingSharedImage = path
+            pageStack.pop(null, PageStackAction.Immediate)
+            shareActionTimer.restart()
+        }
+
+        // Called by Sailfish AppShareMethodPlugin when app is selected from share sheet
+        function share(configuration) {
+            app.activate()
+            var resources = configuration["resources"]
+            if (!resources || resources.length === 0) return
+            var res = resources[0]
+            var path = ""
+            if (res["filePath"] && res["filePath"] !== "") {
+                path = res["filePath"]
+            } else if (res["url"]) {
+                path = res["url"].toString()
+            } else if (res["data"]) {
+                path = res["data"].toString()
+            }
+            if (path.indexOf("file://") === 0) path = path.substring(7)
+            if (path !== "") {
+                app.pendingSharedImage = path
+                pageStack.pop(null, PageStackAction.Immediate)
+                shareActionTimer.restart()
+            }
+        }
+    }
+
+    Timer {
+        id: shareActionTimer
+        interval: 100
+        repeat: false
+        onTriggered: {
+            if (app.pendingSharedImage !== "" && pageStack.currentPage && pageStack.currentPage.handleSharedImage) {
+                var path = app.pendingSharedImage
+                app.pendingSharedImage = ""
+                pageStack.currentPage.handleSharedImage(path)
+            }
+        }
+    }
+
     initialPage: Component { ConversationListPage { } }
 
     allowedOrientations: defaultAllowedOrientations
-    
+
     Component.onCompleted: {
         console.log("SailorAI: Application started successfully")
         console.log("SailorAI: ApplicationWindow size:", width, "x", height)
         console.log("SailorAI: Orientation:", orientation)
-
     }
-    cover: Component { 
-        CoverPage { 
+
+    // Qt.callLater is not available in Qt 5.6 (Sailfish) — use zero-interval Timers instead
+
+    Timer {
+        id: newChatTimer
+        interval: 50
+        repeat: false
+        onTriggered: {
+            if (pageStack.currentPage && pageStack.currentPage.newConversation) {
+                pageStack.currentPage.newConversation()
+            }
+        }
+    }
+
+    // Claude Generated: Step 1 — push CameraCapturePage after app activation + pop to root
+    Timer {
+        id: cameraLaunchTimer
+        interval: 50
+        repeat: false
+        property string pendingPrompt: ""
+        onTriggered: {
+            if (pageStack.currentPage && pageStack.currentPage.openPhotoAction) {
+                pageStack.currentPage.openPhotoAction(pendingPrompt)
+            }
+        }
+    }
+
+    // Claude Generated: Activate app, navigate to root, then delegate to ConversationListPage.openPhotoAction
+    function launchCameraAction(prompt) {
+        app.activate()
+        pageStack.pop(null, PageStackAction.Immediate)
+        cameraLaunchTimer.pendingPrompt = prompt
+        cameraLaunchTimer.restart()
+    }
+
+    cover: Component {
+        CoverPage {
             id: coverPage
             activeProviderCount: app.activeProviderCount
             conversationCount: app.conversationCount
             hasActiveProviders: app.hasActiveProviders
-            
+
             onNewChatRequested: {
-                console.log("Main app received newChatRequested signal");
-                
-                // First activate the app to bring it to foreground
-                app.activate();
-                
-                console.log("Current page:", pageStack.currentPage ? pageStack.currentPage.objectName || "unnamed" : "null");
-                
-                // Find the main page and trigger new conversation
+                app.activate()
                 if (pageStack.currentPage && pageStack.currentPage.newConversation) {
-                    console.log("Current page has newConversation, calling it");
                     pageStack.currentPage.newConversation()
                 } else {
-                    console.log("Need to navigate to conversation list page");
-                    
-                    // Simple approach: pop all pages to go to root
-                    console.log("Popping all pages to root");
-                    pageStack.pop(null, PageStackAction.Immediate);
-                    
-                    // Wait a moment for navigation to complete, then call newConversation
-                    Qt.callLater(function() {
-                        console.log("After navigation, current page:", pageStack.currentPage ? pageStack.currentPage.objectName || "unnamed" : "null");
-                        if (pageStack.currentPage && pageStack.currentPage.newConversation) {
-                            console.log("Found newConversation method, calling it");
-                            pageStack.currentPage.newConversation();
-                        } else {
-                            console.log("Still no newConversation method found");
-                        }
-                    });
+                    pageStack.pop(null, PageStackAction.Immediate)
+                    newChatTimer.restart()
                 }
             }
-        } 
+
+            onDescribePhotoRequested: {
+                launchCameraAction(qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+            }
+
+            onTranslateTextRequested: {
+                launchCameraAction(qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
+            }
+        }
     }
 
     onWidthChanged: console.log("SailorAI: Width changed to:", width)

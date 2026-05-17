@@ -2,6 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>CameraCapturePage</name>
+    <message>
+        <source>Take photo</source>
+        <translation>Prendre une photo</translation>
+    </message>
+    <message>
+        <source>Camera not available</source>
+        <translation>Caméra non disponible</translation>
+    </message>
+</context>
+<context>
     <name>ChatPage</name>
     <message>
         <source>Export chat</source>
@@ -82,6 +93,30 @@
         <source>December</source>
         <translation>Décembre</translation>
     </message>
+    <message>
+        <source>New Conversation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Chat</source>
+        <translation>Nouveau chat</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Décrire la photo</translation>
+    </message>
+    <message>
+        <source>Translate from photo</source>
+        <translation>Traduire depuis la photo</translation>
+    </message>
+    <message>
+        <source>Please describe this photo in %1.</source>
+        <translation type="unfinished">Veuillez décrire cette photo en %1.</translation>
+    </message>
+    <message>
+        <source>Please translate all text visible in this photo to %1.</source>
+        <translation type="unfinished">Veuillez traduire tout le texte visible dans cette photo en %1.</translation>
+    </message>
 </context>
 <context>
     <name>ExportDialog</name>
@@ -120,6 +155,44 @@
     <message>
         <source>Copy to clipboard</source>
         <translation>Copier dans le presse-papiers</translation>
+    </message>
+</context>
+<context>
+    <name>ShareActionPage</name>
+    <message>
+        <source>Use photo in AI chat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>What would you like to do with this photo?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation type="unfinished">Décrire la photo</translation>
+    </message>
+    <message>
+        <source>Please describe this photo in %1.</source>
+        <translation type="unfinished">Veuillez décrire cette photo en %1.</translation>
+    </message>
+    <message>
+        <source>Translate text from photo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Please translate all text visible in this photo to %1.</source>
+        <translation type="unfinished">Veuillez traduire tout le texte visible dans cette photo en %1.</translation>
+    </message>
+</context>
+<context>
+    <name>harbour-sailorAI</name>
+    <message>
+        <source>Please describe this photo in %1.</source>
+        <translation type="unfinished">Veuillez décrire cette photo en %1.</translation>
+    </message>
+    <message>
+        <source>Please translate all text visible in this photo to %1.</source>
+        <translation type="unfinished">Veuillez traduire tout le texte visible dans cette photo en %1.</translation>
     </message>
 </context>
 </TS>

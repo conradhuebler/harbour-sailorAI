@@ -2,11 +2,17 @@
 Type=Application
 X-Nemo-Application-Type=silica-qt5
 Icon=harbour-sailorAI
-Exec=sailfish-qml harbour-sailorAI
+Exec=sailjail -p harbour-sailorAI /usr/bin/sailfish-qml harbour-sailorAI
 Name=SailorAI
 Name[de]=SailorAI
 Name[fr]=SailorAI
 Name[fi]=SailorAI
+X-Nemo-Single-Instance=yes
+MimeType=image/jpeg;image/png;image/gif;image/webp;image/bmp;
+X-Share-Methods=sailorAI_share;
+X-Maemo-Service=harbour.sailorAI
+X-Maemo-Object-Path=/harbour/sailorAI
+X-Maemo-Method=harbour.sailorAI.openUrl
 
 # Übersetzbare Beschreibung
 Comment=Chat with your favourite LLM
@@ -19,12 +25,18 @@ Categories=Network;Monitor;Utility
 # Version der App
 X-Nemo-Application-Version=1.0.0
 
-[X-Sailjail]
-#OrganizationName=de.mneuroth
-ApplicationName=harbour-sailorAI
-# Benötigte Berechtigungen
-Permissions=Internet;WebView
+[X-Share Method sailorAI_share]
+Description=Send to SailorAI
+Description[de]=An SailorAI senden
+Description[fr]=Envoyer à SailorAI
+Capabilities=*
+SupportsMultipleFiles=no
+Service=harbour.sailorAI
+Path=/harbour/sailorAI
+Iface=harbour.sailorAI
+Method=share
 
-# Optional: Sharing-Funktionalität
-[X-Nemo-Sharing]
-Shares=none
+[X-Sailjail]
+OrganizationName=harbour
+ApplicationName=harbour-sailorAI
+Permissions=Internet;WebView;Camera

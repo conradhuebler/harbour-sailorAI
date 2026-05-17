@@ -8,7 +8,7 @@ Name:       harbour-sailorAI
 # >> macros
 # << macros
 
-Summary:    SailorAI LLM Chat application
+Summary:    DataPass.de Viewer
 Version:    0.1
 Release:    1
 Group:      Qt/Qt
@@ -19,6 +19,8 @@ Source0:    %{name}-%{version}.tar.bz2
 Source100:  harbour-sailorAI.yaml
 Requires:   sailfishsilica-qt5 >= 0.10.9
 Requires:   libsailfishapp-launcher
+Requires:   nemo-qml-plugin-dbus-qt5
+Requires:   sailfishshare-components
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.3
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Qml)
@@ -65,5 +67,6 @@ desktop-file-install --delete-original       \
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
+%{_datadir}/dbus-1/services/harbour.sailorAI.service
 # >> files
 # << files
