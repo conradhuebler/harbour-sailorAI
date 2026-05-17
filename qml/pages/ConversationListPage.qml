@@ -462,11 +462,12 @@ Page {
                             }
                         }
                         MenuItem {
-                            text: "Export"
+                            text: qsTr("Export")
                             onClicked: {
-                                // Open the ExportDialog for this conversation
-                                var dlg = pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
-                                    "conversationId": model.id
+                                var displayName = model.name || ("Conversation " + model.id)
+                                pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
+                                    "conversationId": model.id,
+                                    "conversationName": displayName
                                 })
                             }
                         }

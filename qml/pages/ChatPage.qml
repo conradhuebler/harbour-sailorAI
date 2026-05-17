@@ -685,11 +685,14 @@ Page {
                 }
             }
             MenuItem {
-                text: "Export chat"
+                text: qsTr("Export chat")
                 onClicked: {
-                    // Open an export dialog for the current conversation
-                    var dlg = pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
-                        "conversationId": currentConversationId
+                    var displayName = conversationName && conversationName !== "Chat"
+                                      ? conversationName
+                                      : ("Conversation " + currentConversationId)
+                    pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
+                        "conversationId": currentConversationId,
+                        "conversationName": displayName
                     })
                 }
             }
