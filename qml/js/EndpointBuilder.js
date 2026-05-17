@@ -282,10 +282,9 @@ function buildRequestData(provider, model, messages, options) {
                     // No user message found — create one with just the images
                     requestData.messages.push({ role: 'user', content: '', images: imageStrings });
                 }
-                console.log("[EndpointBuilder] Ollama multimodal: added " + imageStrings.length + " images inside user message, stream=" + requestData.stream);
+                logVerbose("EndpointBuilder", "Ollama multimodal: " + imageStrings.length + " image(s) in user message, stream=" + requestData.stream);
             } else {
                 requestData.messages = options.customMessages || [];
-                console.log("[EndpointBuilder] Ollama multimodal: NO images, stream=" + requestData.stream);
             }
         } else {
             // OpenAI-compatible with custom messages
@@ -296,17 +295,6 @@ function buildRequestData(provider, model, messages, options) {
             if (supportsStreaming(provider) && options.streaming) {
                 requestData.stream = true;
             }
-            // Diagnostic: check if messages contain image_url entries
-            var imgCount = 0;
-            for (var mi = 0; mi < requestData.messages.length; mi++) {
-                var c = requestData.messages[mi].content;
-                if (typeof c === 'object' && Array.isArray(c)) {
-                    for (var ci = 0; ci < c.length; ci++) {
-                        if (c[ci].type === 'image_url') imgCount++;
-                    }
-                }
-            }
-            console.log("[EndpointBuilder] OpenAI multimodal: " + imgCount + " image_url entries in messages, stream=" + requestData.stream);
         }
         logInfo("EndpointBuilder", "Built request data with custom messages (multimodal) for " + providerType);
         return requestData;

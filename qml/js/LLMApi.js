@@ -362,58 +362,42 @@ function encodeImageToBase64(imagePath, callback) {
     else if (ext === "webp") mimeType = "image/webp";
     else if (ext === "bmp") mimeType = "image/bmp";
 
-    console.log("[encodeImageToBase64] Reading image: " + cleanPath + " (mimeType: " + mimeType + ")");
+    logVerbose("LLMApi", "Reading image: " + cleanPath + " (" + mimeType + ")");
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "file://" + cleanPath, true);
     xhr.responseType = "arraybuffer";
     xhr.timeout = 30000;
     xhr.ontimeout = function() {
-        console.log("[encodeImageToBase64] ERROR: Timeout reading image: " + cleanPath);
+        logError("LLMApi", "Timeout reading image: " + cleanPath);
         callback(null);
     };
     xhr.onerror = function() {
-        console.log("[encodeImageToBase64] ERROR: XHR error reading image: " + cleanPath);
+        logError("LLMApi", "XHR error reading image: " + cleanPath);
         callback(null);
     };
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
-            console.log("[encodeImageToBase64] XHR done, status: " + xhr.status + ", response type: " + typeof xhr.response);
             if (xhr.status === 200 || xhr.status === 0) {
                 try {
                     var arrayBuffer = xhr.response;
                     if (!arrayBuffer || !(arrayBuffer instanceof ArrayBuffer)) {
-                        console.log("[encodeImageToBase64] ERROR: No arraybuffer response, trying text fallback");
-                        var textResponse = xhr.responseText;
-                        if (textResponse && textResponse.length > 0) {
-                            console.log("[encodeImageToBase64] Text response length: " + textResponse.length + " (binary data misread as text)");
-                        }
+                        logError("LLMApi", "No arraybuffer response for " + cleanPath);
                         callback(null);
                         return;
                     }
                     var bytes = new Uint8Array(arrayBuffer);
-                    // First 8 raw bytes as hex — PNG magic should be 89504E470D0A1A0A
-                    var hex = "";
-                    for (var hi = 0; hi < Math.min(8, bytes.length); hi++) {
-                        var h = bytes[hi].toString(16);
-                        hex += (h.length === 1 ? "0" : "") + h;
-                    }
-                    console.log("[encodeImageToBase64] Read " + bytes.length + " bytes from " + cleanPath + " — first8=" + hex.toUpperCase());
                     // Qt.btoa() UTF-8-encodes its input before base64-encoding, which corrupts
                     // binary data (every byte >= 0x80 becomes 2 bytes). Encode bytes directly.
                     var base64 = _bytesToBase64(bytes);
-                    var head = base64.substring(0, 60);
-                    var tail = base64.substring(Math.max(0, base64.length - 60));
-                    console.log("[encodeImageToBase64] Encoded " + cleanPath + " (" + bytes.length + " bytes) -> " + base64.length + " base64 chars");
-                    console.log("[encodeImageToBase64]   head=" + head);
-                    console.log("[encodeImageToBase64]   tail=" + tail);
+                    logInfo("LLMApi", "Encoded image " + cleanPath + ": " + bytes.length + " bytes -> " + base64.length + " base64 chars");
                     callback({ data: base64, mimeType: mimeType, originalPath: cleanPath });
                 } catch (e) {
-                    console.log("[encodeImageToBase64] ERROR: Exception encoding: " + e);
+                    logError("LLMApi", "Exception encoding " + cleanPath + ": " + e);
                     callback(null);
                 }
             } else {
-                console.log("[encodeImageToBase64] ERROR: HTTP status " + xhr.status + " reading " + cleanPath);
+                logError("LLMApi", "HTTP status " + xhr.status + " reading " + cleanPath);
                 callback(null);
             }
         }
@@ -426,7 +410,7 @@ function encodeImages(imagePaths, callback) {
         callback([]);
         return;
     }
-    console.log("[encodeImages] Starting encoding of " + imagePaths.length + " images");
+    logVerbose("LLMApi", "Encoding " + imagePaths.length + " image(s)");
     var results = [];
     var completed = 0;
     var total = imagePaths.length;
@@ -440,7 +424,7 @@ function encodeImages(imagePaths, callback) {
             }
             completed++;
             if (completed === total) {
-                console.log("[encodeImages] Done: " + results.length + " success, " + failed + " failed out of " + total);
+                logInfo("LLMApi", "Image encoding done: " + results.length + "/" + total + " succeeded" + (failed > 0 ? " (" + failed + " failed)" : ""));
                 callback(results);
             }
         });
