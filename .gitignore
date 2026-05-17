@@ -1,0 +1,16 @@
+# Qt Creator / qmake
+*.pro.user
+*.pro.user.*
+.qmake.stash
+Makefile
+Makefile.*
+
+# Build output
+build/
+*.o
+*.obj
+*.so
+
+# Personal test scripts with hardcoded API keys (kept local only)
+api-abstraction-layer/tests/node_test.js
+api-abstraction-layer/tests/ollama_image_test.js
