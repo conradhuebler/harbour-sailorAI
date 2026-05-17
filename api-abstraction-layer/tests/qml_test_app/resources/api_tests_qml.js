@@ -315,7 +315,7 @@ var ConfigLoader = {
                 },
                 test_providers: {
                     gemini: {
-                        api_key: "AIzaSyDfYDTVvpJveVYj7UWoleU1iZJVwJyFxB0",
+                        api_key: "YOUR_GEMINI_API_KEY",
                         test_models: ["gemini-2.0-flash"],
                         enabled: true
                     }
