@@ -25,17 +25,11 @@ jobs:
         run: |
           mb2 -t SailfishOS-4.6.0.13-aarch64 build
 
-      - name: Collect RPM
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/RPMS
-          cp /home/mersdk/harbour-sailorAI/RPMS/*.rpm $GITHUB_WORKSPACE/RPMS/
-          ls -la $GITHUB_WORKSPACE/RPMS/
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: rpm
-          path: RPMS/*.rpm
+          path: /home/mersdk/harbour-sailorAI/RPMS/*.rpm
 
   release:
     needs: build
