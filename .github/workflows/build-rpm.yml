@@ -1,0 +1,59 @@
+name: Build Sailfish OS RPM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: coderus/sailfishos-platform-sdk-aarch64:4.6.0.13
+    steps:
+      - name: Checkout repository
+        run: |
+          cd /home/mersdk
+          git clone https://github.com/${{ github.repository }}.git harbour-sailorAI
+          cd harbour-sailorAI
+          git checkout ${{ github.sha }}
+          ls -la
+
+      - name: Build noarch RPM
+        working-directory: /home/mersdk/harbour-sailorAI
+        env:
+          HOME: /home/mersdk
+        run: |
+          mb2 -t SailfishOS-4.6.0.13-aarch64 build
+
+      - name: Collect RPM
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/RPMS
+          cp /home/mersdk/harbour-sailorAI/RPMS/*.rpm $GITHUB_WORKSPACE/RPMS/
+          ls -la $GITHUB_WORKSPACE/RPMS/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: RPMS/*.rpm
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rpm
+          path: RPMS/
+
+      - name: Upload to continuous release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: continuous
+          name: Continuous Build
+          body: "Automatischer Build vom ${{ github.sha }}"
+          prerelease: true
+          files: RPMS/*.rpm
