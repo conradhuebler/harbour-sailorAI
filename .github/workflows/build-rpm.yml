@@ -14,10 +14,11 @@ jobs:
       - name: Build noarch RPM in SDK container
         run: |
           docker run --rm \
-            -v $PWD:/home/mersdk/harbour-sailorAI \
+            --user root \
+            -v "$PWD":/home/mersdk/harbour-sailorAI \
             -w /home/mersdk/harbour-sailorAI \
             coderus/sailfishos-platform-sdk-aarch64:4.6.0.13 \
-            bash -c "export HOME=/home/mersdk/harbour-sailorAI && mb2 -t SailfishOS-4.6.0.13-aarch64 build"
+            bash -c "export HOME=/root && mb2 -t SailfishOS-4.6.0.13-aarch64 build"
 
       - name: Fix permissions
         run: sudo chown -R $(whoami):$(whoami) RPMS/
