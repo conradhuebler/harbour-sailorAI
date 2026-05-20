@@ -8,28 +8,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: coderus/sailfishos-platform-sdk-aarch64:4.6.0.13
     steps:
-      - name: Checkout repository
-        run: |
-          cd /home/mersdk
-          git clone https://github.com/${{ github.repository }}.git harbour-sailorAI
-          cd harbour-sailorAI
-          git checkout ${{ github.sha }}
-          ls -la
+      - uses: actions/checkout@v4
 
-      - name: Build noarch RPM
-        working-directory: /home/mersdk/harbour-sailorAI
-        env:
-          HOME: /home/mersdk
+      - name: Build noarch RPM in SDK container
         run: |
-          mb2 -t SailfishOS-4.6.0.13-aarch64 build
+          docker run --rm \
+            -v $PWD:/home/mersdk/harbour-sailorAI \
+            -w /home/mersdk/harbour-sailorAI \
+            coderus/sailfishos-platform-sdk-aarch64:4.6.0.13 \
+            bash -c "export HOME=/home/mersdk && mb2 -t SailfishOS-4.6.0.13-aarch64 build"
+
+      - name: Fix permissions
+        run: sudo chown -R $(whoami):$(whoami) RPMS/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: rpm
-          path: /home/mersdk/harbour-sailorAI/RPMS/*.rpm
+          path: RPMS/*.rpm
 
   release:
     needs: build
