@@ -11,16 +11,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare workspace permissions for SDK user
+        run: sudo chown -R 100000:100000 "$PWD"
+
       - name: Build noarch RPM in SDK container
         run: |
           docker run --rm \
-            -v $PWD:/home/mersdk/harbour-sailorAI \
+            -v "$PWD":/home/mersdk/harbour-sailorAI \
             -w /home/mersdk/harbour-sailorAI \
             coderus/sailfishos-platform-sdk-aarch64:4.6.0.13 \
-            bash -c "export HOME=/home/mersdk/harbour-sailorAI && mb2 -t SailfishOS-4.6.0.13-aarch64 build"
+            bash -c "export HOME=/home/mersdk && mb2 -t SailfishOS-4.6.0.13-aarch64 build"
 
-      - name: Fix permissions
-        run: sudo chown -R $(whoami):$(whoami) RPMS/
+      - name: Restore workspace permissions
+        run: sudo chown -R "$(id -u)":"$(id -g)" "$PWD"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
