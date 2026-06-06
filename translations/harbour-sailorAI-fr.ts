@@ -188,6 +188,14 @@
         <source>Translate</source>
         <translation>Traduire</translation>
     </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Décrire la photo</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Photo übersetzen</translation>
+    </message>
 </context>
 <context>
     <name>ExportDialog</name>
@@ -387,6 +395,10 @@
         <source>Please translate all text visible in this photo to %1.</source>
         <translation>Veuillez traduire tout le texte visible dans cette photo en %1.</translation>
     </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Photo übersetzen</translation>
+    </message>
 </context>
 <context>
     <name>harbour-sailorAI</name>
@@ -397,6 +409,14 @@
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
         <translation>Veuillez traduire tout le texte visible dans cette photo en %1.</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Décrire la photo</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Photo übersetzen</translation>
     </message>
 </context>
 </TS>

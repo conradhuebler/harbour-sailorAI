@@ -12,7 +12,7 @@ Page {
 
     property string imagePath: ""
 
-    signal actionSelected(string prompt)
+    signal actionSelected(string prompt, string name)
 
     SilicaFlickable {
         anchors.fill: parent
@@ -57,7 +57,8 @@ Page {
                 onClicked: {
                     // Caller (ConversationListPage) navigates via replaceAbove — do not pop here.
                     page.actionSelected(
-                        qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+                        qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName),
+                        qsTr("Describe photo"))
                 }
             }
 
@@ -66,7 +67,8 @@ Page {
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     page.actionSelected(
-                        qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
+                        qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName),
+                        qsTr("Translate photo"))
                 }
             }
         }

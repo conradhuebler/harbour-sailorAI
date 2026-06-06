@@ -2,6 +2,41 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>AdvancedSettingsDialog</name>
+    <message>
+        <source>Advanced Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Temperature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Controls randomness: 0 = deterministic, 2 = very creative</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Seed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Seed (optional)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Leave empty for random</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Same seed = same response (if supported). Leave empty for random.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset to Defaults</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CameraCapturePage</name>
     <message>
         <source>Camera not available</source>
@@ -36,6 +71,22 @@
     </message>
     <message>
         <source>file truncated at 32000 chars</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Advanced LLM Parameters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Back to Conversations</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -189,6 +240,33 @@
     </message>
 </context>
 <context>
+    <name>ProviderAliasDialog</name>
+    <message>
+        <source>Select Provider &amp; Model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manage Favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SettingsPage</name>
     <message>
         <source>Photo Actions</source>
@@ -212,6 +290,74 @@
     </message>
     <message>
         <source>Not set — photo actions use the last chat model. Pick a vision-capable model.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add Provider</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider Configuration &amp; Debug</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Debug Level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>0 — None (Production)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1 — Normal (Errors &amp; Important)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>2 — Informative (API Calls)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3 — Verbose (All Operations)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Image Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max Image Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>512 px — compact</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>768 px — medium</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1024 px — good quality</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1280 px — default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1920 px — high quality</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Original — no resize</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider Aliases</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -299,6 +299,7 @@ Page {
     // Claude Generated: pending chat-open after capture / share-action.
     property string _photoChatPath: ""
     property string _photoChatPrompt: ""
+    property string _photoChatName: ""
 
     // Deferred so the navigation runs OUTSIDE the camera/share-action signal handler
     // (replacing a page from within its own signal callback is unreliable on Silica).
@@ -309,26 +310,28 @@ Page {
         onTriggered: {
             pageStack.replaceAbove(page, Qt.resolvedUrl("ChatPage.qml"), {
                 "conversationId": 0,
-                "conversationName": qsTr("New Conversation"),
+                "conversationName": _photoChatName || qsTr("New Conversation"),
                 "initialImages": [_photoChatPath],
                 "initialPrompt": _photoChatPrompt
             })
         }
     }
 
-    function _openChatWithPhoto(imagePath, prompt) {
+    function _openChatWithPhoto(imagePath, prompt, name) {
         _photoChatPath = imagePath
         _photoChatPrompt = prompt
+        _photoChatName = name || qsTr("New Conversation")
         openChatTimer.restart()
     }
 
     // Claude Generated: Open camera, then on capture swap to a fresh chat.
-    function openPhotoAction(prompt) {
+    function openPhotoAction(prompt, name) {
         var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
         if (!camPage) return
         var capturedPrompt = prompt
+        var capturedName = name || qsTr("New Conversation")
         camPage.photoCaptured.connect(function(path) {
-            _openChatWithPhoto(path, capturedPrompt)
+            _openChatWithPhoto(path, capturedPrompt, capturedName)
         })
     }
 
@@ -339,8 +342,8 @@ Page {
             "imagePath": imagePath
         })
         if (!actionPage) return
-        actionPage.actionSelected.connect(function(prompt) {
-            _openChatWithPhoto(imagePath, prompt)
+        actionPage.actionSelected.connect(function(prompt, name) {
+            _openChatWithPhoto(imagePath, prompt, name)
         })
     }
 
@@ -366,7 +369,7 @@ Page {
             if (!action) return
             app.pendingPhotoAction = null
             if (action.mode === "camera") {
-                openPhotoAction(action.prompt)
+                openPhotoAction(action.prompt, action.name || qsTr("New Conversation"))
             } else if (action.mode === "share") {
                 handleSharedImage(action.imagePath)
             }
@@ -468,7 +471,8 @@ Page {
                         icon.source: "image://theme/icon-m-camera"
                         enabled: app.hasActiveProviders
                         onClicked: openPhotoAction(
-                            qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+                            qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName),
+                            qsTr("Describe photo"))
                     }
                     Label {
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -485,7 +489,8 @@ Page {
                         icon.source: "image://theme/icon-m-region"
                         enabled: app.hasActiveProviders
                         onClicked: openPhotoAction(
-                            qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
+                            qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName),
+                            qsTr("Translate photo"))
                     }
                     Label {
                         anchors.horizontalCenter: parent.horizontalCenter

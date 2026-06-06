@@ -188,6 +188,14 @@
         <source>Translate</source>
         <translation>Käännä</translation>
     </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Kuvaile valokuva</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Käännä valokuva</translation>
+    </message>
 </context>
 <context>
     <name>ExportDialog</name>
@@ -387,6 +395,10 @@
         <source>Please translate all text visible in this photo to %1.</source>
         <translation>Käännä kaikki tässä valokuvassa näkyvä teksti kielelle %1.</translation>
     </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Käännä valokuva</translation>
+    </message>
 </context>
 <context>
     <name>harbour-sailorAI</name>
@@ -397,6 +409,14 @@
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
         <translation>Käännä kaikki tässä valokuvassa näkyvä teksti kielelle %1.</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Kuvaile valokuva</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Käännä valokuva</translation>
     </message>
 </context>
 </TS>

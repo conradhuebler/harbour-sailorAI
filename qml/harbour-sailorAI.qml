@@ -109,12 +109,14 @@ ApplicationWindow
 
             onDescribePhotoRequested: {
                 dispatchPhotoAction({ "mode": "camera", "imagePath": "",
-                    "prompt": qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName) })
+                    "prompt": qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName),
+                    "name": qsTr("Describe photo") })
             }
 
             onTranslateTextRequested: {
                 dispatchPhotoAction({ "mode": "camera", "imagePath": "",
-                    "prompt": qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName) })
+                    "prompt": qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName),
+                    "name": qsTr("Translate photo") })
             }
         }
     }
