@@ -8,7 +8,7 @@ Name:       harbour-sailorAI
 # >> macros
 # << macros
 
-Summary:    DataPass.de Viewer
+Summary:    AI chat interface for Sailfish OS
 Version:    0.1
 Release:    1
 Group:      Qt/Qt
@@ -28,7 +28,9 @@ BuildRequires:  pkgconfig(Qt5Quick)
 BuildRequires:  desktop-file-utils
 
 %description
-Short description of my Sailfish OS Application
+SailorAI is an AI chat interface for Sailfish OS supporting multiple LLM providers
+(OpenAI, Anthropic Claude, Google Gemini, Ollama) with real-time streaming,
+image and document upload, and conversation history.
 
 
 %prep
@@ -68,5 +70,6 @@ desktop-file-install --delete-original       \
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
 %{_datadir}/dbus-1/services/harbour.sailorAI.service
+%{_datadir}/dbus-1/services/harbour.harbour-sailorAI.service
 # >> files
 # << files

@@ -220,16 +220,10 @@ function getAliasModels(aliasId) {
 }
 
 function getModelInfo(aliasId, modelName) {
-    return _api.getModelInfo(aliasId, modelName);
+    return "";
 }
 
-function isModelVisionCapable(aliasId, modelName) {
-    return _api.isModelVisionCapable(aliasId, modelName);
-}
-
-function checkOllamaModelVision(aliasId, modelName, callback) {
-    return _api.checkOllamaModelVision(aliasId, modelName, callback);
-}
+// isModelVisionCapable and checkOllamaModelVision come directly from AliasManager.js (Qt.include)
 
 function fetchModelsForAlias(aliasId) {
     _api.fetchModelsForAlias(aliasId, null, null);
@@ -279,6 +273,20 @@ function removeAliasFavoriteModel(aliasId, model) {
 
 function isAliasFavoriteModel(aliasId, model) {
     return _api.isFavoriteModel(aliasId, model);
+}
+
+// --- Manual vision tags ---
+
+function getAliasVisionModels(aliasId) {
+    return getVisionModels(aliasId);
+}
+
+function isAliasVisionModelTagged(aliasId, model) {
+    return isVisionModelTagged(aliasId, model);
+}
+
+function toggleAliasVisionModel(aliasId, model) {
+    return toggleVisionModel(aliasId, model);
 }
 
 // --- Thinking mode ---

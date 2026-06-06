@@ -35,6 +35,25 @@ Page {
         defaultValue: 1280
     }
 
+    // Claude Generated: photo-action behaviour and dedicated vision model
+    ConfigurationValue {
+        id: photoActionAutoSendConfig
+        key: "/SailorAI/photo_action_auto_send"
+        defaultValue: true
+    }
+
+    ConfigurationValue {
+        id: visionProviderAliasConfig
+        key: "/SailorAI/vision_provider_alias"
+        defaultValue: ""
+    }
+
+    ConfigurationValue {
+        id: visionModelConfig
+        key: "/SailorAI/vision_model"
+        defaultValue: ""
+    }
+
     // Legacy configs for backward compatibility
     ConfigurationValue {
         id: geminiConfig
@@ -254,50 +273,56 @@ Page {
         contentHeight: column.height
 
 
+        PullDownMenu {
+            MenuItem {
+                text: qsTr("Add Provider")
+                onClicked: createNewAlias()
+            }
+        }
+
         Column {
             id: column
             width: parent.width
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: "Settings"
-                description: "Provider Configuration & Debug"
+                title: qsTr("Settings")
+                description: qsTr("Provider Configuration & Debug")
             }
 
             SectionHeader {
-                text: "Debug Level"
+                text: qsTr("Debug Level")
             }
 
             ComboBox {
                 id: debugLevelComboBox
-                label: "Debug Level"
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                x: Theme.horizontalPageMargin
+                label: qsTr("Debug Level")
+                width: parent.width
                 currentIndex: parseInt(debugLevelConfig.value) || 1
                 menu: ContextMenu {
-                    MenuItem { 
-                        text: "0 - None (Production)"
+                    MenuItem {
+                        text: qsTr("0 — None (Production)")
                         onClicked: {
                             debugLevelConfig.value = "0";
                             DebugLogger.logNormal("SettingsPage", "Debug level set to 0 (None)");
                         }
                     }
-                    MenuItem { 
-                        text: "1 - Normal (Errors & Important)"
+                    MenuItem {
+                        text: qsTr("1 — Normal (Errors & Important)")
                         onClicked: {
                             debugLevelConfig.value = "1";
                             DebugLogger.logNormal("SettingsPage", "Debug level set to 1 (Normal)");
                         }
                     }
-                    MenuItem { 
-                        text: "2 - Informative (API Calls)"
+                    MenuItem {
+                        text: qsTr("2 — Informative (API Calls)")
                         onClicked: {
                             debugLevelConfig.value = "2";
                             DebugLogger.logNormal("SettingsPage", "Debug level set to 2 (Informative)");
                         }
                     }
-                    MenuItem { 
-                        text: "3 - Verbose (All Operations)"
+                    MenuItem {
+                        text: qsTr("3 — Verbose (All Operations)")
                         onClicked: {
                             debugLevelConfig.value = "3";
                             DebugLogger.logNormal("SettingsPage", "Debug level set to 3 (Verbose)");
@@ -307,14 +332,13 @@ Page {
             }
 
             SectionHeader {
-                text: "Image Settings"
+                text: qsTr("Image Settings")
             }
 
             ComboBox {
                 id: imageMaxDimensionComboBox
-                label: "Max Image Size (resize threshold)"
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                x: Theme.horizontalPageMargin
+                label: qsTr("Max Image Size")
+                width: parent.width
                 currentIndex: {
                     var v = imageMaxDimensionConfig.value;
                     if (v <= 512) return 0;
@@ -326,43 +350,82 @@ Page {
                 }
                 menu: ContextMenu {
                     MenuItem {
-                        text: "512 px — compact (low bandwidth)"
+                        text: qsTr("512 px — compact")
                         onClicked: imageMaxDimensionConfig.value = 512;
                     }
                     MenuItem {
-                        text: "768 px — medium"
+                        text: qsTr("768 px — medium")
                         onClicked: imageMaxDimensionConfig.value = 768;
                     }
                     MenuItem {
-                        text: "1024 px — good quality"
+                        text: qsTr("1024 px — good quality")
                         onClicked: imageMaxDimensionConfig.value = 1024;
                     }
                     MenuItem {
-                        text: "1280 px — default"
+                        text: qsTr("1280 px — default")
                         onClicked: imageMaxDimensionConfig.value = 1280;
                     }
                     MenuItem {
-                        text: "1920 px — high quality"
+                        text: qsTr("1920 px — high quality")
                         onClicked: imageMaxDimensionConfig.value = 1920;
                     }
                     MenuItem {
-                        text: "Original — no resize"
+                        text: qsTr("Original — no resize")
                         onClicked: imageMaxDimensionConfig.value = 99999;
                     }
                 }
             }
 
             SectionHeader {
-                text: "Provider Aliases"
+                text: qsTr("Photo Actions")
             }
-            
+
+            TextSwitch {
+                id: autoSendSwitch
+                width: parent.width
+                text: qsTr("Send photo actions immediately")
+                description: qsTr("When off, the chat opens with the photo and prompt ready for you to send.")
+                automaticCheck: false
+                checked: photoActionAutoSendConfig.value === true || photoActionAutoSendConfig.value === "true"
+                onClicked: photoActionAutoSendConfig.value = !checked
+            }
+
             Button {
-                text: "Add Provider Alias"
+                text: qsTr("Default model for image actions")
                 anchors.horizontalCenter: parent.horizontalCenter
-                onClicked: createNewAlias()
+                onClicked: {
+                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
+                        "selectedAliasId": visionProviderAliasConfig.value,
+                        "selectedModel": visionModelConfig.value
+                    });
+                    dialog.accepted.connect(function() {
+                        visionProviderAliasConfig.value = dialog.selectedAliasId;
+                        visionModelConfig.value = dialog.selectedModel;
+                        DebugLogger.logInfo("SettingsPage", "Vision default set: " + dialog.selectedAliasId + " / " + dialog.selectedModel);
+                    });
+                }
             }
-            
-            Item { height: Theme.paddingMedium }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.WordWrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                text: {
+                    var a = visionProviderAliasConfig.value;
+                    var m = visionModelConfig.value;
+                    if (a && m) {
+                        var alias = LLMApi.getProviderAlias(a);
+                        return qsTr("Used for cover, share and photo actions: ") + (alias ? alias.name : a) + " · " + m;
+                    }
+                    return qsTr("Not set — photo actions use the last chat model. Pick a vision-capable model.");
+                }
+            }
+
+            SectionHeader {
+                text: qsTr("Provider Aliases")
+            }
             
             SilicaListView {
                 id: providerListView

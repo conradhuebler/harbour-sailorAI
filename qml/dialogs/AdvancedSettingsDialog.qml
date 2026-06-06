@@ -17,64 +17,61 @@ Dialog {
             spacing: Theme.paddingLarge
             
             DialogHeader {
-                title: "Advanced Settings"
+                title: qsTr("Advanced Settings")
             }
-            
+
+            SectionHeader {
+                text: qsTr("Temperature")
+            }
+
             Slider {
                 id: temperatureSlider
                 width: parent.width
-                label: "Temperature"
                 minimumValue: 0.0
                 maximumValue: 2.0
                 value: temperature
                 stepSize: 0.1
                 valueText: value.toFixed(1)
-                
-                onValueChanged: {
-                    temperature = value
-                }
-                
-                Label {
-                    parent: temperatureSlider
-                    anchors.top: parent.bottom
-                    anchors.left: parent.left
-                    anchors.leftMargin: Theme.horizontalPageMargin
-                    text: "Controls randomness: 0 = deterministic, 2 = very creative"
-                    font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
-                    wrapMode: Text.WordWrap
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                }
+                onValueChanged: temperature = value
             }
-            
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: qsTr("Controls randomness: 0 = deterministic, 2 = very creative")
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+            }
+
+            SectionHeader {
+                text: qsTr("Seed")
+            }
+
             TextField {
                 id: seedField
                 width: parent.width
-                label: "Seed (optional)"
+                label: qsTr("Seed (optional)")
                 text: seed === -1 ? "" : seed.toString()
-                placeholderText: "Random seed for reproducible results"
+                placeholderText: qsTr("Leave empty for random")
                 inputMethodHints: Qt.ImhDigitsOnly
-                
                 onTextChanged: {
                     var newSeed = parseInt(text)
                     seed = isNaN(newSeed) ? -1 : newSeed
                 }
-                
-                Label {
-                    parent: seedField
-                    anchors.top: parent.bottom
-                    anchors.left: parent.left
-                    anchors.leftMargin: Theme.horizontalPageMargin
-                    text: "Same seed = same response (if available). Leave empty for random."
-                    font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
-                    wrapMode: Text.WordWrap
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                }
             }
-            
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: qsTr("Same seed = same response (if supported). Leave empty for random.")
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+            }
+
             Button {
-                text: "Reset to Defaults"
+                text: qsTr("Reset to Defaults")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     temperatureSlider.value = 0.7

@@ -30,7 +30,12 @@ Page {
         // Don't hide button during transient empty states while loading
         if (!selectedAliasId) return;
         var alias = LLMApi.getProviderAlias(selectedAliasId);
-        if (!alias || alias.type !== "ollama") { currentModelSupportsVision = true; return; }
+        if (!alias) return;
+        // Cloud providers, or a model the user manually tagged as vision-capable → synchronous yes
+        if (alias.type !== "ollama" || LLMApi.isAliasVisionModelTagged(selectedAliasId, selectedModel)) {
+            currentModelSupportsVision = true;
+            return;
+        }
         if (!selectedModel) return;
         currentModelSupportsVision = true; // optimistic while /api/show is in flight
         var snapAlias = selectedAliasId;
@@ -38,22 +43,86 @@ Page {
         LLMApi.checkOllamaModelVision(snapAlias, snapModel, function(hasVision) {
             // Discard stale callbacks from a previous model selection
             if (selectedAliasId !== snapAlias || selectedModel !== snapModel) return;
-            currentModelSupportsVision = hasVision;
-            if (!hasVision) selectedImages = [];
+            // A manual tag overrides a negative auto-detection
+            currentModelSupportsVision = hasVision || LLMApi.isAliasVisionModelTagged(snapAlias, snapModel);
+            if (!currentModelSupportsVision) selectedImages = [];
         });
     }
 
-    // Claude Generated: Push camera page and pre-fill chat with photo + prompt on capture
+    // Claude Generated: Push camera page; on capture return to this chat and attach the photo.
     function openCameraAction(prompt) {
         var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
         if (camPage) {
             camPage.photoCaptured.connect(function(path) {
-                var newImages = selectedImages.slice()
-                newImages.push(path)
-                selectedImages = newImages
-                textField.text = prompt
+                pageStack.pop(page)
+                _addPickedImage(path)
+                if (prompt) textField.text = prompt
             })
         }
+    }
+
+    // Claude Generated: Image picker helpers — gallery grid and file-manager browsing.
+    function _addPickedImage(content) {
+        if (!content) return
+        var newImages = selectedImages.slice()
+        newImages.push(content)
+        selectedImages = newImages
+        DebugLogger.logInfo("ChatPage", "Added image: " + content)
+    }
+
+    function pickFromGallery() {
+        var picker = pageStack.push("Sailfish.Pickers.ImagePickerPage")
+        picker.selectedContentChanged.connect(function() {
+            if (picker.selectedContent) _addPickedImage(picker.selectedContent)
+        })
+    }
+
+    function pickFromFiles() {
+        var picker = pageStack.push("Sailfish.Pickers.FilePickerPage", {
+            "title": qsTr("Select image"),
+            "nameFilters": [ "*.jpg", "*.jpeg", "*.png", "*.gif", "*.webp", "*.bmp" ]
+        })
+        picker.selectedContentPropertiesChanged.connect(function() {
+            var props = picker.selectedContentProperties
+            if (props && props.filePath) _addPickedImage(props.filePath)
+        })
+    }
+
+    // Claude Generated: Pick a text or document file and append its content to the input field.
+    function pickTextDocument() {
+        var picker = pageStack.push("Sailfish.Pickers.FilePickerPage", {
+            "title": qsTr("Select document"),
+            "nameFilters": [ "*.txt", "*.md", "*.csv", "*.json", "*.xml",
+                             "*.yaml", "*.yml", "*.log", "*.py", "*.js",
+                             "*.cpp", "*.h", "*.qml", "*.html", "*.css" ]
+        })
+        picker.selectedContentPropertiesChanged.connect(function() {
+            var props = picker.selectedContentProperties
+            if (!props || !props.filePath) return
+            _readTextFile(props.filePath)
+        })
+    }
+
+    function _readTextFile(filePath) {
+        var cleanPath = filePath.toString()
+        if (cleanPath.indexOf("file://") !== 0) cleanPath = "file://" + cleanPath
+        var xhr = new XMLHttpRequest()
+        xhr.open("GET", cleanPath, true)
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== XMLHttpRequest.DONE) return
+            if (xhr.status === 200 || xhr.status === 0) {
+                var content = xhr.responseText
+                if (content.length > 32000) {
+                    // Hard limit: truncate very large files with a notice
+                    content = content.substring(0, 32000) + "\n\n[... " + qsTr("file truncated at 32000 chars") + "]"
+                }
+                var existing = textField.text
+                textField.text = existing ? existing + "\n\n" + content : content
+            } else {
+                DebugLogger.logError("ChatPage", "Failed to read file: " + filePath + " HTTP " + xhr.status)
+            }
+        }
+        xhr.send()
     }
 
     onSelectedModelChanged: updateVisionCapability()
@@ -78,6 +147,65 @@ Page {
                 DebugLogger.logError("ChatPage", "Image request timed out after " + interval + " ms");
                 chatModel.append({role: "error", message: "Error: Request timed out", timestamp: Date.now()});
                 isGenerating = false;
+            }
+        }
+    }
+
+    // Claude Generated: Lets the user choose where to pick an image from — the gallery grid or the
+    // file manager (filesystem browser). Pops back to the chat (Immediate) before opening the picker
+    // so there is no chooser page left underneath it.
+    Component {
+        id: imageSourceChooser
+        Page {
+            id: chooserPage
+            Column {
+                width: parent.width
+
+                PageHeader { title: qsTr("Add image") }
+
+                BackgroundItem {
+                    width: parent.width
+                    height: Theme.itemSizeLarge
+                    onClicked: {
+                        pageStack.pop(page, PageStackAction.Immediate)
+                        page.pickFromGallery()
+                    }
+                    Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: Theme.horizontalPageMargin
+                        spacing: Theme.paddingLarge
+                        Icon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: "image://theme/icon-m-image"
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: qsTr("From gallery")
+                        }
+                    }
+                }
+
+                BackgroundItem {
+                    width: parent.width
+                    height: Theme.itemSizeLarge
+                    onClicked: {
+                        pageStack.pop(page, PageStackAction.Immediate)
+                        page.pickFromFiles()
+                    }
+                    Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: Theme.horizontalPageMargin
+                        spacing: Theme.paddingLarge
+                        Icon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            source: "image://theme/icon-m-folder"
+                        }
+                        Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: qsTr("From files")
+                        }
+                    }
+                }
             }
         }
     }
@@ -185,6 +313,25 @@ Page {
         id: imageMaxDimension
         key: "/SailorAI/image_max_dimension"
         defaultValue: 1280
+    }
+
+    // Claude Generated: photo-action behaviour and dedicated vision model (set in SettingsPage)
+    ConfigurationValue {
+        id: photoActionAutoSendConfig
+        key: "/SailorAI/photo_action_auto_send"
+        defaultValue: true
+    }
+
+    ConfigurationValue {
+        id: visionProviderAliasConfig
+        key: "/SailorAI/vision_provider_alias"
+        defaultValue: ""
+    }
+
+    ConfigurationValue {
+        id: visionModelConfig
+        key: "/SailorAI/vision_model"
+        defaultValue: ""
     }
 
 
@@ -715,11 +862,20 @@ Page {
         
         PullDownMenu {
             MenuItem {
-                text: "Settings"
+                text: qsTr("Settings")
                 onClicked: pageStack.push(Qt.resolvedUrl("SettingsPage.qml"))
             }
             MenuItem {
-                text: "Provider: " + getProviderDisplayName()
+                text: qsTr("Advanced LLM Parameters")
+                onClicked: {
+                    pageStack.push(Qt.resolvedUrl("../dialogs/AdvancedSettingsDialog.qml"), {
+                        "temperature": 0.7,
+                        "seed": -1
+                    })
+                }
+            }
+            MenuItem {
+                text: qsTr("Provider") + ": " + getProviderDisplayName()
                 onClicked: {
                     var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
                         "selectedAliasId": selectedAliasId,
@@ -728,16 +884,14 @@ Page {
                     dialog.accepted.connect(function() {
                         selectedAliasId = dialog.selectedAliasId
                         selectedModel = dialog.selectedModel
-                        saveCurrentSelection() // Save the new selection
+                        saveCurrentSelection()
                         loadModels()
                     })
                 }
             }
             MenuItem {
-                text: "Back to Conversations"
-                onClicked: {
-                    pageStack.pop()
-                }
+                text: qsTr("Back to Conversations")
+                onClicked: pageStack.pop()
             }
             MenuItem {
                 text: qsTr("Export chat")
@@ -836,9 +990,9 @@ Page {
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
 
-                                // Images attached to this message
+                                // Images attached to this message (shown for whichever message carries them)
                                 Flow {
-                                    visible: messageItem.isOwnMessage && messageItem.itemImages.length > 0
+                                    visible: messageItem.itemImages.length > 0
                                     width: visible ? parent.width : 0
                                     height: visible ? implicitHeight : 0
                                     spacing: Theme.paddingSmall
@@ -1098,7 +1252,7 @@ Page {
                                 anchors.top: parent.top
                                 anchors.right: parent.right
                                 anchors.margins: Theme.paddingSmall / 2
-                                icon.source: "image://theme/icon-s-clear"
+                                icon.source: "image://theme/icon-m-clear"
                                 icon.color: Theme.errorColor
                                 width: Theme.iconSizeSmall
                                 height: Theme.iconSizeSmall
@@ -1162,64 +1316,32 @@ Page {
             Row {
                 id: leftButtons
                 spacing: Theme.paddingSmall
-                
+
                 IconButton {
-                    id: advancedButton
-                    icon.source: "image://theme/icon-s-developer"
-                    onClicked: {
-                        var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/AdvancedSettingsDialog.qml"), {
-                            "temperature": 0.7,
-                            "seed": -1
-                        })
-                    }
+                    id: documentButton
+                    icon.source: "image://theme/icon-m-document"
+                    onClicked: pickTextDocument()
                 }
-                
+
                 IconButton {
-                    id: modelButton
-                    icon.source: "image://theme/icon-s-setting"
-                    onClicked: {
-                        var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
-                            "selectedAliasId": selectedAliasId,
-                            "selectedModel": selectedModel
-                        })
-                        dialog.accepted.connect(function() {
-                            selectedAliasId = dialog.selectedAliasId
-                            selectedModel = dialog.selectedModel
-                            saveCurrentSelection() // Save the new selection
-                            loadModels()
-                        })
-                    }
+                    id: attachButton
+                    visible: currentModelSupportsVision
+                    icon.source: "image://theme/icon-m-image"
+                    onClicked: pageStack.push(imageSourceChooser)
                 }
             }
-            
+
             // Spacer to push right buttons to the right
             Item {
                 width: parent.width - leftButtons.width - rightButtons.width
                 height: 1
             }
-            
+
             // Right side buttons
             Row {
                 id: rightButtons
                 spacing: Theme.paddingSmall
-                
-                IconButton {
-                    id: attachButton
-                    visible: currentModelSupportsVision
-                    icon.source: "image://theme/icon-s-attach"
-                    onClicked: {
-                        // Open image picker
-                        var picker = pageStack.push("Sailfish.Pickers.ImagePickerPage");
-                        picker.selectedContentChanged.connect(function() {
-                            if (picker.selectedContent) {
-                                var newImages = selectedImages.slice(); // Copy existing images
-                                newImages.push(picker.selectedContent);
-                                selectedImages = newImages;
-                                DebugLogger.logInfo("ChatPage", "Added image: " + picker.selectedContent);
-                            }
-                        });
-                    }
-                }
+
                 
                 IconButton {
                     id: sendButton
@@ -1270,12 +1392,31 @@ Page {
             loadChat(currentConversationId);
         }
 
-        // Apply photo action pre-fill (cover or in-app camera actions)
+        // Apply photo action pre-fill (cover, share, or in-app camera actions)
+        if (currentConversationId <= 0 && initialImages.length > 0) {
+            // Prefer the dedicated vision provider/model if configured and still available
+            if (visionProviderAliasConfig.value && visionModelConfig.value &&
+                    availableAliases.indexOf(visionProviderAliasConfig.value) !== -1) {
+                selectedAliasId = visionProviderAliasConfig.value
+                loadModels()
+                selectedModel = visionModelConfig.value
+                DebugLogger.logInfo("ChatPage", "Photo action using vision default: " + selectedAliasId + " / " + selectedModel)
+            }
+            selectedImages = initialImages
+        }
         if (currentConversationId <= 0 && initialPrompt.length > 0) {
             textField.text = initialPrompt
         }
-        if (currentConversationId <= 0 && initialImages.length > 0) {
-            selectedImages = initialImages
+
+        // Auto-send photo actions only when enabled and the active model can do vision;
+        // otherwise leave it pre-filled so the user can pick a model and send manually.
+        if (currentConversationId <= 0 && initialPrompt.length > 0 && initialImages.length > 0) {
+            var autoSend = (photoActionAutoSendConfig.value === true || photoActionAutoSendConfig.value === "true")
+            if (autoSend && currentModelSupportsVision) {
+                sendButton.clicked()
+            } else if (autoSend && !currentModelSupportsVision) {
+                DebugLogger.logInfo("ChatPage", "Auto-send skipped: selected model is not vision-capable")
+            }
         }
     }
 }

@@ -3,6 +3,7 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import Nemo.Configuration 1.0
 import "../js/LLMApi.js" as LLMApi
 
 Dialog {
@@ -15,6 +16,19 @@ Dialog {
     canAccept: false
 
     property var _sortedModels: []
+
+    // Claude Generated: persists manual vision tags toggled below
+    ConfigurationValue {
+        id: providerAliasesConfig
+        key: "/SailorAI/provider_aliases"
+        defaultValue: ""
+    }
+
+    function toggleVision(modelName) {
+        LLMApi.toggleAliasVisionModel(aliasId, modelName);
+        providerAliasesConfig.value = LLMApi.saveProviderAliases();
+        updateModelList();
+    }
 
     function updateModelList() {
         var alias = LLMApi.getProviderAlias(aliasId);
@@ -49,10 +63,12 @@ Dialog {
         // Build model list with section markers
         var result = [];
         for (var j = 0; j < favoriteList.length; j++) {
-            result.push({name: favoriteList[j], isFavorite: true});
+            result.push({name: favoriteList[j], isFavorite: true,
+                         vision: LLMApi.isModelVisionCapable(aliasId, favoriteList[j])});
         }
         for (var k = 0; k < otherList.length; k++) {
-            result.push({name: otherList[k], isFavorite: false});
+            result.push({name: otherList[k], isFavorite: false,
+                         vision: LLMApi.isModelVisionCapable(aliasId, otherList[k])});
         }
 
         _sortedModels = result;
@@ -108,6 +124,7 @@ Dialog {
                         Label {
                             width: parent.width
                             text: (modelData.isFavorite ? "★ " : "• ") + modelData.name
+                                  + (modelData.vision ? "  👁" : "")
                             color: modelData.isFavorite ? Theme.highlightColor : Theme.primaryColor
                             font.pixelSize: Theme.fontSizeSmall
                             truncationMode: TruncationMode.Fade
@@ -121,6 +138,15 @@ Dialog {
                             wrapMode: Text.WordWrap
                             visible: text !== ""
                             height: visible ? implicitHeight : 0
+                        }
+                    }
+
+                    menu: ContextMenu {
+                        MenuItem {
+                            text: LLMApi.isAliasVisionModelTagged(aliasId, modelData.name)
+                                  ? qsTr("Unmark as vision-capable")
+                                  : qsTr("Mark as vision-capable")
+                            onClicked: toggleVision(modelData.name)
                         }
                     }
                 }

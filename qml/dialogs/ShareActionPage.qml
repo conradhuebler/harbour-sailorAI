@@ -55,9 +55,9 @@ Page {
                 text: qsTr("Describe photo")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
+                    // Caller (ConversationListPage) navigates via replaceAbove — do not pop here.
                     page.actionSelected(
                         qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
-                    pageStack.pop()
                 }
             }
 
@@ -67,7 +67,6 @@ Page {
                 onClicked: {
                     page.actionSelected(
                         qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
-                    pageStack.pop()
                 }
             }
         }

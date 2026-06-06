@@ -296,52 +296,52 @@ Page {
         }
     }
 
-    // Claude Generated: Open new chat with a pre-captured photo and pre-filled action prompt
-    function newConversationWithPhotoAction(imagePath, prompt) {
-        pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
-            "conversationId": 0,
-            "conversationName": qsTr("New Conversation"),
-            "initialImages": [imagePath],
-            "initialPrompt": prompt
-        })
-    }
+    // Claude Generated: pending chat-open after capture / share-action.
+    property string _photoChatPath: ""
+    property string _photoChatPrompt: ""
 
-    // Claude Generated: Deferred push after camera page pops (page stack needs to settle)
+    // Deferred so the navigation runs OUTSIDE the camera/share-action signal handler
+    // (replacing a page from within its own signal callback is unreliable on Silica).
     Timer {
-        id: photoActionTimer
-        interval: 50
+        id: openChatTimer
+        interval: 1
         repeat: false
-        property string pendingPath: ""
-        property string pendingPrompt: ""
-        onTriggered: newConversationWithPhotoAction(pendingPath, pendingPrompt)
-    }
-
-    // Claude Generated: Open camera, then on capture pop camera and open new chat with photo
-    function openPhotoAction(prompt) {
-        var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
-        if (camPage) {
-            var capturedPrompt = prompt
-            camPage.photoCaptured.connect(function(path) {
-                pageStack.pop(null, PageStackAction.Immediate)
-                photoActionTimer.pendingPath = path
-                photoActionTimer.pendingPrompt = capturedPrompt
-                photoActionTimer.restart()
+        onTriggered: {
+            pageStack.replaceAbove(page, Qt.resolvedUrl("ChatPage.qml"), {
+                "conversationId": 0,
+                "conversationName": qsTr("New Conversation"),
+                "initialImages": [_photoChatPath],
+                "initialPrompt": _photoChatPrompt
             })
         }
     }
 
-    // Claude Generated: Handle image shared/opened from another app (Gallery, Files, etc.)
+    function _openChatWithPhoto(imagePath, prompt) {
+        _photoChatPath = imagePath
+        _photoChatPrompt = prompt
+        openChatTimer.restart()
+    }
+
+    // Claude Generated: Open camera, then on capture swap to a fresh chat.
+    function openPhotoAction(prompt) {
+        var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
+        if (!camPage) return
+        var capturedPrompt = prompt
+        camPage.photoCaptured.connect(function(path) {
+            _openChatWithPhoto(path, capturedPrompt)
+        })
+    }
+
+    // Claude Generated: Handle image shared/opened from another app (Gallery, Files, etc.).
+    // Ask describe/translate, then swap to a fresh chat.
     function handleSharedImage(imagePath) {
         var actionPage = pageStack.push(Qt.resolvedUrl("../dialogs/ShareActionPage.qml"), {
             "imagePath": imagePath
         })
-        if (actionPage) {
-            actionPage.actionSelected.connect(function(prompt) {
-                photoActionTimer.pendingPath = imagePath
-                photoActionTimer.pendingPrompt = prompt
-                photoActionTimer.restart()
-            })
-        }
+        if (!actionPage) return
+        actionPage.actionSelected.connect(function(prompt) {
+            _openChatWithPhoto(imagePath, prompt)
+        })
     }
 
     function deleteConversation(conversationId) {
@@ -353,21 +353,35 @@ Page {
         }
     }
 
-    function _handlePendingSharedImage() {
-        if (app.pendingSharedImage !== "") {
-            var path = app.pendingSharedImage
-            app.pendingSharedImage = ""
-            handleSharedImage(path)
+    // Claude Generated: Consume the queued photo action exactly once. Deferred via timer so it runs
+    // after the app is foregrounded and the page stack has settled (cover/D-Bus activation can fire
+    // this while the app is still transitioning). Cleared before dispatch so overlapping triggers
+    // (status change + property change) can't double-handle it.
+    Timer {
+        id: consumeTimer
+        interval: 50
+        repeat: false
+        onTriggered: {
+            var action = app.pendingPhotoAction
+            if (!action) return
+            app.pendingPhotoAction = null
+            if (action.mode === "camera") {
+                openPhotoAction(action.prompt)
+            } else if (action.mode === "share") {
+                handleSharedImage(action.imagePath)
+            }
         }
     }
 
-    // Pick up images shared while page was not yet active (cover action, ExecDBus start, etc.)
+    function consumePendingPhotoAction() {
+        if (app.pendingPhotoAction) consumeTimer.restart()
+    }
+
+    // Pick up an action queued while this page was not yet active (cover action, D-Bus start, etc.)
     Connections {
         target: app
-        onPendingSharedImageChanged: {
-            if (status === PageStatus.Active) {
-                _handlePendingSharedImage()
-            }
+        onPendingPhotoActionChanged: {
+            if (status === PageStatus.Active) consumePendingPhotoAction()
         }
     }
 
@@ -379,7 +393,7 @@ Page {
             updateCoverStatistics();
         }
         if (status === PageStatus.Active) {
-            _handlePendingSharedImage()
+            consumePendingPhotoAction()
         }
     }
 
@@ -415,43 +429,70 @@ Page {
                 description: "Conversations"
             }
 
-            Button {
-                text: qsTr("New Chat")
-                anchors.horizontalCenter: parent.horizontalCenter
-                enabled: app.hasActiveProviders
-                onClicked: newConversation()
-                onPressAndHold: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
-                        "selectedAliasId": lastSelectedAlias.value,
-                        "selectedModel": lastSelectedModel.value
-                    });
-                    dialog.accepted.connect(function() {
-                        var aliasId = dialog.selectedAliasId;
-                        var model = dialog.selectedModel;
-                        // Remove dialog from stack immediately so back-navigation
-                        // from ChatPage returns to ConversationListPage, not the dialog
-                        pageStack.pop(null, PageStackAction.Immediate);
-                        newConversationWithProvider(aliasId, model);
-                    });
-                }
-            }
-
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: Theme.paddingMedium
+                spacing: Theme.itemSizeMedium
 
-                Button {
-                    text: qsTr("Describe photo")
-                    enabled: app.hasActiveProviders
-                    onClicked: openPhotoAction(
-                        qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+                Column {
+                    spacing: Theme.paddingSmall
+                    IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        icon.source: "image://theme/icon-m-chat"
+                        enabled: app.hasActiveProviders
+                        onClicked: newConversation()
+                        onPressAndHold: {
+                            var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
+                                "selectedAliasId": lastSelectedAlias.value,
+                                "selectedModel": lastSelectedModel.value
+                            });
+                            dialog.accepted.connect(function() {
+                                var aliasId = dialog.selectedAliasId;
+                                var model = dialog.selectedModel;
+                                pageStack.pop(null, PageStackAction.Immediate);
+                                newConversationWithProvider(aliasId, model);
+                            });
+                        }
+                    }
+                    Label {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: qsTr("New Chat")
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: app.hasActiveProviders ? Theme.primaryColor : Theme.secondaryColor
+                    }
                 }
 
-                Button {
-                    text: qsTr("Translate from photo")
-                    enabled: app.hasActiveProviders
-                    onClicked: openPhotoAction(
-                        qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
+                Column {
+                    spacing: Theme.paddingSmall
+                    IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        icon.source: "image://theme/icon-m-camera"
+                        enabled: app.hasActiveProviders
+                        onClicked: openPhotoAction(
+                            qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+                    }
+                    Label {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: qsTr("Describe")
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: app.hasActiveProviders ? Theme.primaryColor : Theme.secondaryColor
+                    }
+                }
+
+                Column {
+                    spacing: Theme.paddingSmall
+                    IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        icon.source: "image://theme/icon-m-region"
+                        enabled: app.hasActiveProviders
+                        onClicked: openPhotoAction(
+                            qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
+                    }
+                    Label {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: qsTr("Translate")
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: app.hasActiveProviders ? Theme.primaryColor : Theme.secondaryColor
+                    }
                 }
             }
 

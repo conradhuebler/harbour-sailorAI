@@ -504,93 +504,60 @@ function extractContent(response, provider) {
 }
 
 /**
- * Format bytes as human-readable string
- * @param {number} bytes
- * @returns {string}
- */
-function formatBytes(bytes) {
-    if (!bytes) return "";
-    if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + " GB";
-    if (bytes >= 1048576) return (bytes / 1048576).toFixed(0) + " MB";
-    return (bytes / 1024).toFixed(0) + " KB";
-}
-
-/**
- * Extract model objects (name + info string) from models API response
+ * Extract models list from models API response
  * @param {object} response - Models API response
  * @param {object} provider - Provider configuration
- * @returns {array} Array of {name, info} objects
+ * @returns {array} Array of model names
  */
-function extractModelObjects(response, provider) {
-    if (!response) return [];
+function extractModels(response, provider) {
+    if (!response) {
+        return [];
+    }
 
     var providerType = provider.type || provider.id || '';
-    var objects = [];
+    var models = [];
 
     if (providerType === 'gemini') {
+        // Gemini format
         if (response.models) {
             for (var i = 0; i < response.models.length; i++) {
-                var m = response.models[i];
-                if (typeof m === 'string') {
-                    objects.push({name: m, info: "", vision: true});
-                } else if (m.name) {
-                    var name = m.name.indexOf('models/') === 0 ? m.name.substring(7) : m.name;
-                    var parts = [];
-                    if (m.displayName) parts.push(m.displayName);
-                    if (m.description) parts.push(m.description);
-                    objects.push({name: name, info: parts.join(" — "), vision: true});
+                var model = response.models[i];
+                if (typeof model === 'string') {
+                    models.push(model);
+                } else if (model.name) {
+                    var modelName = model.name;
+                    if (modelName.indexOf('models/') === 0) {
+                        modelName = modelName.substring(7);
+                    }
+                    models.push(modelName);
                 }
             }
         }
     } else if (providerType === 'ollama') {
+        // Ollama native /api/tags format: {"models": [{"name": "llama3.3", ...}]}
         if (response.models) {
-            for (var j = 0; j < response.models.length; j++) {
-                var m = response.models[j];
-                if (typeof m === 'string') {
-                    objects.push({name: m, info: "", vision: false});
-                } else if (m.name) {
-                    var parts = [];
-                    if (m.details) {
-                        if (m.details.parameter_size) parts.push(m.details.parameter_size);
-                        if (m.details.quantization_level) parts.push(m.details.quantization_level);
-                    }
-                    if (m.size) parts.push(formatBytes(m.size));
-                    var hasVision = !!(m.details && m.details.families &&
-                            m.details.families.indexOf("clip") !== -1);
-                    if (hasVision) parts.push("Vision");
-                    objects.push({name: m.name, info: parts.join(" · "), vision: hasVision});
+            for (var m = 0; m < response.models.length; m++) {
+                var model = response.models[m];
+                if (typeof model === 'string') {
+                    models.push(model);
+                } else if (model.name) {
+                    models.push(model.name);
                 }
             }
         }
     } else {
-        // OpenAI-compatible: images supported at provider level, unknown per model
+        // OpenAI-compatible format (also works for Ollama)
         if (response.data) {
-            for (var k = 0; k < response.data.length; k++) {
-                var m = response.data[k];
-                if (m.id) {
-                    var info = m.owned_by ? "by " + m.owned_by : "";
-                    objects.push({name: m.id, info: info, vision: true});
+            for (var j = 0; j < response.data.length; j++) {
+                var model = response.data[j];
+                if (model.id) {
+                    models.push(model.id);
                 }
             }
         }
     }
 
-    return objects;
-}
-
-/**
- * Extract models list from models API response
- * @param {object} response - Models API response
- * @param {object} provider - Provider configuration
- * @returns {array} Array of model name strings
- */
-function extractModels(response, provider) {
-    var objects = extractModelObjects(response, provider);
-    var names = [];
-    for (var i = 0; i < objects.length; i++) {
-        names.push(objects[i].name);
-    }
-    return names;
+    return models;
 }
 
 // --- Alias-based API (primary interface) ---
@@ -649,34 +616,6 @@ ApiAbstraction.prototype.checkAvailability = function(aliasId, callback) {
  */
 ApiAbstraction.prototype.getAliasModels = function(aliasId) {
     return getModels(aliasId);
-};
-
-/**
- * Get cached model info string for a specific model
- */
-ApiAbstraction.prototype.getModelInfo = function(aliasId, modelName) {
-    return getModelInfo(aliasId, modelName);
-};
-
-/**
- * Synchronous vision check from cache
- */
-ApiAbstraction.prototype.isModelVisionCapable = function(aliasId, modelName) {
-    return isModelVisionCapable(aliasId, modelName);
-};
-
-/**
- * Check if vision capability is cached for this model
- */
-ApiAbstraction.prototype.isModelVisionKnown = function(aliasId, modelName) {
-    return isModelVisionKnown(aliasId, modelName);
-};
-
-/**
- * Async Ollama /api/show vision check with callback(bool)
- */
-ApiAbstraction.prototype.checkOllamaModelVision = function(aliasId, modelName, callback) {
-    return checkOllamaModelVision(aliasId, modelName, callback);
 };
 
 /**
@@ -783,9 +722,8 @@ ApiAbstraction.prototype.generate = function(aliasId, model, prompt, history, ca
     var apiKey = resolved._apiKey;
     var providerType = resolved.type || resolved._type || '';
 
-    // Check API key (only localhost Ollama doesn't need one)
-    var isLocalhostOllama = resolved.base_url && resolved.base_url.indexOf('localhost:11434') !== -1;
-    if (!apiKey && !isLocalhostOllama) {
+    // Check API key (Ollama doesn't need one)
+    if (!apiKey && providerType !== 'ollama') {
         errorCallback && errorCallback("No API key configured for alias: " + aliasId);
         return;
     }
@@ -920,8 +858,7 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
     var apiKey = resolved._apiKey;
     var providerType = resolved.type || resolved._type || '';
 
-    var isLocalhostOllama = resolved.base_url && resolved.base_url.indexOf('localhost:11434') !== -1;
-    if (!apiKey && !isLocalhostOllama) {
+    if (!apiKey && providerType !== 'ollama') {
         errorCallback && errorCallback("No API key configured for alias: " + aliasId);
         return;
     }

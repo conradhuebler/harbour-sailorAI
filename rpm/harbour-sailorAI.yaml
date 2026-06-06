@@ -1,5 +1,5 @@
 Name: harbour-sailorAI
-Summary: DataPass.de Viewer
+Summary: AI chat interface for Sailfish OS
 Version: 0.1
 Release: 1
 # The contents of the Group field should be one of the groups listed here:
@@ -13,7 +13,9 @@ License: LICENSE
 Sources:
 - '%{name}-%{version}.tar.bz2'
 Description: |
-  Short description of my Sailfish OS Application
+  SailorAI is an AI chat interface for Sailfish OS supporting multiple LLM providers
+  (OpenAI, Anthropic Claude, Google Gemini, Ollama) with real-time streaming,
+  image and document upload, and conversation history.
 Builder: qmake5
 
 # This section specifies build dependencies that are resolved using pkgconfig.

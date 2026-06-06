@@ -4,10 +4,6 @@
 <context>
     <name>CameraCapturePage</name>
     <message>
-        <source>Take photo</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Camera not available</source>
         <translation type="unfinished"></translation>
     </message>
@@ -16,6 +12,30 @@
     <name>ChatPage</name>
     <message>
         <source>Export chat</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add image</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From gallery</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>From files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select document</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>file truncated at 32000 chars</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -102,19 +122,19 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Describe photo</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Translate from photo</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Please describe this photo in %1.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Describe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Translate</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -154,6 +174,44 @@
     </message>
     <message>
         <source>Copy to clipboard</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ModelListDialog</name>
+    <message>
+        <source>Unmark as vision-capable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Mark as vision-capable</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SettingsPage</name>
+    <message>
+        <source>Photo Actions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Send photo actions immediately</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>When off, the chat opens with the photo and prompt ready for you to send.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default model for image actions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Used for cover, share and photo actions: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not set — photo actions use the last chat model. Pick a vision-capable model.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -129,38 +129,19 @@ Dialog {
             spacing: Theme.paddingLarge
             
             DialogHeader {
-                title: "Select Provider & Model"
-                acceptText: "Select"
-                cancelText: "Cancel"
+                title: qsTr("Select Provider & Model")
+                acceptText: qsTr("Select")
+                cancelText: qsTr("Cancel")
             }
-            
-            // Current selection info
-            Label {
-                visible: selectedAliasId && selectedModel
-                text: {
-                    if (selectedAliasId) {
-                        var alias = LLMApi.getProviderAlias(selectedAliasId);
-                        var providerName = alias ? alias.name : selectedAliasId;
-                        return "Current: " + providerName + " (" + selectedModel + ")";
-                    }
-                    return "";
-                }
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.highlightColor
-                wrapMode: Text.WordWrap
-            }
-            
+
             SectionHeader {
-                text: "Provider Alias"
+                text: qsTr("Provider")
             }
-            
+
             ComboBox {
                 id: aliasComboBox
-                label: "Provider Alias"
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                x: Theme.horizontalPageMargin
+                label: qsTr("Provider")
+                width: parent.width
                 currentIndex: availableAliases.indexOf(selectedAliasId)
                 menu: ContextMenu {
                     Repeater {
@@ -184,9 +165,7 @@ Dialog {
                 visible: selectedAliasId
                 text: {
                     var alias = LLMApi.getProviderAlias(selectedAliasId);
-                    if (alias) {
-                        return "Type: " + alias.type + (alias.description ? "\n" + alias.description : "");
-                    }
+                    if (alias) return alias.type + (alias.description ? " · " + alias.description : "");
                     return "";
                 }
                 x: Theme.horizontalPageMargin
@@ -195,16 +174,15 @@ Dialog {
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             SectionHeader {
-                text: "Model Selection"
+                text: qsTr("Model")
             }
-            
+
             ComboBox {
                 id: modelComboBox
-                label: "Model"
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                x: Theme.horizontalPageMargin
+                label: qsTr("Model")
+                width: parent.width
                 currentIndex: availableModels.indexOf(selectedModel)
                 
                 // Update when models or selection changes
@@ -251,41 +229,9 @@ Dialog {
                 }
             }
             
-            Label {
-                visible: selectedAliasId
-                text: {
-                    var favorites = LLMApi.getAliasFavoriteModels(selectedAliasId);
-                    var currentModel = selectedModel;
-                    var isFavorite = LLMApi.isAliasFavoriteModel(selectedAliasId, currentModel);
-                    
-                    if (currentModel) {
-                        var currentText = "Current: " + currentModel;
-                        if (isFavorite) {
-                            currentText += " ★";
-                        }
-                        
-                        if (favorites.length > 0) {
-                            var favText = "Favorites: ★ " + favorites.join(", ★ ");
-                            return currentText + " | " + favText;
-                        } else {
-                            return currentText + " | No favorites set";
-                        }
-                    } else if (favorites.length > 0) {
-                        return "Favorites: ★ " + favorites.join(", ★ ");
-                    }
-                    return "No model selected";
-                }
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.highlightColor
-                wrapMode: Text.WordWrap
-            }
-            
             Button {
                 visible: selectedAliasId
-                text: "Manage Favorites"
-                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: qsTr("Manage Favorites")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     var favDialog = pageStack.push(Qt.resolvedUrl("FavoriteModelsDialog.qml"), {

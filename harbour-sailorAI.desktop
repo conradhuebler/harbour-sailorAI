@@ -16,9 +16,9 @@ X-Maemo-Method=harbour.sailorAI.openUrl
 
 # Übersetzbare Beschreibung
 Comment=Chat with your favourite LLM
-Comment[de]=
-Comment[fr]=
-Comment[fi]=
+Comment[de]=Chatte mit deinem Lieblings-LLM
+Comment[fr]=Discutez avec votre LLM préféré
+Comment[fi]=Keskustele suosikki-LLM:si kanssa
 
 # Kategorien für den Store
 Categories=Network;Monitor;Utility
@@ -29,12 +29,9 @@ X-Nemo-Application-Version=1.0.0
 Description=Send to SailorAI
 Description[de]=An SailorAI senden
 Description[fr]=Envoyer à SailorAI
-Capabilities=*
+Description[fi]=Lähetä SailorAI:lle
+Capabilities=image/jpeg;image/png;image/gif;image/webp;image/bmp;
 SupportsMultipleFiles=no
-Service=harbour.sailorAI
-Path=/harbour/sailorAI
-Iface=harbour.sailorAI
-Method=share
 
 [X-Sailjail]
 OrganizationName=harbour

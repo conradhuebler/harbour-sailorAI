@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import Nemo.DBus 2.0
+import Sailfish.Share 1.0
 import "pages"
 import "cover"
 import "components"
@@ -20,69 +21,61 @@ ApplicationWindow
     property int conversationCount: 0
     property bool hasActiveProviders: false
 
-    // Pending shared image path (set by DBusAdaptor, consumed by ConversationListPage)
-    property string pendingSharedImage: ""
+    // Claude Generated: Single pending photo action, consumed exactly once by ConversationListPage.
+    // Shape: { mode: "camera" | "share", prompt: string, imagePath: string }
+    property var pendingPhotoAction: null
 
-    // Claude Generated: D-Bus adaptor — handles "Open with" (X-Maemo-*) and share() from AppShareMethodPlugin.
+    // Claude Generated: D-Bus adaptor — handles "Open with" (X-Maemo-* MIME open).
     DBusAdaptor {
         service: "harbour.sailorAI"
         path: "/harbour/sailorAI"
         iface: "harbour.sailorAI"
 
         function openUrl(url) {
-            app.activate()
             var path = url.toString()
             if (path.indexOf("file://") === 0) path = path.substring(7)
-            app.pendingSharedImage = path
-            pageStack.pop(null, PageStackAction.Immediate)
-            shareActionTimer.restart()
-        }
-
-        // Called by Sailfish AppShareMethodPlugin when app is selected from share sheet
-        function share(configuration) {
-            app.activate()
-            var resources = configuration["resources"]
-            if (!resources || resources.length === 0) return
-            var res = resources[0]
-            var path = ""
-            if (res["filePath"] && res["filePath"] !== "") {
-                path = res["filePath"]
-            } else if (res["url"]) {
-                path = res["url"].toString()
-            } else if (res["data"]) {
-                path = res["data"].toString()
-            }
-            if (path.indexOf("file://") === 0) path = path.substring(7)
-            if (path !== "") {
-                app.pendingSharedImage = path
-                pageStack.pop(null, PageStackAction.Immediate)
-                shareActionTimer.restart()
-            }
+            if (path !== "") dispatchPhotoAction({ "mode": "share", "imagePath": path, "prompt": "" })
         }
     }
 
-    Timer {
-        id: shareActionTimer
-        interval: 100
-        repeat: false
+    // Claude Generated: Share target. The Sailfish share framework calls the convention service
+    // <OrganizationName>.<ApplicationName> = harbour.harbour-sailorAI on org.sailfishos.share
+    // (the custom Service= in the desktop [X-Share Method] is ignored), so we register a
+    // ShareProvider here. Autostart is provided by dbus/harbour.harbour-sailorAI.service.
+    // 'method' must match the X-Share-Methods name in the .desktop file.
+    ShareProvider {
+        method: "sailorAI_share"
+        registerName: true
+        capabilities: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp"]
+
         onTriggered: {
-            if (app.pendingSharedImage !== "" && pageStack.currentPage && pageStack.currentPage.handleSharedImage) {
-                var path = app.pendingSharedImage
-                app.pendingSharedImage = ""
-                pageStack.currentPage.handleSharedImage(path)
+            if (!resources || resources.length === 0) return
+            var r = resources[0]
+            var path = ""
+            if (typeof r === "string") {
+                path = r
+            } else if (r) {
+                path = (r.filePath || r.url || r.path || r.data || "").toString()
             }
+            if (path.indexOf("file://") === 0) path = path.substring(7)
+            if (path !== "") dispatchPhotoAction({ "mode": "share", "imagePath": path, "prompt": "" })
+        }
+    }
+
+    // Claude Generated: Activate the app, return to the conversation list (root), and queue the
+    // photo action. ConversationListPage consumes it (deferred) via onStatusChanged(Active) /
+    // onPendingPhotoActionChanged. Idempotent: the consumer clears it before dispatching.
+    function dispatchPhotoAction(action) {
+        app.activate()
+        app.pendingPhotoAction = action
+        if (pageStack.depth > 1) {
+            pageStack.pop(null, PageStackAction.Immediate)
         }
     }
 
     initialPage: Component { ConversationListPage { } }
 
     allowedOrientations: defaultAllowedOrientations
-
-    Component.onCompleted: {
-        console.log("SailorAI: Application started successfully")
-        console.log("SailorAI: ApplicationWindow size:", width, "x", height)
-        console.log("SailorAI: Orientation:", orientation)
-    }
 
     // Qt.callLater is not available in Qt 5.6 (Sailfish) — use zero-interval Timers instead
 
@@ -95,27 +88,6 @@ ApplicationWindow
                 pageStack.currentPage.newConversation()
             }
         }
-    }
-
-    // Claude Generated: Step 1 — push CameraCapturePage after app activation + pop to root
-    Timer {
-        id: cameraLaunchTimer
-        interval: 50
-        repeat: false
-        property string pendingPrompt: ""
-        onTriggered: {
-            if (pageStack.currentPage && pageStack.currentPage.openPhotoAction) {
-                pageStack.currentPage.openPhotoAction(pendingPrompt)
-            }
-        }
-    }
-
-    // Claude Generated: Activate app, navigate to root, then delegate to ConversationListPage.openPhotoAction
-    function launchCameraAction(prompt) {
-        app.activate()
-        pageStack.pop(null, PageStackAction.Immediate)
-        cameraLaunchTimer.pendingPrompt = prompt
-        cameraLaunchTimer.restart()
     }
 
     cover: Component {
@@ -136,15 +108,15 @@ ApplicationWindow
             }
 
             onDescribePhotoRequested: {
-                launchCameraAction(qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName))
+                dispatchPhotoAction({ "mode": "camera", "imagePath": "",
+                    "prompt": qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName) })
             }
 
             onTranslateTextRequested: {
-                launchCameraAction(qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName))
+                dispatchPhotoAction({ "mode": "camera", "imagePath": "",
+                    "prompt": qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName) })
             }
         }
     }
 
-    onWidthChanged: console.log("SailorAI: Width changed to:", width)
-    onHeightChanged: console.log("SailorAI: Height changed to:", height)
 }

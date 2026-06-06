@@ -101,8 +101,13 @@ The application uses Nemo.Configuration for persistent settings:
 
 ## Translation Support
 
-
 Translation files are in the `translations/` directory using Qt's `.ts` format.
+
+**Mandatory translation policy (Claude must follow):**
+- **Every** user-visible string in QML must be wrapped in `qsTr(...)`. Never hardcode display text.
+- Whenever strings are added/changed, immediately update **all** languages: English (source), German (`-de.ts`), French (`-fr.ts`), Finnish (`-fi.ts`). Do not leave `type="unfinished"` entries.
+- Workflow: run `lupdate-qt5 harbour-sailorAI.pro` to sync the `.ts` files, then fill in the `<translation>` for de/fr/fi (en is the source text).
+- Also localize user-facing keys in `harbour-sailorAI.desktop` (`Name[..]`, `Comment[..]`, share `Description[..]`) for de/fr/fi.
 
 ## Streaming Implementation
 
