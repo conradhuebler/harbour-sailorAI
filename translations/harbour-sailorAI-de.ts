@@ -2,6 +2,157 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de">
 <context>
+    <name>AddProviderAliasDialog</name>
+    <message>
+        <source>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</source>
+        <translation>OpenAI-kompatibel — auch Mistral, Nvidia, lokale Server, Proxys …</translation>
+    </message>
+    <message>
+        <source>Anthropic Claude API (or compatible endpoint).</source>
+        <translation>Anthropic-Claude-API (oder kompatibler Endpunkt).</translation>
+    </message>
+    <message>
+        <source>Google Gemini API.</source>
+        <translation>Google-Gemini-API.</translation>
+    </message>
+    <message>
+        <source>Ollama server (local or remote).</source>
+        <translation>Ollama-Server (lokal oder entfernt).</translation>
+    </message>
+    <message>
+        <source>Create provider</source>
+        <translation>Anbieter erstellen</translation>
+    </message>
+    <message>
+        <source>Create</source>
+        <translation>Erstellen</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <source>Basic information</source>
+        <translation>Allgemein</translation>
+    </message>
+    <message>
+        <source>Provider name</source>
+        <translation>Anbietername</translation>
+    </message>
+    <message>
+        <source>My Gemini account</source>
+        <translation>Mein Gemini-Konto</translation>
+    </message>
+    <message>
+        <source>Display name. Generated ID: %1</source>
+        <translation>Anzeigename. Erzeugte ID: %1</translation>
+    </message>
+    <message>
+        <source>Provider type</source>
+        <translation>Anbietertyp</translation>
+    </message>
+    <message>
+        <source>Server / endpoint</source>
+        <translation>Server / Endpunkt</translation>
+    </message>
+    <message>
+        <source>Official API</source>
+        <translation>Offizielle API</translation>
+    </message>
+    <message>
+        <source>Ollama compatible</source>
+        <translation>Ollama-kompatibel</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Benutzerdefiniert</translation>
+    </message>
+    <message>
+        <source>Select the API server to use</source>
+        <translation>Wähle den zu verwendenden API-Server</translation>
+    </message>
+    <message>
+        <source>API configuration</source>
+        <translation>API-Konfiguration</translation>
+    </message>
+    <message>
+        <source>API URL</source>
+        <translation>API-URL</translation>
+    </message>
+    <message>
+        <source>https://api.example.com/v1</source>
+        <translation>https://api.example.com/v1</translation>
+    </message>
+    <message>
+        <source>Base URL (auto-filled from provider type)</source>
+        <translation>Basis-URL (automatisch aus dem Anbietertyp)</translation>
+    </message>
+    <message>
+        <source>API key</source>
+        <translation>API-Schlüssel</translation>
+    </message>
+    <message>
+        <source>API key (optional for local Ollama)</source>
+        <translation>API-Schlüssel (optional bei lokalem Ollama)</translation>
+    </message>
+    <message>
+        <source>Enter your API key…</source>
+        <translation>Gib deinen API-Schlüssel ein …</translation>
+    </message>
+    <message>
+        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <translation>Ollama benötigt für die lokale Nutzung keinen API-Schlüssel</translation>
+    </message>
+    <message>
+        <source>Your API key for authentication</source>
+        <translation>Dein API-Schlüssel zur Authentifizierung</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Lade Modelle …</translation>
+    </message>
+    <message>
+        <source>Fetch available models</source>
+        <translation>Verfügbare Modelle abrufen</translation>
+    </message>
+    <message>
+        <source>Fetching models from provider, please wait…</source>
+        <translation>Modelle werden vom Anbieter geladen, bitte warten …</translation>
+    </message>
+    <message>
+        <source>Model selection</source>
+        <translation>Modellauswahl</translation>
+    </message>
+    <message>
+        <source>Favorite model</source>
+        <translation>Favoritenmodell</translation>
+    </message>
+    <message>
+        <source>Select from %1 available models</source>
+        <translation>Aus %1 verfügbaren Modellen wählen</translation>
+    </message>
+    <message>
+        <source>Optional — fetch models to choose, or set it later</source>
+        <translation>Optional — Modelle abrufen oder später festlegen</translation>
+    </message>
+    <message>
+        <source>Additional settings</source>
+        <translation>Weitere Einstellungen</translation>
+    </message>
+    <message>
+        <source>Description (optional)</source>
+        <translation>Beschreibung (optional)</translation>
+    </message>
+    <message>
+        <source>Personal account, company proxy, etc.</source>
+        <translation>Privates Konto, Firmen-Proxy usw.</translation>
+    </message>
+    <message>
+        <source>Optional description to help identify this provider configuration</source>
+        <translation>Optionale Beschreibung zur Identifizierung dieser Anbieterkonfiguration</translation>
+    </message>
+</context>
+<context>
     <name>AdvancedSettingsDialog</name>
     <message>
         <source>Advanced Settings</source>
@@ -198,6 +349,157 @@
     </message>
 </context>
 <context>
+    <name>EditProviderAliasDialog</name>
+    <message>
+        <source>Edit provider</source>
+        <translation>Anbieter bearbeiten</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Speichern</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <source>Basic information</source>
+        <translation>Allgemein</translation>
+    </message>
+    <message>
+        <source>Provider name</source>
+        <translation>Anbietername</translation>
+    </message>
+    <message>
+        <source>My Gemini account</source>
+        <translation>Mein Gemini-Konto</translation>
+    </message>
+    <message>
+        <source>Display name. Generated ID: %1</source>
+        <translation>Anzeigename. Erzeugte ID: %1</translation>
+    </message>
+    <message>
+        <source>Provider type</source>
+        <translation>Anbietertyp</translation>
+    </message>
+    <message>
+        <source>OpenAI Compatible</source>
+        <translation>OpenAI-kompatibel</translation>
+    </message>
+    <message>
+        <source>Anthropic Claude</source>
+        <translation>Anthropic Claude</translation>
+    </message>
+    <message>
+        <source>Google Gemini</source>
+        <translation>Google Gemini</translation>
+    </message>
+    <message>
+        <source>Ollama Local</source>
+        <translation>Ollama (lokal)</translation>
+    </message>
+    <message>
+        <source>Server / endpoint</source>
+        <translation>Server / Endpunkt</translation>
+    </message>
+    <message>
+        <source>Official API</source>
+        <translation>Offizielle API</translation>
+    </message>
+    <message>
+        <source>Ollama compatible</source>
+        <translation>Ollama-kompatibel</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Benutzerdefiniert</translation>
+    </message>
+    <message>
+        <source>Select the API server to use</source>
+        <translation>Wähle den zu verwendenden API-Server</translation>
+    </message>
+    <message>
+        <source>API configuration</source>
+        <translation>API-Konfiguration</translation>
+    </message>
+    <message>
+        <source>API URL</source>
+        <translation>API-URL</translation>
+    </message>
+    <message>
+        <source>https://api.example.com/v1</source>
+        <translation>https://api.example.com/v1</translation>
+    </message>
+    <message>
+        <source>Base URL for the API endpoint (automatically set based on provider type)</source>
+        <translation>Basis-URL des API-Endpunkts (automatisch nach Anbietertyp gesetzt)</translation>
+    </message>
+    <message>
+        <source>API key</source>
+        <translation>API-Schlüssel</translation>
+    </message>
+    <message>
+        <source>API key (optional for local Ollama)</source>
+        <translation>API-Schlüssel (optional bei lokalem Ollama)</translation>
+    </message>
+    <message>
+        <source>Enter your API key…</source>
+        <translation>Gib deinen API-Schlüssel ein …</translation>
+    </message>
+    <message>
+        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <translation>Ollama benötigt für die lokale Nutzung keinen API-Schlüssel</translation>
+    </message>
+    <message>
+        <source>Your API key for authentication (required for most providers)</source>
+        <translation>Dein API-Schlüssel zur Authentifizierung (bei den meisten Anbietern erforderlich)</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Lade Modelle …</translation>
+    </message>
+    <message>
+        <source>Fetch available models</source>
+        <translation>Verfügbare Modelle abrufen</translation>
+    </message>
+    <message>
+        <source>Fetching models from provider, please wait…</source>
+        <translation>Modelle werden vom Anbieter geladen, bitte warten …</translation>
+    </message>
+    <message>
+        <source>Model selection</source>
+        <translation>Modellauswahl</translation>
+    </message>
+    <message>
+        <source>Favorite model</source>
+        <translation>Favoritenmodell</translation>
+    </message>
+    <message>
+        <source>Select from %1 available models</source>
+        <translation>Aus %1 verfügbaren Modellen wählen</translation>
+    </message>
+    <message>
+        <source>Optional — fetch models to choose, or set it later</source>
+        <translation>Optional — Modelle abrufen oder später festlegen</translation>
+    </message>
+    <message>
+        <source>Additional settings</source>
+        <translation>Weitere Einstellungen</translation>
+    </message>
+    <message>
+        <source>Description (optional)</source>
+        <translation>Beschreibung (optional)</translation>
+    </message>
+    <message>
+        <source>Personal account, company proxy, etc.</source>
+        <translation>Privates Konto, Firmen-Proxy usw.</translation>
+    </message>
+    <message>
+        <source>Optional description to help identify this provider configuration</source>
+        <translation>Optionale Beschreibung zur Identifizierung dieser Anbieterkonfiguration</translation>
+    </message>
+</context>
+<context>
     <name>ExportDialog</name>
     <message>
         <source>Export Conversation</source>
@@ -237,6 +539,44 @@
     </message>
 </context>
 <context>
+    <name>FavoriteModelsDialog</name>
+    <message>
+        <source>Manage favorite models</source>
+        <translation>Favoritenmodelle verwalten</translation>
+    </message>
+    <message>
+        <source>Save (%1)</source>
+        <translation>Speichern (%1)</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Abbrechen</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation>Anbieter: %1</translation>
+    </message>
+    <message>
+        <source>%1 favorite models selected</source>
+        <translation>%1 Favoritenmodelle ausgewählt</translation>
+    </message>
+    <message>
+        <source>Available models (%1)</source>
+        <translation>Verfügbare Modelle (%1)</translation>
+    </message>
+</context>
+<context>
+    <name>InfoDialog</name>
+    <message>
+        <source>Information</source>
+        <translation>Information</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Schließen</translation>
+    </message>
+</context>
+<context>
     <name>ModelListDialog</name>
     <message>
         <source>Unmark as vision-capable</source>
@@ -270,16 +610,12 @@
         <translation>Modell</translation>
     </message>
     <message>
-        <source>Manage Favorites</source>
+        <source>Manage favorites</source>
         <translation>Favoriten verwalten</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
-    <message>
-        <source>Photo Actions</source>
-        <translation>Fotoaktionen</translation>
-    </message>
     <message>
         <source>Send photo actions immediately</source>
         <translation>Fotoaktionen sofort senden</translation>
@@ -289,32 +625,12 @@
         <translation>Wenn aus, öffnet sich der Chat mit Foto und Eingabe bereit zum Senden.</translation>
     </message>
     <message>
-        <source>Default model for image actions</source>
-        <translation>Standardmodell für Bildaktionen</translation>
-    </message>
-    <message>
-        <source>Used for cover, share and photo actions: </source>
-        <translation>Verwendet für Cover-, Teilen- und Fotoaktionen: </translation>
-    </message>
-    <message>
         <source>Not set — photo actions use the last chat model. Pick a vision-capable model.</source>
         <translation>Nicht gesetzt – Fotoaktionen nutzen das zuletzt verwendete Modell. Wähle ein bildfähiges Modell.</translation>
     </message>
     <message>
-        <source>Add Provider</source>
-        <translation>Anbieter hinzufügen</translation>
-    </message>
-    <message>
         <source>Settings</source>
         <translation>Einstellungen</translation>
-    </message>
-    <message>
-        <source>Provider Configuration &amp; Debug</source>
-        <translation>Anbieterkonfiguration &amp; Debug</translation>
-    </message>
-    <message>
-        <source>Debug Level</source>
-        <translation>Debug-Stufe</translation>
     </message>
     <message>
         <source>0 — None (Production)</source>
@@ -331,14 +647,6 @@
     <message>
         <source>3 — Verbose (All Operations)</source>
         <translation>3 — Ausführlich (Alle Vorgänge)</translation>
-    </message>
-    <message>
-        <source>Image Settings</source>
-        <translation>Bildeinstellungen</translation>
-    </message>
-    <message>
-        <source>Max Image Size</source>
-        <translation>Maximale Bildgröße</translation>
     </message>
     <message>
         <source>512 px — compact</source>
@@ -365,8 +673,120 @@
         <translation>Original — kein Skalieren</translation>
     </message>
     <message>
-        <source>Provider Aliases</source>
-        <translation>Anbieter-Aliase</translation>
+        <source>Provider: %1</source>
+        <translation>Anbieter: %1</translation>
+    </message>
+    <message>
+        <source>Status: %1</source>
+        <translation>Status: %1</translation>
+    </message>
+    <message>
+        <source>✓ Available</source>
+        <translation>✓ Verfügbar</translation>
+    </message>
+    <message>
+        <source>URL: %1</source>
+        <translation>URL: %1</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Unbekannt</translation>
+    </message>
+    <message>
+        <source>Connection Test</source>
+        <translation>Verbindungstest</translation>
+    </message>
+    <message>
+        <source>Add provider</source>
+        <translation>Anbieter hinzufügen</translation>
+    </message>
+    <message>
+        <source>Providers</source>
+        <translation>Anbieter</translation>
+    </message>
+    <message>
+        <source>No providers yet. Pull down to add one and choose its type.</source>
+        <translation>Noch keine Anbieter. Zieh nach unten, um einen hinzuzufügen und den Typ zu wählen.</translation>
+    </message>
+    <message>
+        <source>Type: %1</source>
+        <translation>Typ: %1</translation>
+    </message>
+    <message>
+        <source>Favorite: ★ %1</source>
+        <translation>Favorit: ★ %1</translation>
+    </message>
+    <message>
+        <source>Favorites: ★ %1</source>
+        <translation>Favoriten: ★ %1</translation>
+    </message>
+    <message>
+        <source>API key set</source>
+        <translation>API-Schlüssel gesetzt</translation>
+    </message>
+    <message>
+        <source>Manage favorites</source>
+        <translation>Favoriten verwalten</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>Bearbeiten</translation>
+    </message>
+    <message>
+        <source>Test connection</source>
+        <translation>Verbindung testen</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Löschen</translation>
+    </message>
+    <message>
+        <source>Photo &amp; Vision</source>
+        <translation>Foto &amp; Vision</translation>
+    </message>
+    <message>
+        <source>Default model for photo actions</source>
+        <translation>Standardmodell für Fotoaktionen</translation>
+    </message>
+    <message>
+        <source>Not set</source>
+        <translation>Nicht gesetzt</translation>
+    </message>
+    <message>
+        <source>Used for cover, share and photo actions. Pick a vision-capable model.</source>
+        <translation>Für Cover, Teilen und Fotoaktionen. Wähle ein bildfähiges Modell.</translation>
+    </message>
+    <message>
+        <source>Images</source>
+        <translation>Bilder</translation>
+    </message>
+    <message>
+        <source>Max image size</source>
+        <translation>Maximale Bildgröße</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Erweitert</translation>
+    </message>
+    <message>
+        <source>Debug level</source>
+        <translation>Debug-Level</translation>
+    </message>
+    <message>
+        <source>Deleting %1</source>
+        <translation>%1 wird gelöscht</translation>
+    </message>
+    <message>
+        <source>Default model</source>
+        <translation>Standardmodell</translation>
+    </message>
+    <message>
+        <source>Model for new chats</source>
+        <translation>Modell für neue Chats</translation>
+    </message>
+    <message>
+        <source>New chats start with this model, regardless of provider.</source>
+        <translation>Neue Chats starten mit diesem Modell – unabhängig vom Anbieter.</translation>
     </message>
 </context>
 <context>

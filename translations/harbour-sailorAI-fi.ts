@@ -2,6 +2,157 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="fi">
 <context>
+    <name>AddProviderAliasDialog</name>
+    <message>
+        <source>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</source>
+        <translation>OpenAI-yhteensopiva — myös Mistral, Nvidia, paikalliset palvelimet, välityspalvelimet …</translation>
+    </message>
+    <message>
+        <source>Anthropic Claude API (or compatible endpoint).</source>
+        <translation>Anthropic Claude -API (tai yhteensopiva päätepiste).</translation>
+    </message>
+    <message>
+        <source>Google Gemini API.</source>
+        <translation>Google Gemini -API.</translation>
+    </message>
+    <message>
+        <source>Ollama server (local or remote).</source>
+        <translation>Ollama-palvelin (paikallinen tai etä).</translation>
+    </message>
+    <message>
+        <source>Create provider</source>
+        <translation>Luo palveluntarjoaja</translation>
+    </message>
+    <message>
+        <source>Create</source>
+        <translation>Luo</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Peruuta</translation>
+    </message>
+    <message>
+        <source>Basic information</source>
+        <translation>Perustiedot</translation>
+    </message>
+    <message>
+        <source>Provider name</source>
+        <translation>Palveluntarjoajan nimi</translation>
+    </message>
+    <message>
+        <source>My Gemini account</source>
+        <translation>Oma Gemini-tili</translation>
+    </message>
+    <message>
+        <source>Display name. Generated ID: %1</source>
+        <translation>Näyttönimi. Luotu tunnus: %1</translation>
+    </message>
+    <message>
+        <source>Provider type</source>
+        <translation>Palveluntarjoajan tyyppi</translation>
+    </message>
+    <message>
+        <source>Server / endpoint</source>
+        <translation>Palvelin / päätepiste</translation>
+    </message>
+    <message>
+        <source>Official API</source>
+        <translation>Virallinen API</translation>
+    </message>
+    <message>
+        <source>Ollama compatible</source>
+        <translation>Ollama-yhteensopiva</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Mukautettu</translation>
+    </message>
+    <message>
+        <source>Select the API server to use</source>
+        <translation>Valitse käytettävä API-palvelin</translation>
+    </message>
+    <message>
+        <source>API configuration</source>
+        <translation>API-määritykset</translation>
+    </message>
+    <message>
+        <source>API URL</source>
+        <translation>API-URL</translation>
+    </message>
+    <message>
+        <source>https://api.example.com/v1</source>
+        <translation>https://api.example.com/v1</translation>
+    </message>
+    <message>
+        <source>Base URL (auto-filled from provider type)</source>
+        <translation>Perus-URL (täytetään automaattisesti palveluntarjoajan tyypin mukaan)</translation>
+    </message>
+    <message>
+        <source>API key</source>
+        <translation>API-avain</translation>
+    </message>
+    <message>
+        <source>API key (optional for local Ollama)</source>
+        <translation>API-avain (valinnainen paikalliselle Ollamalle)</translation>
+    </message>
+    <message>
+        <source>Enter your API key…</source>
+        <translation>Syötä API-avaimesi …</translation>
+    </message>
+    <message>
+        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <translation>Ollama ei vaadi API-avainta paikalliseen käyttöön</translation>
+    </message>
+    <message>
+        <source>Your API key for authentication</source>
+        <translation>API-avaimesi todennusta varten</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Haetaan malleja …</translation>
+    </message>
+    <message>
+        <source>Fetch available models</source>
+        <translation>Hae saatavilla olevat mallit</translation>
+    </message>
+    <message>
+        <source>Fetching models from provider, please wait…</source>
+        <translation>Haetaan malleja palveluntarjoajalta, odota …</translation>
+    </message>
+    <message>
+        <source>Model selection</source>
+        <translation>Mallin valinta</translation>
+    </message>
+    <message>
+        <source>Favorite model</source>
+        <translation>Suosikkimalli</translation>
+    </message>
+    <message>
+        <source>Select from %1 available models</source>
+        <translation>Valitse %1 saatavilla olevasta mallista</translation>
+    </message>
+    <message>
+        <source>Optional — fetch models to choose, or set it later</source>
+        <translation>Valinnainen — hae mallit valitaksesi tai aseta myöhemmin</translation>
+    </message>
+    <message>
+        <source>Additional settings</source>
+        <translation>Muut asetukset</translation>
+    </message>
+    <message>
+        <source>Description (optional)</source>
+        <translation>Kuvaus (valinnainen)</translation>
+    </message>
+    <message>
+        <source>Personal account, company proxy, etc.</source>
+        <translation>Henkilökohtainen tili, yrityksen välityspalvelin jne.</translation>
+    </message>
+    <message>
+        <source>Optional description to help identify this provider configuration</source>
+        <translation>Valinnainen kuvaus tämän palveluntarjoajan tunnistamiseen</translation>
+    </message>
+</context>
+<context>
     <name>AdvancedSettingsDialog</name>
     <message>
         <source>Advanced Settings</source>
@@ -198,6 +349,157 @@
     </message>
 </context>
 <context>
+    <name>EditProviderAliasDialog</name>
+    <message>
+        <source>Edit provider</source>
+        <translation>Muokkaa palveluntarjoajaa</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Tallenna</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Peruuta</translation>
+    </message>
+    <message>
+        <source>Basic information</source>
+        <translation>Perustiedot</translation>
+    </message>
+    <message>
+        <source>Provider name</source>
+        <translation>Palveluntarjoajan nimi</translation>
+    </message>
+    <message>
+        <source>My Gemini account</source>
+        <translation>Oma Gemini-tili</translation>
+    </message>
+    <message>
+        <source>Display name. Generated ID: %1</source>
+        <translation>Näyttönimi. Luotu tunnus: %1</translation>
+    </message>
+    <message>
+        <source>Provider type</source>
+        <translation>Palveluntarjoajan tyyppi</translation>
+    </message>
+    <message>
+        <source>OpenAI Compatible</source>
+        <translation>OpenAI-yhteensopiva</translation>
+    </message>
+    <message>
+        <source>Anthropic Claude</source>
+        <translation>Anthropic Claude</translation>
+    </message>
+    <message>
+        <source>Google Gemini</source>
+        <translation>Google Gemini</translation>
+    </message>
+    <message>
+        <source>Ollama Local</source>
+        <translation>Ollama (paikallinen)</translation>
+    </message>
+    <message>
+        <source>Server / endpoint</source>
+        <translation>Palvelin / päätepiste</translation>
+    </message>
+    <message>
+        <source>Official API</source>
+        <translation>Virallinen API</translation>
+    </message>
+    <message>
+        <source>Ollama compatible</source>
+        <translation>Ollama-yhteensopiva</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Mukautettu</translation>
+    </message>
+    <message>
+        <source>Select the API server to use</source>
+        <translation>Valitse käytettävä API-palvelin</translation>
+    </message>
+    <message>
+        <source>API configuration</source>
+        <translation>API-määritykset</translation>
+    </message>
+    <message>
+        <source>API URL</source>
+        <translation>API-URL</translation>
+    </message>
+    <message>
+        <source>https://api.example.com/v1</source>
+        <translation>https://api.example.com/v1</translation>
+    </message>
+    <message>
+        <source>Base URL for the API endpoint (automatically set based on provider type)</source>
+        <translation>API-päätepisteen perus-URL (asetetaan automaattisesti palveluntarjoajan tyypin mukaan)</translation>
+    </message>
+    <message>
+        <source>API key</source>
+        <translation>API-avain</translation>
+    </message>
+    <message>
+        <source>API key (optional for local Ollama)</source>
+        <translation>API-avain (valinnainen paikalliselle Ollamalle)</translation>
+    </message>
+    <message>
+        <source>Enter your API key…</source>
+        <translation>Syötä API-avaimesi …</translation>
+    </message>
+    <message>
+        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <translation>Ollama ei vaadi API-avainta paikalliseen käyttöön</translation>
+    </message>
+    <message>
+        <source>Your API key for authentication (required for most providers)</source>
+        <translation>API-avaimesi todennusta varten (vaaditaan useimmilla palveluntarjoajilla)</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Haetaan malleja …</translation>
+    </message>
+    <message>
+        <source>Fetch available models</source>
+        <translation>Hae saatavilla olevat mallit</translation>
+    </message>
+    <message>
+        <source>Fetching models from provider, please wait…</source>
+        <translation>Haetaan malleja palveluntarjoajalta, odota …</translation>
+    </message>
+    <message>
+        <source>Model selection</source>
+        <translation>Mallin valinta</translation>
+    </message>
+    <message>
+        <source>Favorite model</source>
+        <translation>Suosikkimalli</translation>
+    </message>
+    <message>
+        <source>Select from %1 available models</source>
+        <translation>Valitse %1 saatavilla olevasta mallista</translation>
+    </message>
+    <message>
+        <source>Optional — fetch models to choose, or set it later</source>
+        <translation>Valinnainen — hae mallit valitaksesi tai aseta myöhemmin</translation>
+    </message>
+    <message>
+        <source>Additional settings</source>
+        <translation>Muut asetukset</translation>
+    </message>
+    <message>
+        <source>Description (optional)</source>
+        <translation>Kuvaus (valinnainen)</translation>
+    </message>
+    <message>
+        <source>Personal account, company proxy, etc.</source>
+        <translation>Henkilökohtainen tili, yrityksen välityspalvelin jne.</translation>
+    </message>
+    <message>
+        <source>Optional description to help identify this provider configuration</source>
+        <translation>Valinnainen kuvaus tämän palveluntarjoajan tunnistamiseen</translation>
+    </message>
+</context>
+<context>
     <name>ExportDialog</name>
     <message>
         <source>Export Conversation</source>
@@ -237,6 +539,44 @@
     </message>
 </context>
 <context>
+    <name>FavoriteModelsDialog</name>
+    <message>
+        <source>Manage favorite models</source>
+        <translation>Hallitse suosikkimalleja</translation>
+    </message>
+    <message>
+        <source>Save (%1)</source>
+        <translation>Tallenna (%1)</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Peruuta</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation>Palveluntarjoaja: %1</translation>
+    </message>
+    <message>
+        <source>%1 favorite models selected</source>
+        <translation>%1 suosikkimallia valittu</translation>
+    </message>
+    <message>
+        <source>Available models (%1)</source>
+        <translation>Saatavilla olevat mallit (%1)</translation>
+    </message>
+</context>
+<context>
+    <name>InfoDialog</name>
+    <message>
+        <source>Information</source>
+        <translation>Tiedot</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Sulje</translation>
+    </message>
+</context>
+<context>
     <name>ModelListDialog</name>
     <message>
         <source>Unmark as vision-capable</source>
@@ -270,16 +610,12 @@
         <translation>Malli</translation>
     </message>
     <message>
-        <source>Manage Favorites</source>
-        <translation>Hallinnoi suosikkeja</translation>
+        <source>Manage favorites</source>
+        <translation>Hallitse suosikkeja</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
-    <message>
-        <source>Photo Actions</source>
-        <translation>Kuvatoiminnot</translation>
-    </message>
     <message>
         <source>Send photo actions immediately</source>
         <translation>Lähetä kuvatoiminnot heti</translation>
@@ -289,32 +625,12 @@
         <translation>Pois päältä: keskustelu avautuu kuvan ja kehotteen kanssa valmiina lähetettäväksi.</translation>
     </message>
     <message>
-        <source>Default model for image actions</source>
-        <translation>Oletusmalli kuvatoiminnoille</translation>
-    </message>
-    <message>
-        <source>Used for cover, share and photo actions: </source>
-        <translation>Käytetään kansi-, jako- ja kuvatoiminnoissa: </translation>
-    </message>
-    <message>
         <source>Not set — photo actions use the last chat model. Pick a vision-capable model.</source>
         <translation>Ei asetettu – kuvatoiminnot käyttävät viimeisintä mallia. Valitse näkökykyinen malli.</translation>
     </message>
     <message>
-        <source>Add Provider</source>
-        <translation>Lisää palveluntarjoaja</translation>
-    </message>
-    <message>
         <source>Settings</source>
         <translation>Asetukset</translation>
-    </message>
-    <message>
-        <source>Provider Configuration &amp; Debug</source>
-        <translation>Palveluntarjoajan asetukset &amp; virheenjäljitys</translation>
-    </message>
-    <message>
-        <source>Debug Level</source>
-        <translation>Virheenjäljitystaso</translation>
     </message>
     <message>
         <source>0 — None (Production)</source>
@@ -331,14 +647,6 @@
     <message>
         <source>3 — Verbose (All Operations)</source>
         <translation>3 — Yksityiskohtainen (Kaikki toiminnot)</translation>
-    </message>
-    <message>
-        <source>Image Settings</source>
-        <translation>Kuva-asetukset</translation>
-    </message>
-    <message>
-        <source>Max Image Size</source>
-        <translation>Kuvan enimmäiskoko</translation>
     </message>
     <message>
         <source>512 px — compact</source>
@@ -365,8 +673,120 @@
         <translation>Alkuperäinen — ei suurennosta</translation>
     </message>
     <message>
-        <source>Provider Aliases</source>
-        <translation>Palveluntarjoajan aliakset</translation>
+        <source>Provider: %1</source>
+        <translation>Palveluntarjoaja: %1</translation>
+    </message>
+    <message>
+        <source>Status: %1</source>
+        <translation>Tila: %1</translation>
+    </message>
+    <message>
+        <source>✓ Available</source>
+        <translation>✓ Saatavilla</translation>
+    </message>
+    <message>
+        <source>URL: %1</source>
+        <translation>URL: %1</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Tuntematon</translation>
+    </message>
+    <message>
+        <source>Connection Test</source>
+        <translation>Yhteystesti</translation>
+    </message>
+    <message>
+        <source>Add provider</source>
+        <translation>Lisää palveluntarjoaja</translation>
+    </message>
+    <message>
+        <source>Providers</source>
+        <translation>Palveluntarjoajat</translation>
+    </message>
+    <message>
+        <source>No providers yet. Pull down to add one and choose its type.</source>
+        <translation>Ei vielä palveluntarjoajia. Vedä alas lisätäksesi yhden ja valitse sen tyyppi.</translation>
+    </message>
+    <message>
+        <source>Type: %1</source>
+        <translation>Tyyppi: %1</translation>
+    </message>
+    <message>
+        <source>Favorite: ★ %1</source>
+        <translation>Suosikki: ★ %1</translation>
+    </message>
+    <message>
+        <source>Favorites: ★ %1</source>
+        <translation>Suosikit: ★ %1</translation>
+    </message>
+    <message>
+        <source>API key set</source>
+        <translation>API-avain asetettu</translation>
+    </message>
+    <message>
+        <source>Manage favorites</source>
+        <translation>Hallitse suosikkeja</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>Muokkaa</translation>
+    </message>
+    <message>
+        <source>Test connection</source>
+        <translation>Testaa yhteys</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Poista</translation>
+    </message>
+    <message>
+        <source>Photo &amp; Vision</source>
+        <translation>Kuva ja näkö</translation>
+    </message>
+    <message>
+        <source>Default model for photo actions</source>
+        <translation>Oletusmalli kuvatoiminnoille</translation>
+    </message>
+    <message>
+        <source>Not set</source>
+        <translation>Ei asetettu</translation>
+    </message>
+    <message>
+        <source>Used for cover, share and photo actions. Pick a vision-capable model.</source>
+        <translation>Käytetään kannelle, jakamiseen ja kuvatoimintoihin. Valitse näkökykyinen malli.</translation>
+    </message>
+    <message>
+        <source>Images</source>
+        <translation>Kuvat</translation>
+    </message>
+    <message>
+        <source>Max image size</source>
+        <translation>Kuvan enimmäiskoko</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Lisäasetukset</translation>
+    </message>
+    <message>
+        <source>Debug level</source>
+        <translation>Virheenkorjaustaso</translation>
+    </message>
+    <message>
+        <source>Deleting %1</source>
+        <translation>Poistetaan %1</translation>
+    </message>
+    <message>
+        <source>Default model</source>
+        <translation>Oletusmalli</translation>
+    </message>
+    <message>
+        <source>Model for new chats</source>
+        <translation>Uusien keskustelujen malli</translation>
+    </message>
+    <message>
+        <source>New chats start with this model, regardless of provider.</source>
+        <translation>Uudet keskustelut alkavat tällä mallilla riippumatta palveluntarjoajasta.</translation>
     </message>
 </context>
 <context>

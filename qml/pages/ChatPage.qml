@@ -309,6 +309,19 @@ Page {
         defaultValue: ""
     }
 
+    // Claude Generated: general default model for new chats (any provider)
+    ConfigurationValue {
+        id: defaultProviderAliasConfig
+        key: "/SailorAI/default_provider_alias"
+        defaultValue: ""
+    }
+
+    ConfigurationValue {
+        id: defaultModelConfig
+        key: "/SailorAI/default_model"
+        defaultValue: ""
+    }
+
     ConfigurationValue {
         id: imageMaxDimension
         key: "/SailorAI/image_max_dimension"
@@ -443,9 +456,17 @@ Page {
         DebugLogger.logInfo("ChatPage", "Loaded " + availableAliases.length + " provider aliases");
         
         if (availableAliases.length > 0) {
-            // First restore last selection if available
-            restoreLastSelection();
-            
+            // New chats always start from the configured general default model (any
+            // provider); existing chats restore the last used selection. - Claude Generated
+            if (currentConversationId <= 0 && defaultProviderAliasConfig.value &&
+                    availableAliases.indexOf(defaultProviderAliasConfig.value) !== -1) {
+                selectedAliasId = defaultProviderAliasConfig.value;
+                selectedModel = defaultModelConfig.value || "";
+                DebugLogger.logInfo("ChatPage", "New chat using default model: " + selectedAliasId + " / " + selectedModel);
+            } else {
+                restoreLastSelection();
+            }
+
             // If still no valid selection, use first available
             if (!selectedAliasId || availableAliases.indexOf(selectedAliasId) === -1) {
                 selectedAliasId = availableAliases[0];
@@ -456,26 +477,35 @@ Page {
     }
 
     function sortModelsByFavorites(models, aliasId) {
-        if (!models || models.length === 0) return [];
-        
-        var favorites = LLMApi.getAliasFavoriteModels(aliasId);
+        var favorites = LLMApi.getAliasFavoriteModels(aliasId) || [];
+        var list = (models || []).slice();
+
+        // When nothing has been fetched/cached yet, surface the favorites so they
+        // stay selectable. Once a real (non-empty) list exists it is authoritative:
+        // a favorite missing from it was removed on the server and must NOT be
+        // re-injected here (see reconcileFavorites). - Claude Generated
+        if (list.length === 0) {
+            list = favorites.slice();
+        }
+
         var favoriteModels = [];
         var otherModels = [];
-        
+
         // Separate favorites from non-favorites
-        for (var i = 0; i < models.length; i++) {
-            if (favorites.indexOf(models[i]) !== -1) {
-                favoriteModels.push(models[i]);
+        for (var i = 0; i < list.length; i++) {
+            if (favorites.indexOf(list[i]) !== -1) {
+                favoriteModels.push(list[i]);
             } else {
-                otherModels.push(models[i]);
+                otherModels.push(list[i]);
             }
         }
-        
+
         // Sort favorites by their order in the favorites list
         favoriteModels.sort(function(a, b) {
             return favorites.indexOf(a) - favorites.indexOf(b);
         });
-        
+        otherModels.sort();
+
         // Return favorites first, then other models
         return favoriteModels.concat(otherModels);
     }
@@ -483,41 +513,42 @@ Page {
     function loadModels() {
         if (selectedAliasId) {
             var favoriteModel = LLMApi.getAliasFavoriteModel(selectedAliasId);
-            var rawModels = LLMApi.getAliasModels(selectedAliasId);
-            
-            // Sort models with favorites first
-            availableModels = sortModelsByFavorites(rawModels, selectedAliasId);
-            
-            DebugLogger.logInfo("ChatPage", "Loading models for " + selectedAliasId + " - Available: " + availableModels.length + ", Favorite: " + (favoriteModel || "none"));
-            
-            // Model selection priority: 1) Keep current if valid, 2) Provider's favorite, 3) First available
-            if (availableModels.length > 0) {
+            var cachedModels = LLMApi.getAliasModels(selectedAliasId);
+            // A non-empty cache is a real fetched list and therefore authoritative:
+            // a selection/favorite missing from it was removed on the server. An empty
+            // cache means "not fetched yet" - keep the current selection. - Claude Generated
+            var haveAuthoritative = cachedModels.length > 0;
+
+            // Sort models with favorites first (favorites surfaced when no cache yet)
+            availableModels = sortModelsByFavorites(cachedModels, selectedAliasId);
+
+            DebugLogger.logInfo("ChatPage", "Loading models for " + selectedAliasId + " - Available: " + availableModels.length + ", Favorite: " + (favoriteModel || "none") + ", authoritative: " + haveAuthoritative);
+
+            if (haveAuthoritative) {
+                // Real list: keep current if still present, else favorite, else first.
                 if (selectedModel && availableModels.indexOf(selectedModel) !== -1) {
                     DebugLogger.logInfo("ChatPage", "Keeping current model selection: " + selectedModel);
                 } else if (favoriteModel && availableModels.indexOf(favoriteModel) !== -1) {
                     selectedModel = favoriteModel;
-                    DebugLogger.logInfo("ChatPage", "✓ Selected provider's favorite model: " + selectedModel);
-                } else {
+                    DebugLogger.logInfo("ChatPage", "Selected provider's favorite model: " + selectedModel);
+                } else if (availableModels.length > 0) {
                     selectedModel = availableModels[0];
-                    DebugLogger.logInfo("ChatPage", "Selected first available model: " + selectedModel + " (favorite '" + favoriteModel + "' not in list)");
+                    DebugLogger.logInfo("ChatPage", "Selected first available model: " + selectedModel + " (previous selection not on server)");
                 }
             } else {
-                // No models cached - try to fetch them; only set favorite if nothing is selected yet
+                // Not fetched yet: preserve the current selection (default/last); only
+                // seed from favorite when nothing is selected, then fetch in background.
+                if (!selectedModel && favoriteModel) {
+                    selectedModel = favoriteModel;
+                    DebugLogger.logInfo("ChatPage", "Using favorite as initial selection: " + selectedModel);
+                }
                 var alias = LLMApi.getProviderAlias(selectedAliasId);
                 if (alias && alias.api_key) {
                     DebugLogger.logInfo("ChatPage", "No models cached, fetching from API for: " + selectedAliasId);
                     LLMApi.fetchModelsForAlias(selectedAliasId);
-
-                    if (!selectedModel && favoriteModel) {
-                        selectedModel = favoriteModel;
-                        DebugLogger.logInfo("ChatPage", "Using favorite as initial selection: " + selectedModel);
-                    }
-                } else if (!selectedModel && favoriteModel) {
-                    selectedModel = favoriteModel;
-                    DebugLogger.logInfo("ChatPage", "No API key, using favorite: " + selectedModel);
                 }
             }
-            
+
             // Log final selection
             DebugLogger.logInfo("ChatPage", "Final model selection: " + selectedModel + " for provider " + selectedAliasId);
         }

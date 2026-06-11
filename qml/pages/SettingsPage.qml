@@ -1,3 +1,7 @@
+// Copyright (C) 2024 - 2026 Conrad Hübler <Conrad.Huebler@gmx.net>
+// Settings page: provider management, photo/vision defaults, image and debug options.
+// Restructured & translated with assistance from Claude (Claude Generated sections noted inline).
+
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import Nemo.Configuration 1.0
@@ -54,28 +58,16 @@ Page {
         defaultValue: ""
     }
 
-    // Legacy configs for backward compatibility
+    // Claude Generated: general default model for new chats (any provider)
     ConfigurationValue {
-        id: geminiConfig
-        key: "/SailorAI/gemini_config"
+        id: defaultProviderAliasConfig
+        key: "/SailorAI/default_provider_alias"
         defaultValue: ""
     }
 
     ConfigurationValue {
-        id: openaiConfig
-        key: "/SailorAI/openai_config"
-        defaultValue: ""
-    }
-
-    ConfigurationValue {
-        id: anthropicConfig
-        key: "/SailorAI/anthropic_config"
-        defaultValue: ""
-    }
-
-    ConfigurationValue {
-        id: ollamaConfig
-        key: "/SailorAI/ollama_config"
+        id: defaultModelConfig
+        key: "/SailorAI/default_model"
         defaultValue: ""
     }
 
@@ -83,7 +75,7 @@ Page {
         availableAliases = [];
         availableAliases = LLMApi.getProviderAliases();
         DebugLogger.logInfo("SettingsPage", "Loaded " + availableAliases.length + " provider aliases");
-        
+
         if (availableAliases.length > 0) {
             if (!currentAliasId || availableAliases.indexOf(currentAliasId) === -1) {
                 currentAliasId = availableAliases[0];
@@ -100,10 +92,10 @@ Page {
             }
         }
     }
-    
+
     function showProviderModels(aliasId) {
         var alias = LLMApi.getProviderAlias(aliasId);
-        
+
         if (alias) {
             // Open the favorite management dialog
             var favDialog = pageStack.push(Qt.resolvedUrl("../dialogs/FavoriteModelsDialog.qml"), {
@@ -115,132 +107,6 @@ Page {
                 loadCurrentAlias();
                 DebugLogger.logInfo("SettingsPage", "Favorites updated for provider: " + aliasId);
             });
-        }
-    }
-    
-    function displayModelList(aliasId, fetchFresh) {
-        var alias = LLMApi.getProviderAlias(aliasId);
-        var models = LLMApi.getAliasModels(aliasId);
-        
-        if (alias) {
-            var modelText = "";
-            if (models.length > 0) {
-                modelText = "Available models for " + alias.name + ":\\n\\n";
-                
-                // Sort models: favorites first, then others
-                var favoriteModel = alias.favoriteModel;
-                var favoriteModels = [];
-                var otherModels = [];
-                
-                for (var i = 0; i < models.length; i++) {
-                    if (models[i] === favoriteModel) {
-                        favoriteModels.push(models[i]);
-                    } else {
-                        otherModels.push(models[i]);
-                    }
-                }
-                
-                // Add favorites first
-                for (var j = 0; j < favoriteModels.length; j++) {
-                    modelText += "★ " + favoriteModels[j] + "\\n";
-                }
-                
-                // Add separator if we have favorites
-                if (favoriteModels.length > 0 && otherModels.length > 0) {
-                    modelText += "\\n── Other Models ──\\n";
-                }
-                
-                // Add other models
-                for (var k = 0; k < otherModels.length; k++) {
-                    modelText += "• " + otherModels[k] + "\\n";
-                }
-                
-                if (fetchFresh && alias.api_key) {
-                    modelText += "\\n⟳ Refreshing from API...";
-                }
-            } else {
-                if (alias.api_key && fetchFresh) {
-                    modelText = "Fetching models from " + alias.name + " API...\\nPlease wait...";
-                } else {
-                    modelText = "No models available for " + alias.name + ".\\n\\n";
-                    if (!alias.api_key) {
-                        modelText += "Configure an API key to fetch models.";
-                    } else {
-                        modelText += "Try refreshing the list.";
-                    }
-                }
-            }
-            
-            var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ModelListDialog.qml"), {
-                "title": alias.name + " Models" + (models.length > 0 ? " (" + models.length + ")" : ""),
-                "message": modelText,
-                "aliasId": aliasId,
-                "canRefresh": alias.api_key !== ""
-            });
-            
-            // Start fresh fetch if requested and we have API key
-            if (fetchFresh && alias.api_key) {
-                LLMApi.checkAliasAvailability(aliasId, function(available, status) {
-                    if (available) {
-                        LLMApi.fetchModelsForAlias(aliasId);
-                        // Update dialog after fetch (simple approach)
-                        var refreshTimer = Qt.createQmlObject(
-                            "import QtQuick 2.0; Timer { interval: 3000; running: true; repeat: false }",
-                            page, "refreshTimer"
-                        );
-                        refreshTimer.triggered.connect(function() {
-                            if (dialog && dialog.updateModelList) {
-                                dialog.updateModelList();
-                            }
-                            refreshTimer.destroy();
-                        });
-                    }
-                });
-            }
-        }
-    }
-
-    function saveCurrentAlias() {
-        if (!currentAliasId || !currentAlias) {
-            DebugLogger.logError("SettingsPage", "No current alias to save");
-            return;
-        }
-
-        var apiKey = apiKeyField.text.trim();
-        var url = baseUrlField.text.trim();
-        var name = aliasNameField.text.trim();
-        var description = descriptionField.text.trim();
-        var timeout = parseInt(timeoutField.text) || 10000;
-
-        // Update the alias
-        if (currentAlias.isDefault) {
-            // For default aliases, only update the API key
-            currentAlias.api_key = apiKey;
-        } else {
-            // For custom aliases, update all fields
-            currentAlias.name = name;
-            currentAlias.api_key = apiKey;
-            currentAlias.url = url;
-            currentAlias.description = description;
-            currentAlias.timeout = timeout;
-        }
-
-        // Save all aliases to config
-        providerAliasesConfig.value = LLMApi.saveProviderAliases();
-        
-        DebugLogger.logInfo("SettingsPage", "Saved alias: " + currentAliasId + " with API key: " + (apiKey ? "***set***" : "empty"));
-
-        // Check availability if API key is set
-        if (apiKey) {
-            DebugLogger.logInfo("SettingsPage", "Checking availability for alias: " + currentAliasId);
-            LLMApi.checkAliasAvailability(currentAliasId, function(available, status) {
-                DebugLogger.logInfo("SettingsPage", "Availability check result for " + currentAliasId + ": " + (available ? "available" : "unavailable") + " (" + status + ")");
-                availabilityStatus.text = available ? "✓ Available (" + status + ")" : "✗ " + status;
-                availabilityStatus.color = available ? Theme.primaryColor : Theme.errorColor;
-            });
-        } else {
-            availabilityStatus.text = "No API key";
-            availabilityStatus.color = Theme.secondaryColor;
         }
     }
 
@@ -262,6 +128,49 @@ Page {
         });
     }
 
+    function editAlias(aliasId) {
+        var alias = LLMApi.getProviderAlias(aliasId);
+        if (!alias) return;
+        var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/EditProviderAliasDialog.qml"), {
+            "aliasId": aliasId,
+            "aliasName": alias.name,
+            "providerType": alias.type,
+            "apiUrl": alias.url,
+            "apiKey": alias.api_key,
+            "description": alias.description,
+            "favoriteModel": alias.favoriteModel
+        });
+        dialog.accepted.connect(function() {
+            if (LLMApi.updateProviderAlias(aliasId, dialog.aliasName, dialog.apiUrl, dialog.apiKey, dialog.description, 10000, dialog.favoriteModel)) {
+                providerAliasesConfig.value = LLMApi.saveProviderAliases();
+                loadAvailableAliases();
+                DebugLogger.logInfo("SettingsPage", "Updated alias: " + aliasId);
+            }
+        });
+    }
+
+    function deleteAlias(aliasId) {
+        if (LLMApi.removeProviderAlias(aliasId)) {
+            providerAliasesConfig.value = LLMApi.saveProviderAliases();
+            loadAvailableAliases();
+            DebugLogger.logInfo("SettingsPage", "Deleted alias: " + aliasId);
+        }
+    }
+
+    function testAliasConnection(aliasId) {
+        var alias = LLMApi.getProviderAlias(aliasId);
+        LLMApi.checkAliasAvailability(aliasId, function(available, status) {
+            var resultMessage = qsTr("Provider: %1").arg(alias ? alias.name : aliasId) + "\n";
+            resultMessage += qsTr("Status: %1").arg(available ? qsTr("✓ Available") : "✗ " + status) + "\n";
+            resultMessage += qsTr("URL: %1").arg(alias ? alias.url : qsTr("Unknown"));
+
+            pageStack.push(Qt.resolvedUrl("../dialogs/InfoDialog.qml"), {
+                "title": qsTr("Connection Test"),
+                "message": resultMessage
+            });
+        });
+    }
+
     Component.onCompleted: {
         DebugLogger.setDebugLevel(parseInt(debugLevelConfig.value) || 1);
         DebugLogger.logNormal("SettingsPage", "Settings page loaded");
@@ -272,10 +181,9 @@ Page {
         anchors.fill: parent
         contentHeight: column.height
 
-
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add Provider")
+                text: qsTr("Add provider")
                 onClicked: createNewAlias()
             }
         }
@@ -283,61 +191,247 @@ Page {
         Column {
             id: column
             width: parent.width
-            spacing: Theme.paddingLarge
+            spacing: Theme.paddingSmall
 
             PageHeader {
                 title: qsTr("Settings")
-                description: qsTr("Provider Configuration & Debug")
             }
 
+            // --- Providers (most important, on top) ---
             SectionHeader {
-                text: qsTr("Debug Level")
+                text: qsTr("Providers")
             }
 
-            ComboBox {
-                id: debugLevelComboBox
-                label: qsTr("Debug Level")
-                width: parent.width
-                currentIndex: parseInt(debugLevelConfig.value) || 1
-                menu: ContextMenu {
-                    MenuItem {
-                        text: qsTr("0 — None (Production)")
-                        onClicked: {
-                            debugLevelConfig.value = "0";
-                            DebugLogger.logNormal("SettingsPage", "Debug level set to 0 (None)");
+            Label {
+                visible: availableAliases.length === 0
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.WordWrap
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.secondaryColor
+                text: qsTr("No providers yet. Pull down to add one and choose its type.")
+            }
+
+            Repeater {
+                model: availableAliases
+
+                delegate: ListItem {
+                    id: providerItem
+                    width: parent.width
+                    contentHeight: Theme.itemSizeMedium
+
+                    onClicked: {
+                        currentAliasId = modelData;
+                        loadCurrentAlias();
+                        showProviderModels(modelData);
+                    }
+
+                    Row {
+                        anchors.left: parent.left
+                        anchors.leftMargin: Theme.horizontalPageMargin
+                        anchors.right: parent.right
+                        anchors.rightMargin: Theme.horizontalPageMargin
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: Theme.paddingMedium
+
+                        Label {
+                            id: statusIcon
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Theme.iconSizeSmall
+                            horizontalAlignment: Text.AlignHCenter
+                            font.pixelSize: Theme.fontSizeMedium
+                            text: {
+                                var status = LLMApi.getAliasAvailability(modelData);
+                                switch (status) {
+                                    case "available": return "✓";
+                                    case "checking": return "⚠";
+                                    case "no_key": return "⚷";
+                                    case "error":
+                                    case "timeout": return "✗";
+                                    default: return "○";
+                                }
+                            }
+                            color: {
+                                var status = LLMApi.getAliasAvailability(modelData);
+                                switch (status) {
+                                    case "available": return Theme.primaryColor;
+                                    case "checking": return Theme.highlightColor;
+                                    case "error":
+                                    case "timeout": return Theme.errorColor;
+                                    default: return Theme.secondaryColor;
+                                }
+                            }
+                        }
+
+                        Column {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - Theme.iconSizeSmall - Theme.paddingMedium
+
+                            Label {
+                                text: {
+                                    var alias = LLMApi.getProviderAlias(modelData);
+                                    return alias ? alias.name : modelData;
+                                }
+                                color: providerItem.highlighted ? Theme.highlightColor : Theme.primaryColor
+                                font.pixelSize: Theme.fontSizeMedium
+                                width: parent.width
+                                truncationMode: TruncationMode.Fade
+                            }
+
+                            Label {
+                                text: {
+                                    var alias = LLMApi.getProviderAlias(modelData);
+                                    if (!alias) return "";
+                                    var parts = [];
+                                    parts.push(qsTr("Type: %1").arg(alias.type));
+                                    var favorites = LLMApi.getAliasFavoriteModels(modelData);
+                                    if (favorites && favorites.length > 0) {
+                                        if (favorites.length === 1) {
+                                            parts.push(qsTr("Favorite: ★ %1").arg(favorites[0]));
+                                        } else {
+                                            parts.push(qsTr("Favorites: ★ %1").arg(favorites.length));
+                                        }
+                                    }
+                                    if (alias.api_key) {
+                                        parts.push(qsTr("API key set"));
+                                    }
+                                    return parts.join("  ·  ");
+                                }
+                                color: Theme.secondaryColor
+                                font.pixelSize: Theme.fontSizeExtraSmall
+                                width: parent.width
+                                truncationMode: TruncationMode.Fade
+                            }
                         }
                     }
-                    MenuItem {
-                        text: qsTr("1 — Normal (Errors & Important)")
-                        onClicked: {
-                            debugLevelConfig.value = "1";
-                            DebugLogger.logNormal("SettingsPage", "Debug level set to 1 (Normal)");
+
+                    menu: ContextMenu {
+                        MenuItem {
+                            text: qsTr("Manage favorites")
+                            onClicked: showProviderModels(modelData)
                         }
-                    }
-                    MenuItem {
-                        text: qsTr("2 — Informative (API Calls)")
-                        onClicked: {
-                            debugLevelConfig.value = "2";
-                            DebugLogger.logNormal("SettingsPage", "Debug level set to 2 (Informative)");
+                        MenuItem {
+                            text: qsTr("Edit")
+                            onClicked: editAlias(modelData)
                         }
-                    }
-                    MenuItem {
-                        text: qsTr("3 — Verbose (All Operations)")
-                        onClicked: {
-                            debugLevelConfig.value = "3";
-                            DebugLogger.logNormal("SettingsPage", "Debug level set to 3 (Verbose)");
+                        MenuItem {
+                            text: qsTr("Test connection")
+                            onClicked: testAliasConnection(modelData)
+                        }
+                        MenuItem {
+                            text: qsTr("Delete")
+                            onClicked: {
+                                var alias = LLMApi.getProviderAlias(modelData);
+                                var nm = alias ? alias.name : modelData;
+                                providerItem.remorseAction(qsTr("Deleting %1").arg(nm), function() {
+                                    deleteAlias(modelData);
+                                }, 5000);
+                            }
                         }
                     }
                 }
             }
 
+            // --- Default model (general, any provider) ---
             SectionHeader {
-                text: qsTr("Image Settings")
+                text: qsTr("Default model")
+            }
+
+            ValueButton {
+                id: defaultModelButton
+                width: parent.width
+                label: qsTr("Model for new chats")
+                value: {
+                    var a = defaultProviderAliasConfig.value;
+                    var m = defaultModelConfig.value;
+                    if (a && m) {
+                        var alias = LLMApi.getProviderAlias(a);
+                        return (alias ? alias.name : a) + " · " + m;
+                    }
+                    return qsTr("Not set");
+                }
+                onClicked: {
+                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
+                        "selectedAliasId": defaultProviderAliasConfig.value,
+                        "selectedModel": defaultModelConfig.value
+                    });
+                    dialog.accepted.connect(function() {
+                        defaultProviderAliasConfig.value = dialog.selectedAliasId;
+                        defaultModelConfig.value = dialog.selectedModel;
+                        DebugLogger.logInfo("SettingsPage", "Default model set: " + dialog.selectedAliasId + " / " + dialog.selectedModel);
+                    });
+                }
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.WordWrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                text: qsTr("New chats start with this model, regardless of provider.")
+            }
+
+            // --- Photo & Vision ---
+            SectionHeader {
+                text: qsTr("Photo & Vision")
+            }
+
+            TextSwitch {
+                id: autoSendSwitch
+                width: parent.width
+                text: qsTr("Send photo actions immediately")
+                description: qsTr("When off, the chat opens with the photo and prompt ready for you to send.")
+                automaticCheck: false
+                checked: photoActionAutoSendConfig.value === true || photoActionAutoSendConfig.value === "true"
+                onClicked: photoActionAutoSendConfig.value = !checked
+            }
+
+            ValueButton {
+                id: visionModelButton
+                width: parent.width
+                label: qsTr("Default model for photo actions")
+                value: {
+                    var a = visionProviderAliasConfig.value;
+                    var m = visionModelConfig.value;
+                    if (a && m) {
+                        var alias = LLMApi.getProviderAlias(a);
+                        return (alias ? alias.name : a) + " · " + m;
+                    }
+                    return qsTr("Not set");
+                }
+                onClicked: {
+                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
+                        "selectedAliasId": visionProviderAliasConfig.value,
+                        "selectedModel": visionModelConfig.value
+                    });
+                    dialog.accepted.connect(function() {
+                        visionProviderAliasConfig.value = dialog.selectedAliasId;
+                        visionModelConfig.value = dialog.selectedModel;
+                        DebugLogger.logInfo("SettingsPage", "Vision default set: " + dialog.selectedAliasId + " / " + dialog.selectedModel);
+                    });
+                }
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.WordWrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                text: (visionProviderAliasConfig.value && visionModelConfig.value)
+                    ? qsTr("Used for cover, share and photo actions. Pick a vision-capable model.")
+                    : qsTr("Not set — photo actions use the last chat model. Pick a vision-capable model.")
+            }
+
+            // --- Images ---
+            SectionHeader {
+                text: qsTr("Images")
             }
 
             ComboBox {
                 id: imageMaxDimensionComboBox
-                label: qsTr("Max Image Size")
+                label: qsTr("Max image size")
                 width: parent.width
                 currentIndex: {
                     var v = imageMaxDimensionConfig.value;
@@ -376,231 +470,39 @@ Page {
                 }
             }
 
+            // --- Advanced ---
             SectionHeader {
-                text: qsTr("Photo Actions")
+                text: qsTr("Advanced")
             }
 
-            TextSwitch {
-                id: autoSendSwitch
+            ComboBox {
+                id: debugLevelComboBox
+                label: qsTr("Debug level")
                 width: parent.width
-                text: qsTr("Send photo actions immediately")
-                description: qsTr("When off, the chat opens with the photo and prompt ready for you to send.")
-                automaticCheck: false
-                checked: photoActionAutoSendConfig.value === true || photoActionAutoSendConfig.value === "true"
-                onClicked: photoActionAutoSendConfig.value = !checked
-            }
-
-            Button {
-                text: qsTr("Default model for image actions")
-                anchors.horizontalCenter: parent.horizontalCenter
-                onClicked: {
-                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
-                        "selectedAliasId": visionProviderAliasConfig.value,
-                        "selectedModel": visionModelConfig.value
-                    });
-                    dialog.accepted.connect(function() {
-                        visionProviderAliasConfig.value = dialog.selectedAliasId;
-                        visionModelConfig.value = dialog.selectedModel;
-                        DebugLogger.logInfo("SettingsPage", "Vision default set: " + dialog.selectedAliasId + " / " + dialog.selectedModel);
-                    });
-                }
-            }
-
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                wrapMode: Text.WordWrap
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
-                text: {
-                    var a = visionProviderAliasConfig.value;
-                    var m = visionModelConfig.value;
-                    if (a && m) {
-                        var alias = LLMApi.getProviderAlias(a);
-                        return qsTr("Used for cover, share and photo actions: ") + (alias ? alias.name : a) + " · " + m;
+                currentIndex: parseInt(debugLevelConfig.value) || 1
+                menu: ContextMenu {
+                    MenuItem {
+                        text: qsTr("0 — None (Production)")
+                        onClicked: debugLevelConfig.value = "0";
                     }
-                    return qsTr("Not set — photo actions use the last chat model. Pick a vision-capable model.");
+                    MenuItem {
+                        text: qsTr("1 — Normal (Errors & Important)")
+                        onClicked: debugLevelConfig.value = "1";
+                    }
+                    MenuItem {
+                        text: qsTr("2 — Informative (API Calls)")
+                        onClicked: debugLevelConfig.value = "2";
+                    }
+                    MenuItem {
+                        text: qsTr("3 — Verbose (All Operations)")
+                        onClicked: debugLevelConfig.value = "3";
+                    }
                 }
             }
 
-            SectionHeader {
-                text: qsTr("Provider Aliases")
-            }
-            
-            SilicaListView {
-                id: providerListView
+            Item {
                 width: parent.width
-                height: availableAliases.length * Theme.itemSizeMedium + Theme.paddingLarge
-                model: availableAliases
-                
-                delegate: ListItem {
-                    width: providerListView.width
-                    
-                    onClicked: {
-                        currentAliasId = modelData;
-                        loadCurrentAlias();
-                        showProviderModels(modelData);
-                    }
-                    
-                    Column {
-                        anchors.left: parent.left
-                        anchors.leftMargin: Theme.horizontalPageMargin
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 2 * Theme.horizontalPageMargin
-                        
-                        Row {
-                            width: parent.width
-                            spacing: Theme.paddingSmall
-                            
-                            Label {
-                                text: {
-                                    var alias = LLMApi.getProviderAlias(modelData);
-                                    var status = LLMApi.getAliasAvailability(modelData);
-                                    var statusIcon = "";
-                                    switch (status) {
-                                        case "available": statusIcon = "✓"; break;
-                                        case "checking": statusIcon = "⚠"; break;
-                                        case "no_key": statusIcon = "⚷"; break;
-                                        case "error":
-                                        case "timeout": statusIcon = "✗"; break;
-                                        case "unchecked":
-                                        default: statusIcon = "○"; break;
-                                    }
-                                    return statusIcon;
-                                }
-                                font.pixelSize: Theme.fontSizeMedium
-                                color: {
-                                    var status = LLMApi.getAliasAvailability(modelData);
-                                    switch (status) {
-                                        case "available": return Theme.primaryColor;
-                                        case "checking": return Theme.highlightColor;
-                                        case "no_key": return Theme.secondaryColor;
-                                        case "error":
-                                        case "timeout": return Theme.errorColor;
-                                        case "unchecked":
-                                        default: return Theme.secondaryColor;
-                                    }
-                                }
-                                width: Theme.iconSizeSmall
-                            }
-                            
-                            Column {
-                                width: parent.width - Theme.iconSizeSmall - Theme.paddingSmall
-                                
-                                Label {
-                                    text: {
-                                        var alias = LLMApi.getProviderAlias(modelData);
-                                        return alias ? alias.name : modelData;
-                                    }
-                                    color: Theme.primaryColor
-                                    font.pixelSize: Theme.fontSizeMedium
-                                    width: parent.width
-                                    truncationMode: TruncationMode.Fade
-                                }
-                                
-                                Label {
-                                    text: {
-                                        var alias = LLMApi.getProviderAlias(modelData);
-                                        if (alias) {
-                                            var parts = [];
-                                            parts.push("Type: " + alias.type);
-                                            // Show multiple favorites
-                                            var favorites = LLMApi.getAliasFavoriteModels(modelData);
-                                            if (favorites && favorites.length > 0) {
-                                                if (favorites.length === 1) {
-                                                    parts.push("Favorite: ★ " + favorites[0]);
-                                                } else {
-                                                    parts.push("Favorites: ★ " + favorites.length);
-                                                }
-                                            }
-                                            if (alias.api_key) {
-                                                parts.push("API Key: ✓");
-                                            }
-                                            return parts.join(" | ");
-                                        }
-                                        return "";
-                                    }
-                                    color: Theme.secondaryColor
-                                    font.pixelSize: Theme.fontSizeExtraSmall
-                                    width: parent.width
-                                    truncationMode: TruncationMode.Fade
-                                }
-                            }
-                        }
-                    }
-                    
-                    menu: ContextMenu {
-                        MenuItem {
-                            text: "Manage Favorites"
-                            onClicked: {
-                                showProviderModels(modelData);
-                            }
-                        }
-                        MenuItem {
-                            text: "Edit"
-                            onClicked: {
-                                var alias = LLMApi.getProviderAlias(modelData);
-                                if (alias) {
-                                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/EditProviderAliasDialog.qml"), {
-                                        "aliasId": modelData,
-                                        "aliasName": alias.name,
-                                        "providerType": alias.type,
-                                        "apiUrl": alias.url,
-                                        "apiKey": alias.api_key,
-                                        "description": alias.description,
-                                        "favoriteModel": alias.favoriteModel
-                                    });
-                                    dialog.accepted.connect(function() {
-                                        if (LLMApi.updateProviderAlias(modelData, dialog.aliasName, dialog.apiUrl, dialog.apiKey, dialog.description, 10000, dialog.favoriteModel)) {
-                                            providerAliasesConfig.value = LLMApi.saveProviderAliases();
-                                            loadAvailableAliases();
-                                            DebugLogger.logInfo("SettingsPage", "Updated alias: " + modelData);
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                        MenuItem {
-                            text: "Delete"
-                            enabled: {
-                                var alias = LLMApi.getProviderAlias(modelData);
-                                return alias && !alias.isDefault;
-                            }
-                            onClicked: {
-                                if (LLMApi.removeProviderAlias(modelData)) {
-                                    providerAliasesConfig.value = LLMApi.saveProviderAliases();
-                                    loadAvailableAliases();
-                                    DebugLogger.logInfo("SettingsPage", "Deleted alias: " + modelData);
-                                }
-                            }
-                        }
-                        MenuItem {
-                            text: "Test Connection"
-                            onClicked: {
-                                var alias = LLMApi.getProviderAlias(modelData);
-                                var testMessage = "Testing connection to " + (alias ? alias.name : modelData) + "...";
-                                
-                                LLMApi.checkAliasAvailability(modelData, function(available, status) {
-                                    var resultMessage = "Connection test result:\\n\\n";
-                                    resultMessage += "Provider: " + (alias ? alias.name : modelData) + "\\n";
-                                    resultMessage += "Status: " + (available ? "✓ Available" : "✗ " + status) + "\\n";
-                                    resultMessage += "URL: " + (alias ? alias.url : "Unknown");
-                                    
-                                    var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/InfoDialog.qml"), {
-                                        "title": "Connection Test",
-                                        "message": resultMessage
-                                    });
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                ViewPlaceholder {
-                    enabled: availableAliases.length === 0
-                    text: "No provider aliases configured"
-                    hintText: "Tap 'Add Provider Alias' to create your first configuration"
-                }
+                height: Theme.paddingLarge
             }
         }
     }

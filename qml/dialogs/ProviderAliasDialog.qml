@@ -28,21 +28,28 @@ Dialog {
     }
     
     function sortModelsByFavorites(models, aliasId) {
-        if (!models || models.length === 0) return [];
-        
-        var favorites = LLMApi.getAliasFavoriteModels(aliasId);
+        var favorites = LLMApi.getAliasFavoriteModels(aliasId) || [];
+        var list = (models || []).slice();
+
+        // When nothing is fetched/cached yet, surface favorites so they stay
+        // selectable. A non-empty list is authoritative - a favorite missing from
+        // it was removed on the server and is not re-injected. - Claude Generated
+        if (list.length === 0) {
+            list = favorites.slice();
+        }
+
         var favoriteModels = [];
         var otherModels = [];
-        
+
         // Separate favorites from non-favorites
-        for (var i = 0; i < models.length; i++) {
-            if (favorites.indexOf(models[i]) !== -1) {
-                favoriteModels.push(models[i]);
+        for (var i = 0; i < list.length; i++) {
+            if (favorites.indexOf(list[i]) !== -1) {
+                favoriteModels.push(list[i]);
             } else {
-                otherModels.push(models[i]);
+                otherModels.push(list[i]);
             }
         }
-        
+
         // Sort favorites by their order in the favorites list
         favoriteModels.sort(function(a, b) {
             return favorites.indexOf(a) - favorites.indexOf(b);
@@ -231,7 +238,7 @@ Dialog {
             
             Button {
                 visible: selectedAliasId
-                text: qsTr("Manage Favorites")
+                text: qsTr("Manage favorites")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     var favDialog = pageStack.push(Qt.resolvedUrl("FavoriteModelsDialog.qml"), {

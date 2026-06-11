@@ -2,6 +2,157 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>AddProviderAliasDialog</name>
+    <message>
+        <source>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Anthropic Claude API (or compatible endpoint).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Google Gemini API.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ollama server (local or remote).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create provider</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Basic information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Gemini account</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Display name. Generated ID: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server / endpoint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Official API</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ollama compatible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select the API server to use</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>https://api.example.com/v1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Base URL (auto-filled from provider type)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API key (optional for local Ollama)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter your API key…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your API key for authentication</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetch available models</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetching models from provider, please wait…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Model selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Favorite model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select from %1 available models</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Optional — fetch models to choose, or set it later</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Additional settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Description (optional)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Personal account, company proxy, etc.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Optional description to help identify this provider configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>AdvancedSettingsDialog</name>
     <message>
         <source>Advanced Settings</source>
@@ -188,6 +339,165 @@
         <source>Translate</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Describe photo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>EditProviderAliasDialog</name>
+    <message>
+        <source>Edit provider</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Basic information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Gemini account</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Display name. Generated ID: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>OpenAI Compatible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Anthropic Claude</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Google Gemini</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ollama Local</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server / endpoint</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Official API</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ollama compatible</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select the API server to use</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>https://api.example.com/v1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Base URL for the API endpoint (automatically set based on provider type)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API key (optional for local Ollama)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enter your API key…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Your API key for authentication (required for most providers)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetch available models</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fetching models from provider, please wait…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Model selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Favorite model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Select from %1 available models</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Optional — fetch models to choose, or set it later</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Additional settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Description (optional)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Personal account, company proxy, etc.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Optional description to help identify this provider configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ExportDialog</name>
@@ -229,6 +539,44 @@
     </message>
 </context>
 <context>
+    <name>FavoriteModelsDialog</name>
+    <message>
+        <source>Manage favorite models</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Save (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 favorite models selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Available models (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>InfoDialog</name>
+    <message>
+        <source>Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ModelListDialog</name>
     <message>
         <source>Unmark as vision-capable</source>
@@ -262,16 +610,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Manage Favorites</source>
+        <source>Manage favorites</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
-    <message>
-        <source>Photo Actions</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <source>Send photo actions immediately</source>
         <translation type="unfinished"></translation>
@@ -281,31 +625,11 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Default model for image actions</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Used for cover, share and photo actions: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Not set — photo actions use the last chat model. Pick a vision-capable model.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Add Provider</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Provider Configuration &amp; Debug</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Debug Level</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -322,14 +646,6 @@
     </message>
     <message>
         <source>3 — Verbose (All Operations)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Image Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Max Image Size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -357,7 +673,119 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Provider Aliases</source>
+        <source>Provider: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Status: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>✓ Available</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>URL: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Connection Test</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add provider</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Providers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No providers yet. Pull down to add one and choose its type.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Type: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Favorite: ★ %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Favorites: ★ %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>API key set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Manage favorites</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Test connection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Photo &amp; Vision</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default model for photo actions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Used for cover, share and photo actions. Pick a vision-capable model.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Images</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max image size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Debug level</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Deleting %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Default model</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Model for new chats</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New chats start with this model, regardless of provider.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -387,6 +815,10 @@
         <source>Please translate all text visible in this photo to %1.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Translate photo</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>harbour-sailorAI</name>
@@ -396,6 +828,14 @@
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

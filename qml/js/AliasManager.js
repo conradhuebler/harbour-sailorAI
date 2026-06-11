@@ -61,81 +61,13 @@ function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, 
 }
 
 /**
- * Initialize default aliases from provider config
- * Creates one alias per provider type with sensible defaults
- * @param {object} config - Loaded API configuration
- */
-function initDefaultAliases(config) {
-    if (!config || !config.api_endpoints) return;
-
-    var defaults = {
-        "openai": {
-            aliasId: "openai",
-            name: "ChatGPT",
-            description: "OpenAI API (GPT-4o, GPT-4o-mini)"
-        },
-        "anthropic": {
-            aliasId: "anthropic",
-            name: "Claude",
-            description: "Anthropic Claude API"
-        },
-        "gemini": {
-            aliasId: "gemini",
-            name: "Gemini",
-            description: "Google Gemini API"
-        },
-        "ollama": {
-            aliasId: "ollama",
-            name: "Ollama",
-            description: "Ollama local server"
-        }
-    };
-
-    for (var type in defaults) {
-        if (!defaults.hasOwnProperty(type)) continue;
-        if (!config.api_endpoints[type]) continue;
-
-        var def = defaults[type];
-        var template = config.api_endpoints[type];
-
-        // Skip if alias already exists
-        if (providerAliases[def.aliasId]) continue;
-
-        var alias = {
-            name: def.name,
-            type: type,
-            url: template.base_url,
-            api_key: "",
-            port: "",
-            description: def.description,
-            timeout: 30000,
-            favoriteModel: "",
-            favoriteModels: [],
-            enableThinking: false,
-            isDefault: true
-        };
-
-        providerAliases[def.aliasId] = alias;
-        aliasAvailability[def.aliasId] = "unchecked";
-        aliasModels[def.aliasId] = [];
-    }
-
-    logInfo("AliasManager", "Initialized default aliases: " + Object.keys(providerAliases).join(", "));
-}
-
-/**
- * Remove a provider alias (cannot remove defaults)
+ * Remove a provider alias
  * @param {string} aliasId - Alias identifier
  * @returns {boolean} True if removed
  */
 function removeAlias(aliasId) {
     if (!providerAliases[aliasId]) {
         logError("AliasManager", "Alias not found: " + aliasId);
-        return false;
-    }
-
-    if (providerAliases[aliasId].isDefault) {
-        logError("AliasManager", "Cannot remove default alias: " + aliasId);
         return false;
     }
 
@@ -184,14 +116,11 @@ function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteM
         return false;
     }
 
-    if (!alias.isDefault) {
-        if (name) alias.name = name;
-        if (url) alias.url = url;
-        if (description) alias.description = description;
-        if (timeout) alias.timeout = timeout;
-    }
+    if (name) alias.name = name;
+    if (url) alias.url = url;
+    if (description) alias.description = description;
+    if (timeout) alias.timeout = timeout;
 
-    // API key and favorites can always be updated
     if (apiKey !== undefined && apiKey !== null) alias.api_key = apiKey;
     if (favoriteModel) {
         alias.favoriteModel = favoriteModel;
@@ -358,6 +287,39 @@ function setModels(aliasId, models) {
 }
 
 /**
+ * Reconcile an alias's favorites against its cached (freshly fetched) models.
+ * Removes favorites that no longer exist on the server so the app notices when a
+ * model was deleted/renamed. Only acts when the cached list is non-empty (an
+ * empty list is treated as "no authoritative data", not "all models gone").
+ * Claude Generated
+ * @param {string} aliasId - Alias identifier
+ * @returns {array} Removed model names (favorites no longer available)
+ */
+function reconcileFavorites(aliasId) {
+    var alias = providerAliases[aliasId];
+    var models = aliasModels[aliasId] || [];
+    if (!alias || models.length === 0) return [];
+
+    var favs = alias.favoriteModels || [];
+    var kept = [];
+    var removed = [];
+    for (var i = 0; i < favs.length; i++) {
+        if (models.indexOf(favs[i]) !== -1) kept.push(favs[i]);
+        else removed.push(favs[i]);
+    }
+
+    if (removed.length > 0) {
+        alias.favoriteModels = kept;
+        if (alias.favoriteModel && removed.indexOf(alias.favoriteModel) !== -1) {
+            alias.favoriteModel = kept.length > 0 ? kept[0] : "";
+        }
+        logInfo("AliasManager", "Reconciled favorites for " + aliasId +
+            " - removed models no longer on server: " + removed.join(", "));
+    }
+    return removed;
+}
+
+/**
  * Fetch models from the provider API and cache them
  * @param {string} aliasId - Alias identifier
  * @param {object} config - Loaded API configuration
@@ -409,6 +371,8 @@ function fetchModels(aliasId, config, callback, errorCallback) {
                     var response = JSON.parse(xhr.responseText);
                     var models = extractModels(response, resolved);
                     aliasModels[aliasId] = models;
+                    // Fresh authoritative list: drop favorites no longer on server
+                    if (models.length > 0) reconcileFavorites(aliasId);
                     callback && callback(models);
                 } catch (e) {
                     errorCallback && errorCallback("Failed to parse models response");

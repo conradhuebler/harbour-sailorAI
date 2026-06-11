@@ -225,8 +225,8 @@ function getModelInfo(aliasId, modelName) {
 
 // isModelVisionCapable and checkOllamaModelVision come directly from AliasManager.js (Qt.include)
 
-function fetchModelsForAlias(aliasId) {
-    _api.fetchModelsForAlias(aliasId, null, null);
+function fetchModelsForAlias(aliasId, callback) {
+    _api.fetchModelsForAlias(aliasId, callback || null, null);
 }
 
 /**

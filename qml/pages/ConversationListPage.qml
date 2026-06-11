@@ -14,31 +14,6 @@ Page {
         id: conversationList
     }
 
-    // Configuration values for each provider
-    ConfigurationValue {
-        id: geminiConfig
-        key: "/SailorAI/gemini_config"
-        defaultValue: ""
-    }
-
-    ConfigurationValue {
-        id: openaiConfig
-        key: "/SailorAI/openai_config"
-        defaultValue: ""
-    }
-
-    ConfigurationValue {
-        id: anthropicConfig
-        key: "/SailorAI/anthropic_config"
-        defaultValue: ""
-    }
-
-    ConfigurationValue {
-        id: ollamaConfig
-        key: "/SailorAI/ollama_config"
-        defaultValue: ""
-    }
-
     // Debug level configuration
     ConfigurationValue {
         id: debugLevelConfig
@@ -65,6 +40,19 @@ Page {
     ConfigurationValue {
         id: lastSelectedModel
         key: "/SailorAI/last_selected_model"
+        defaultValue: ""
+    }
+
+    // Claude Generated: general default model for new chats (any provider)
+    ConfigurationValue {
+        id: defaultProviderAliasConfig
+        key: "/SailorAI/default_provider_alias"
+        defaultValue: ""
+    }
+
+    ConfigurationValue {
+        id: defaultModelConfig
+        key: "/SailorAI/default_model"
         defaultValue: ""
     }
 
@@ -175,7 +163,12 @@ Page {
                 var cachedModels = LLMApi.getAliasModels(aliasId);
                 if (cachedModels.length === 0) {
                     DebugLogger.logInfo("ConversationListPage", "Auto-fetching models for: " + aliasId);
-                    LLMApi.fetchModelsForAlias(aliasId);
+                    // reconcileFavorites runs inside the fetch; persist any pruning
+                    // of favorites whose models were removed on the server.
+                    LLMApi.fetchModelsForAlias(aliasId, function(models) {
+                        providerAliasesConfig.value = LLMApi.saveProviderAliases();
+                        updateCoverStatistics();
+                    });
                     fetchCount++;
                 } else {
                     DebugLogger.logVerbose("ConversationListPage", "Models already cached for: " + aliasId + " (" + cachedModels.length + " models)");
@@ -212,26 +205,6 @@ Page {
         } else {
             // No provider aliases found - user needs to create them
             DebugLogger.logInfo("ConversationListPage", "No provider aliases found - user needs to create them manually");
-        }
-
-        // Load legacy configs for backward compatibility (will be migrated to aliases)
-        var configs = [
-            {provider: "gemini", config: geminiConfig},
-            {provider: "openai", config: openaiConfig},
-            {provider: "anthropic", config: anthropicConfig},
-            {provider: "ollama", config: ollamaConfig}
-        ];
-
-        for (var i = 0; i < configs.length; i++) {
-            var item = configs[i];
-            if (item.config.value) {
-                try {
-                    // Legacy config loading - migrated to alias system
-                    DebugLogger.logInfo("ConversationListPage", "Loaded legacy config for provider: " + item.provider);
-                } catch (e) {
-                    DebugLogger.logError("ConversationListPage", "Failed to load legacy config for provider " + item.provider + ": " + e.toString());
-                }
-            }
         }
     }
 
@@ -445,8 +418,8 @@ Page {
                         onClicked: newConversation()
                         onPressAndHold: {
                             var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/ProviderAliasDialog.qml"), {
-                                "selectedAliasId": lastSelectedAlias.value,
-                                "selectedModel": lastSelectedModel.value
+                                "selectedAliasId": defaultProviderAliasConfig.value || lastSelectedAlias.value,
+                                "selectedModel": defaultModelConfig.value || lastSelectedModel.value
                             });
                             dialog.accepted.connect(function() {
                                 var aliasId = dialog.selectedAliasId;

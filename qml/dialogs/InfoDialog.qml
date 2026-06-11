@@ -4,7 +4,7 @@ import Sailfish.Silica 1.0
 Dialog {
     id: dialog
     
-    property string title: "Information"
+    property string title: qsTr("Information")
     property string message: ""
     
     canAccept: false
@@ -21,7 +21,7 @@ Dialog {
             DialogHeader {
                 title: dialog.title
                 acceptText: ""
-                cancelText: "Close"
+                cancelText: qsTr("Close")
             }
             
             Label {

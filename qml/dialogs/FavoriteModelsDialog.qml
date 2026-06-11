@@ -115,29 +115,29 @@ Dialog {
             spacing: Theme.paddingLarge
             
             DialogHeader {
-                title: "Manage Favorite Models"
-                acceptText: "Save (" + selectedFavorites.length + ")"
-                cancelText: "Cancel"
+                title: qsTr("Manage favorite models")
+                acceptText: qsTr("Save (%1)").arg(selectedFavorites.length)
+                cancelText: qsTr("Cancel")
             }
-            
+
             Label {
-                text: "Provider: " + getProviderDisplayName()
+                text: qsTr("Provider: %1").arg(getProviderDisplayName())
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 font.pixelSize: Theme.fontSizeMedium
                 color: Theme.highlightColor
             }
-            
+
             Label {
-                text: selectedFavorites.length + " favorite models selected"
+                text: qsTr("%1 favorite models selected").arg(selectedFavorites.length)
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.secondaryColor
             }
-            
+
             SectionHeader {
-                text: "Available Models (" + allModels.length + ")"
+                text: qsTr("Available models (%1)").arg(allModels.length)
             }
             
             Column {

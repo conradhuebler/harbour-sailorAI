@@ -1,3 +1,7 @@
+// Copyright (C) 2024 - 2026 Conrad Hübler <Conrad.Huebler@gmx.net>
+// Create a new provider alias: pick a type, fill in endpoint/key, optionally fetch models.
+// Translated & flow relaxed with assistance from Claude.
+
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DebugLogger.js" as DebugLogger
@@ -23,7 +27,19 @@ Dialog {
     property var providerTypes: LLMApi.getProviderTypes()
     property var providerTypeIds: Object.keys(providerTypes)
 
-    canAccept: aliasName.trim() !== "" && favoriteModel !== "" && !fetchingModels
+    // Claude Generated: a favorite model is no longer required up front — it can be
+    // fetched/selected later. Name and URL are enough to create the provider.
+    canAccept: aliasName.trim() !== "" && apiUrl.trim() !== "" && !fetchingModels
+
+    function providerTypeHint(type) {
+        switch (type) {
+            case "openai": return qsTr("OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …");
+            case "anthropic": return qsTr("Anthropic Claude API (or compatible endpoint).");
+            case "gemini": return qsTr("Google Gemini API.");
+            case "ollama": return qsTr("Ollama server (local or remote).");
+            default: return "";
+        }
+    }
 
     SilicaFlickable {
         anchors.fill: parent
@@ -35,22 +51,22 @@ Dialog {
             spacing: Theme.paddingLarge * 1.5
 
             DialogHeader {
-                title: "Create Provider Alias"
-                acceptText: "Create"
-                cancelText: "Cancel"
+                title: qsTr("Create provider")
+                acceptText: qsTr("Create")
+                cancelText: qsTr("Cancel")
             }
 
             // Section 1: Basic Information
             SectionHeader {
-                text: "Basic Information"
+                text: qsTr("Basic information")
             }
 
             TextField {
                 id: aliasNameField
-                label: "Provider Name"
+                label: qsTr("Provider name")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
-                placeholderText: "My Gemini Account"
+                placeholderText: qsTr("My Gemini account")
                 text: aliasName
                 onTextChanged: aliasName = text
             }
@@ -58,7 +74,7 @@ Dialog {
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Display name for this provider\nGenerated ID: " + (aliasId || "provider_name")
+                text: qsTr("Display name. Generated ID: %1").arg(aliasId || "provider_name")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
@@ -68,7 +84,7 @@ Dialog {
 
             ComboBox {
                 id: providerTypeComboBox
-                label: "Provider Type"
+                label: qsTr("Provider type")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 currentIndex: providerTypeIds.indexOf(providerType)
@@ -88,11 +104,20 @@ Dialog {
                 }
             }
 
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: providerTypeHint(providerType)
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+            }
+
             Item { height: Theme.paddingMedium }
 
             ComboBox {
                 id: serverPresetComboBox
-                label: "Server / Endpoint"
+                label: qsTr("Server / endpoint")
                 visible: providerType === "openai" || providerType === "anthropic"
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
@@ -104,7 +129,7 @@ Dialog {
                 }
                 menu: ContextMenu {
                     MenuItem {
-                        text: "Official API"
+                        text: qsTr("Official API")
                         onClicked: {
                             serverPreset = "official";
                             if (providerType === "openai") apiUrl = "https://api.openai.com/v1";
@@ -112,7 +137,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Ollama Compatible"
+                        text: qsTr("Ollama compatible")
                         onClicked: {
                             serverPreset = "ollama";
                             if (providerType === "openai") apiUrl = "https://ollama.com/v1";
@@ -120,7 +145,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Custom"
+                        text: qsTr("Custom")
                         onClicked: {
                             serverPreset = "custom";
                             apiUrl = "";
@@ -133,7 +158,7 @@ Dialog {
                 visible: serverPresetComboBox.visible
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Select the API server to use"
+                text: qsTr("Select the API server to use")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
@@ -143,23 +168,23 @@ Dialog {
 
             // Section 2: API Configuration
             SectionHeader {
-                text: "API Configuration"
+                text: qsTr("API configuration")
             }
 
             TextField {
                 id: apiUrlField
-                label: "API URL"
+                label: qsTr("API URL")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: apiUrl
                 onTextChanged: apiUrl = text
-                placeholderText: "https://api.example.com/v1"
+                placeholderText: qsTr("https://api.example.com/v1")
             }
 
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Base URL (auto-filled from provider type)"
+                text: qsTr("Base URL (auto-filled from provider type)")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
@@ -169,19 +194,19 @@ Dialog {
 
             TextField {
                 id: apiKeyField
-                label: "API Key"
+                label: qsTr("API key")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: apiKey
                 onTextChanged: apiKey = text
                 echoMode: TextInput.Password
-                placeholderText: apiUrl.indexOf("localhost:11434") !== -1 ? "API Key (optional for local Ollama)" : "Enter your API key..."
+                placeholderText: apiUrl.indexOf("localhost:11434") !== -1 ? qsTr("API key (optional for local Ollama)") : qsTr("Enter your API key…")
             }
 
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: apiUrl.indexOf("localhost:11434") !== -1 ? "Ollama doesn't require an API key for local use" : "Your API key for authentication"
+                text: apiUrl.indexOf("localhost:11434") !== -1 ? qsTr("Ollama doesn't require an API key for local use") : qsTr("Your API key for authentication")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
@@ -191,7 +216,7 @@ Dialog {
 
             Button {
                 id: fetchModelsButton
-                text: fetchingModels ? "Fetching Models..." : "Fetch Available Models"
+                text: fetchingModels ? qsTr("Fetching models…") : qsTr("Fetch available models")
                 enabled: !fetchingModels && apiUrl.trim() !== ""
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -202,7 +227,7 @@ Dialog {
                 visible: fetchingModels
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Fetching models from provider, please wait..."
+                text: qsTr("Fetching models from provider, please wait…")
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.highlightColor
                 wrapMode: Text.WordWrap
@@ -213,15 +238,15 @@ Dialog {
 
             // Section 3: Model Selection
             SectionHeader {
-                text: "Model Selection"
+                text: qsTr("Model selection")
             }
 
             ComboBox {
                 id: favoriteModelComboBox
-                label: "Favorite Model"
+                label: qsTr("Favorite model")
                 description: availableModels.length > 0 ?
-                    "Select from " + availableModels.length + " available models" :
-                    "Fetch models first to select"
+                    qsTr("Select from %1 available models").arg(availableModels.length) :
+                    qsTr("Optional — fetch models to choose, or set it later")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 currentIndex: availableModels.indexOf(favoriteModel)
@@ -243,23 +268,23 @@ Dialog {
 
             // Section 4: Additional Settings
             SectionHeader {
-                text: "Additional Settings"
+                text: qsTr("Additional settings")
             }
 
             TextField {
                 id: descriptionField
-                label: "Description (Optional)"
+                label: qsTr("Description (optional)")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: description
                 onTextChanged: description = text
-                placeholderText: "Personal account, company proxy, etc."
+                placeholderText: qsTr("Personal account, company proxy, etc.")
             }
 
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Optional description to help identify this provider configuration"
+                text: qsTr("Optional description to help identify this provider configuration")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap

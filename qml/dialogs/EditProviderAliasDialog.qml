@@ -1,3 +1,6 @@
+// Copyright (C) 2024 - 2026 Conrad Hübler <Conrad.Huebler@gmx.net>
+// Edit an existing provider alias. Translated & flow relaxed with assistance from Claude.
+
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DebugLogger.js" as DebugLogger
@@ -5,7 +8,7 @@ import "../js/LLMApi.js" as LLMApi
 
 Dialog {
     id: dialog
-    
+
     property string aliasId: ""
     property string aliasName: ""
     property string providerType: "openai"
@@ -17,53 +20,53 @@ Dialog {
     property bool fetchingModels: false
     property string serverPreset: ""
 
-    canAccept: aliasName.trim() !== "" && favoriteModel !== "" && !fetchingModels
-    
+    // Claude Generated: favorite model optional — can be (re)selected later.
+    canAccept: aliasName.trim() !== "" && apiUrl.trim() !== "" && !fetchingModels
+
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
-        
+
         Column {
             id: column
             width: parent.width
             spacing: Theme.paddingLarge * 1.5
-            
+
             DialogHeader {
-                title: "Edit Provider Alias"
-                acceptText: "Save"
-                cancelText: "Cancel"
+                title: qsTr("Edit provider")
+                acceptText: qsTr("Save")
+                cancelText: qsTr("Cancel")
             }
-            
+
             // Section 1: Basic Information
             SectionHeader {
-                text: "Basic Information"
+                text: qsTr("Basic information")
             }
-            
+
             TextField {
                 id: aliasNameField
-                label: "Provider Name"
+                label: qsTr("Provider name")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
-                placeholderText: "My Gemini Account"
+                placeholderText: qsTr("My Gemini account")
                 text: aliasName
                 onTextChanged: aliasName = text
-                
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Display name for this provider\nGenerated ID: " + (aliasId || "provider_name")
+                text: qsTr("Display name. Generated ID: %1").arg(aliasId || "provider_name")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingMedium }
-            
+
             ComboBox {
                 id: providerTypeComboBox
-                label: "Provider Type"
+                label: qsTr("Provider type")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 currentIndex: {
@@ -72,7 +75,7 @@ Dialog {
                 }
                 menu: ContextMenu {
                     MenuItem {
-                        text: "OpenAI Compatible"
+                        text: qsTr("OpenAI Compatible")
                         onClicked: {
                             providerType = "openai";
                             apiUrl = "https://api.openai.com/v1";
@@ -81,7 +84,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Anthropic Claude"
+                        text: qsTr("Anthropic Claude")
                         onClicked: {
                             providerType = "anthropic";
                             apiUrl = "https://api.anthropic.com/v1";
@@ -90,7 +93,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Google Gemini"
+                        text: qsTr("Google Gemini")
                         onClicked: {
                             providerType = "gemini";
                             apiUrl = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -99,7 +102,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Ollama Local"
+                        text: qsTr("Ollama Local")
                         onClicked: {
                             providerType = "ollama";
                             apiUrl = "https://ollama.com";
@@ -114,7 +117,7 @@ Dialog {
 
             ComboBox {
                 id: serverPresetComboBox
-                label: "Server / Endpoint"
+                label: qsTr("Server / endpoint")
                 visible: providerType === "openai" || providerType === "anthropic"
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
@@ -126,7 +129,7 @@ Dialog {
                 }
                 menu: ContextMenu {
                     MenuItem {
-                        text: "Official API"
+                        text: qsTr("Official API")
                         onClicked: {
                             serverPreset = "official";
                             if (providerType === "openai") apiUrl = "https://api.openai.com/v1";
@@ -134,7 +137,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Ollama Compatible"
+                        text: qsTr("Ollama compatible")
                         onClicked: {
                             serverPreset = "ollama";
                             if (providerType === "openai") apiUrl = "https://ollama.com/v1";
@@ -142,7 +145,7 @@ Dialog {
                         }
                     }
                     MenuItem {
-                        text: "Custom"
+                        text: qsTr("Custom")
                         onClicked: {
                             serverPreset = "custom";
                             apiUrl = "";
@@ -155,7 +158,7 @@ Dialog {
                 visible: serverPresetComboBox.visible
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Select the API server to use"
+                text: qsTr("Select the API server to use")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
@@ -165,86 +168,85 @@ Dialog {
 
             // Section 2: API Configuration
             SectionHeader {
-                text: "API Configuration"
+                text: qsTr("API configuration")
             }
 
             TextField {
                 id: apiUrlField
-                label: "API URL"
+                label: qsTr("API URL")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: apiUrl
                 onTextChanged: apiUrl = text
-                placeholderText: "https://api.example.com/v1"
+                placeholderText: qsTr("https://api.example.com/v1")
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Base URL for the API endpoint (automatically set based on provider type)"
+                text: qsTr("Base URL for the API endpoint (automatically set based on provider type)")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingMedium }
-            
+
             TextField {
                 id: apiKeyField
-                label: "API Key"
+                label: qsTr("API key")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: apiKey
                 onTextChanged: apiKey = text
                 echoMode: TextInput.Password
-                placeholderText: apiUrl.indexOf("localhost:11434") !== -1 ? "API Key (optional for local Ollama)" : "Enter your API key..."
+                placeholderText: apiUrl.indexOf("localhost:11434") !== -1 ? qsTr("API key (optional for local Ollama)") : qsTr("Enter your API key…")
             }
 
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: apiUrl.indexOf("localhost:11434") !== -1 ? "Ollama doesn't require an API key for local use" : "Your API key for authentication (required for most providers)"
+                text: apiUrl.indexOf("localhost:11434") !== -1 ? qsTr("Ollama doesn't require an API key for local use") : qsTr("Your API key for authentication (required for most providers)")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingSmall }
-            
+
             Button {
                 id: fetchModelsButton
-                text: fetchingModels ? "Fetching Models..." : "Fetch Available Models"
+                text: fetchingModels ? qsTr("Fetching models…") : qsTr("Fetch available models")
                 enabled: !fetchingModels && apiUrl.trim() !== ""
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: fetchModelsFromProvider()
             }
-            
+
             Label {
                 visible: fetchingModels
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "⚠ Fetching models from provider, please wait..."
+                text: qsTr("Fetching models from provider, please wait…")
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.highlightColor
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
             }
-            
+
             Item { height: Theme.paddingLarge }
-            
+
             // Section 3: Model Selection
             SectionHeader {
-                text: "Model Selection"
+                text: qsTr("Model selection")
             }
-            
-            
+
             ComboBox {
                 id: favoriteModelComboBox
-                label: "Favorite Model"
-                description: availableModels.length > 0 ? 
-                    "Select from " + availableModels.length + " available models" :
-                    "Fetch models first to select"
+                label: qsTr("Favorite model")
+                description: availableModels.length > 0 ?
+                    qsTr("Select from %1 available models").arg(availableModels.length) :
+                    qsTr("Optional — fetch models to choose, or set it later")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 currentIndex: availableModels.indexOf(favoriteModel)
@@ -261,53 +263,60 @@ Dialog {
                     }
                 }
             }
-            
+
             Item { height: Theme.paddingLarge }
-            
+
             // Section 4: Additional Settings
             SectionHeader {
-                text: "Additional Settings"
+                text: qsTr("Additional settings")
             }
-            
+
             TextField {
                 id: descriptionField
-                label: "Description (Optional)"
+                label: qsTr("Description (optional)")
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: description
                 onTextChanged: description = text
-                placeholderText: "Personal account, company proxy, etc."
+                placeholderText: qsTr("Personal account, company proxy, etc.")
             }
-            
+
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: "Optional description to help identify this provider configuration"
+                text: qsTr("Optional description to help identify this provider configuration")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
             }
-            
+
             Item { height: Theme.paddingLarge }
         }
     }
-    
+
     function sortModelsByFavorites(models, aliasId) {
-        if (!models || models.length === 0) return [];
-        
-        var favorites = LLMApi.getAliasFavoriteModels(aliasId);
+        var favorites = LLMApi.getAliasFavoriteModels(aliasId) || [];
+        var list = (models || []).slice();
+
+        // When nothing is fetched/cached yet, surface favorites so they stay
+        // selectable. A non-empty list is authoritative - a favorite missing from
+        // it was removed on the server and is not re-injected. - Claude Generated
+        if (list.length === 0) {
+            list = favorites.slice();
+        }
+
         var favoriteModels = [];
         var otherModels = [];
-        
+
         // Separate favorites from non-favorites
-        for (var i = 0; i < models.length; i++) {
-            if (favorites.indexOf(models[i]) !== -1) {
-                favoriteModels.push(models[i]);
+        for (var i = 0; i < list.length; i++) {
+            if (favorites.indexOf(list[i]) !== -1) {
+                favoriteModels.push(list[i]);
             } else {
-                otherModels.push(models[i]);
+                otherModels.push(list[i]);
             }
         }
-        
+
         // Sort favorites by their order in the favorites list
         favoriteModels.sort(function(a, b) {
             return favorites.indexOf(a) - favorites.indexOf(b);
@@ -338,7 +347,7 @@ Dialog {
             DebugLogger.logWarning("EditProviderAliasDialog", "No default models found for type: " + type);
         }
     }
-    
+
     function fetchModelsFromProvider() {
         if (!apiUrl.trim()) {
             DebugLogger.logError("EditProviderAliasDialog", "No API URL provided for model fetching");
@@ -364,10 +373,10 @@ Dialog {
             DebugLogger.logError("EditProviderAliasDialog", "Model fetch failed: " + error);
         });
     }
-    
+
     Component.onCompleted: {
         DebugLogger.logVerbose("EditProviderAliasDialog", "Dialog opened for alias: " + aliasId);
-        
+
         // First try to get real models from LLMApi
         var realModels = LLMApi.getAliasModels(aliasId);
         if (realModels && realModels.length > 0) {
@@ -378,7 +387,7 @@ Dialog {
             // Fallback to default models
             loadModelsForType(providerType);
             DebugLogger.logInfo("EditProviderAliasDialog", "Using default models, will try to fetch real ones");
-            
+
             // Try to fetch real models in background if API key is available
             var alias = LLMApi.getProviderAlias(aliasId);
             if (alias && alias.api_key) {
@@ -386,7 +395,7 @@ Dialog {
             }
         }
     }
-    
+
     onAccepted: {
         DebugLogger.logInfo("EditProviderAliasDialog", "Updating alias: " + aliasId + " (" + aliasName + ") with favorite model: " + favoriteModel);
     }
