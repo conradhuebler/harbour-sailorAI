@@ -363,6 +363,23 @@ Page {
     }
     property bool webSearchEnabled: webSearchEnabledConfig.value === true || webSearchEnabledConfig.value === "true"
 
+    // Claude Generated: global default for Markdown rendering. A per-session override lets
+    // the user switch raw/plain view without changing the default.
+    ConfigurationValue {
+        id: markdownRenderingEnabledConfig
+        key: "/SailorAI/markdown_rendering_enabled"
+        defaultValue: true
+    }
+    property bool markdownRenderingDefault: markdownRenderingEnabledConfig.value === true || markdownRenderingEnabledConfig.value === "true"
+    property var sessionMarkdownEnabled: null
+
+    // True when this chat page should render Markdown. Uses the session override if the user
+    // toggled it, otherwise the global default. Claude Generated
+    property bool markdownRenderingEnabled: {
+        if (sessionMarkdownEnabled !== null) return sessionMarkdownEnabled;
+        return markdownRenderingDefault;
+    }
+
     // Claude Generated: max number of Ollama web-tool iterations before a final answer is forced
     ConfigurationValue {
         id: maxToolIterConfig
@@ -393,12 +410,37 @@ Page {
                  .arg(Qt.locale().nativeLanguageName);
     }
 
+    // Claude Generated: formatting rules that the model must follow so that the
+    // renderer can detect and collapse web-tool sources correctly.
+    function formattingSystemPrompt() {
+        return "When you include sources collected by web tools, emit them as a single final \"Sources\" block formatted exactly like this:\n\n" +
+               "Sources:\n" +
+               "1. Page Title — https://example.com\n" +
+               "2. Another Title — https://example.org\n\n" +
+               "Use the em-dash (—) between title and URL, number each source starting at 1, " +
+               "keep the header as the literal word \"Sources:\", and emit this block only once. " +
+               "Use this exact English header even when the rest of the answer is in another language.";
+    }
+
+    // Claude Generated: combine language and formatting instructions for the model.
+    function buildSystemPrompt() {
+        var parts = [];
+        var lang = languageSystemPrompt();
+        if (lang) parts.push(lang);
+        parts.push(formattingSystemPrompt());
+        return parts.join("\n\n");
+    }
+
     // Localized labels handed to the JS tool loop (which has no qsTr) - Claude Generated
     function webToolLabels() {
         return {
             searching: qsTr("🔍 Searching: %1"),
             reading: qsTr("📄 Reading: %1"),
-            sourcesHeader: qsTr("Sources")
+            sourcesHeader: qsTr("Sources"),
+            sourcesSummary: qsTr("📚 Sources (%1)"),
+            sourcesTitle: qsTr("Sources"),
+            toolLogSummary: qsTr("🔍 Web-Tools used (%1 calls)"),
+            toolLogTitle: qsTr("Web-Tools log")
         };
     }
 
@@ -797,7 +839,7 @@ Page {
             // Options: web-tool log/source labels, iteration cap, opt-in auto web_fetch,
             // and the system-language instruction. Claude Generated
             { toolLabels: webToolLabels(), maxToolIterations: maxToolIterConfig.value,
-              autoFetchUrls: autoWebFetch, systemPrompt: languageSystemPrompt() }
+              autoFetchUrls: autoWebFetch, systemPrompt: buildSystemPrompt() }
         );
         }; if (canOverride) LLMApi.withTemporaryWebToolOverride(selectedAliasId, webSearchEnabled, webSearchEnabled, doCall); else doCall();
     }
@@ -924,7 +966,7 @@ Page {
                             }
                         },
                         // System-language instruction for multimodal chats too. Claude Generated
-                        { systemPrompt: languageSystemPrompt() }
+                        { systemPrompt: buildSystemPrompt() }
                     );
                     };
                     if (canOverrideImgs) {
@@ -1105,16 +1147,26 @@ Page {
                                 anchors.fill: parent
                                 anchors.margins: Theme.paddingSmall
                                 spacing: Theme.paddingSmall
-                                
+
+                                // Claude Generated: detect tables so they can be collapsed in the
+                                // chat bubble and opened in a dedicated dialog instead.
+                                property bool hasTables: {
+                                    var msg = model ? model.message : ""
+                                    return msg ? Markdown.hasTable(msg) : false
+                                }
+
                                 Label {
                                     id: messageText
                                     width: parent.width
                                     // Render Markdown (bold/italic/code/lists/tables/links) as RichText;
                                     // error messages stay plain text. Claude Generated
-                                    textFormat: messageItem.isErrorMessage ? Text.PlainText : Text.RichText
-                                    text: messageItem.isErrorMessage
+                                    textFormat: (messageItem.isErrorMessage || !markdownRenderingEnabled)
+                                                ? Text.PlainText : Text.RichText
+                                    text: (messageItem.isErrorMessage || !markdownRenderingEnabled)
                                           ? (model ? model.message : "")
-                                          : Markdown.toRichText(model ? model.message : "")
+                                          : (messageColumn.hasTables
+                                              ? Markdown.toRichTextCollapsed(model ? model.message : "", { toolLabels: webToolLabels() })
+                                              : Markdown.toRichText(model ? model.message : "", { toolLabels: webToolLabels() }))
                                     wrapMode: Text.WordWrap
                                     color: {
                                         if (messageItem.isOwnMessage) return Theme.highlightColor
@@ -1123,8 +1175,35 @@ Page {
                                     }
                                     linkColor: Theme.highlightColor
                                     onLinkActivated: {
-                                        if (link.indexOf("http://") === 0 || link.indexOf("https://") === 0)
+                                        if (link.indexOf("http://") === 0 || link.indexOf("https://") === 0) {
                                             Qt.openUrlExternally(link)
+                                        } else if (link.indexOf("sailorai:table:") === 0) {
+                                            var idx = parseInt(link.substring("sailorai:table:".length), 10)
+                                            var tables = Markdown.extractTables(model ? model.message : "")
+                                            if (idx >= 0 && idx < tables.length) {
+                                                pageStack.push(Qt.resolvedUrl("../dialogs/TableViewDialog.qml"), {
+                                                    "tableHtml": tables[idx],
+                                                    "originalMessage": model ? model.message : "",
+                                                    "tableIndex": idx
+                                                })
+                                            }
+                                        } else if (link.indexOf("sailorai:toollog:") === 0) {
+                                            var toolCalls = Markdown.extractToolLog(model ? model.message : "", webToolLabels())
+                                            if (toolCalls.length > 0) {
+                                                pageStack.push(Qt.resolvedUrl("../dialogs/ToolLogDialog.qml"), {
+                                                    "toolCalls": toolCalls,
+                                                    "title": webToolLabels().toolLogTitle
+                                                })
+                                            }
+                                        } else if (link.indexOf("sailorai:sources:") === 0) {
+                                            var srcList = Markdown.extractSources(model ? model.message : "", webToolLabels())
+                                            if (srcList && srcList.length > 0) {
+                                                pageStack.push(Qt.resolvedUrl("../dialogs/SourcesDialog.qml"), {
+                                                    "sources": srcList,
+                                                    "title": webToolLabels().sourcesTitle
+                                                })
+                                            }
+                                        }
                                     }
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
@@ -1490,6 +1569,18 @@ Page {
                     icon.source: "image://theme/icon-m-link"
                     opacity: autoWebFetch ? 1.0 : 0.4
                     onClicked: autoWebFetchConfig.value = !autoWebFetch
+                }
+
+                // Claude Generated: per-session Markdown rendering toggle. The session override
+                // is independent of the global default stored in markdownRenderingEnabledConfig.
+                IconButton {
+                    id: markdownToggleButton
+                    icon.source: "image://theme/icon-m-edit"
+                    opacity: markdownRenderingEnabled ? 1.0 : 0.4
+                    onClicked: {
+                        sessionMarkdownEnabled = !markdownRenderingEnabled
+                        DebugLogger.logInfo("ChatPage", "Markdown rendering session override: " + sessionMarkdownEnabled)
+                    }
                 }
             }
 

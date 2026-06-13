@@ -288,6 +288,18 @@
         <source>Always answer in %1, regardless of the language the question is written in.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>🔍 Web-Tools used (%1 calls)</source>
+        <translation>🔍 Web-Tools used (%1 calls)</translation>
+    </message>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Web-Tools log</translation>
+    </message>
+    <message>
+        <source>📚 Sources (%1)</source>
+        <translation>📚 Sources (%1)</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -653,7 +665,7 @@
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Close</translation>
     </message>
 </context>
 <context>
@@ -934,6 +946,55 @@
     <message>
         <source>Translate photo</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TableViewDialog</name>
+    <message>
+        <source>Table</source>
+        <translation>Table</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <source>Drag the slider to make the table wider or narrower. Swipe left/right to view all columns.</source>
+        <translation>Drag the slider to make the table wider or narrower. Swipe left/right to view all columns.</translation>
+    </message>
+    <message>
+        <source>Table width</source>
+        <translation>Table width</translation>
+    </message>
+<context>
+    <name>SourcesDialog</name>
+    <message>
+        <source>Sources</source>
+        <translation>Sources</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <source>No sources available.</source>
+        <translation>No sources available.</translation>
+    </message>
+</context>
+</context>
+<context>
+    <name>ToolLogDialog</name>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Web-Tools log</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <source>No web-tool calls recorded.</source>
+        <translation>No web-tool calls recorded.</translation>
     </message>
 </context>
 <context>

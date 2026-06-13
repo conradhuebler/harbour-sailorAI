@@ -288,6 +288,18 @@
         <source>Always answer in %1, regardless of the language the question is written in.</source>
         <translation>Réponds toujours en %1, quelle que soit la langue de la question.</translation>
     </message>
+    <message>
+        <source>🔍 Web-Tools used (%1 calls)</source>
+        <translation>🔍 Web-Tools utilisés (%1 appels)</translation>
+    </message>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Journal des Web-Tools</translation>
+    </message>
+    <message>
+        <source>📚 Sources (%1)</source>
+        <translation>📚 Sources (%1)</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -934,6 +946,55 @@
     <message>
         <source>Translate photo</source>
         <translation>Photo übersetzen</translation>
+    </message>
+</context>
+<context>
+    <name>SourcesDialog</name>
+    <message>
+        <source>Sources</source>
+        <translation>Sources</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fermer</translation>
+    </message>
+    <message>
+        <source>No sources available.</source>
+        <translation>Aucune source disponible.</translation>
+    </message>
+</context>
+<context>
+    <name>TableViewDialog</name>
+    <message>
+        <source>Table</source>
+        <translation>Tableau</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fermer</translation>
+    </message>
+    <message>
+        <source>Drag the slider to make the table wider or narrower. Swipe left/right to view all columns.</source>
+        <translation>Fais glisser le curseur pour élargir ou rétrécir le tableau. Glisse à gauche/droite pour voir toutes les colonnes.</translation>
+    </message>
+    <message>
+        <source>Table width</source>
+        <translation>Largeur du tableau</translation>
+    </message>
+</context>
+<context>
+    <name>ToolLogDialog</name>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Journal des Web-Tools</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fermer</translation>
+    </message>
+    <message>
+        <source>No web-tool calls recorded.</source>
+        <translation>Aucun appel Web-Tool enregistré.</translation>
     </message>
 </context>
 <context>

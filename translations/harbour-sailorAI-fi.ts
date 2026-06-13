@@ -288,6 +288,18 @@
         <source>Always answer in %1, regardless of the language the question is written in.</source>
         <translation>Vastaa aina kielellä %1 riippumatta siitä, millä kielellä kysymys on kirjoitettu.</translation>
     </message>
+    <message>
+        <source>🔍 Web-Tools used (%1 calls)</source>
+        <translation>🔍 Web-Tools käytetty (%1 kutsua)</translation>
+    </message>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Web-Tools-loki</translation>
+    </message>
+    <message>
+        <source>📚 Sources (%1)</source>
+        <translation>📚 Lähteet (%1)</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -934,6 +946,55 @@
     <message>
         <source>Translate photo</source>
         <translation>Käännä valokuva</translation>
+    </message>
+</context>
+<context>
+    <name>SourcesDialog</name>
+    <message>
+        <source>Sources</source>
+        <translation>Lähteet</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Sulje</translation>
+    </message>
+    <message>
+        <source>No sources available.</source>
+        <translation>Ei lähteitä saatavilla.</translation>
+    </message>
+</context>
+<context>
+    <name>TableViewDialog</name>
+    <message>
+        <source>Table</source>
+        <translation>Taulukko</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Sulje</translation>
+    </message>
+    <message>
+        <source>Drag the slider to make the table wider or narrower. Swipe left/right to view all columns.</source>
+        <translation>Vedä liukusäädintä tehdäksesi taulukosta leveämmän tai kapeamman. Pyyhkäise vasemmalle/oikealle nähdäksesi kaikki sarakkeet.</translation>
+    </message>
+    <message>
+        <source>Table width</source>
+        <translation>Taulukon leveys</translation>
+    </message>
+</context>
+<context>
+    <name>ToolLogDialog</name>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Web-Tools-loki</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Sulje</translation>
+    </message>
+    <message>
+        <source>No web-tool calls recorded.</source>
+        <translation>Ei tallennettuja Web-Tool-kutsuja.</translation>
     </message>
 </context>
 <context>

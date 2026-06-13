@@ -129,6 +129,30 @@ Translation files are in the `translations/` directory using Qt's `.ts` format.
 - **Role alternation**: Duplicate consecutive roles filtered out to prevent API errors
 - **Clean state management**: All streaming variables reset on completion or error
 
+## Markdown Rendering Policy
+
+- Bot/user messages are rendered with `MarkdownRenderer.js` (RichText subset).
+- Error messages stay plain text.
+- Markdown-Rendering can be toggled per chat session; the global default is `/SailorAI/markdown_rendering_enabled`.
+
+### Collapsible Content
+Wide or verbose content is collapsed in chat bubbles and shown in dedicated dialogs:
+- **Tables**: rendered as `📊 Tabelle anzeigen` → `TableViewDialog.qml`
+- **Web-Tool log** (`🔍 Searching:`, `📄 Reading:` lines): rendered as `🔍 Web-Tools used (N calls)` → `ToolLogDialog.qml`
+- **Sources block**: rendered as `📚 Sources (N)` → `SourcesDialog.qml`
+
+### Sources Format
+The web-tool loop emits a **Sources** block so that `MarkdownRenderer.js` can detect and collapse it.
+- The block header must be the literal English word `Sources:` (the system prompt instructs the model to use this exact header even when the answer is in another language).
+- Each source must be on its own line, prefixed by a number and a dot, e.g.:
+  ```
+  Sources:
+  1. Page Title — https://example.com
+  2. Another Title — https://example.org
+  ```
+- The em-dash (` — `) separator between title and URL is the canonical format.
+- Emit this block only once per answer. If the model ever emits the block in multiple languages, `MarkdownRenderer.js` collapses all of them into a single placeholder.
+
 ## Debug System
 
 ### Debug Levels (DebugLogger.js)

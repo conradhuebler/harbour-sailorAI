@@ -288,6 +288,18 @@
         <source>Always answer in %1, regardless of the language the question is written in.</source>
         <translation>Antworte immer auf %1, unabhängig davon, in welcher Sprache die Frage gestellt ist.</translation>
     </message>
+    <message>
+        <source>🔍 Web-Tools used (%1 calls)</source>
+        <translation>🔍 Web-Tools verwendet (%1 Aufrufe)</translation>
+    </message>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Web-Tools-Verlauf</translation>
+    </message>
+    <message>
+        <source>📚 Sources (%1)</source>
+        <translation>📚 Quellen (%1)</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -934,6 +946,55 @@
     <message>
         <source>Translate photo</source>
         <translation>Foto übersetzen</translation>
+    </message>
+</context>
+<context>
+    <name>SourcesDialog</name>
+    <message>
+        <source>Sources</source>
+        <translation>Quellen</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Schließen</translation>
+    </message>
+    <message>
+        <source>No sources available.</source>
+        <translation>Keine Quellen verfügbar.</translation>
+    </message>
+</context>
+<context>
+    <name>TableViewDialog</name>
+    <message>
+        <source>Table</source>
+        <translation>Tabelle</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Schließen</translation>
+    </message>
+    <message>
+        <source>Drag the slider to make the table wider or narrower. Swipe left/right to view all columns.</source>
+        <translation>Ziehe den Schieberegler, um die Tabelle breiter oder schmaler zu machen. Wische nach links/rechts, um alle Spalten zu sehen.</translation>
+    </message>
+    <message>
+        <source>Table width</source>
+        <translation>Tabellenbreite</translation>
+    </message>
+</context>
+<context>
+    <name>ToolLogDialog</name>
+    <message>
+        <source>Web-Tools log</source>
+        <translation>Web-Tools-Verlauf</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Schließen</translation>
+    </message>
+    <message>
+        <source>No web-tool calls recorded.</source>
+        <translation>Keine Web-Tool-Aufrufe aufgezeichnet.</translation>
     </message>
 </context>
 <context>
