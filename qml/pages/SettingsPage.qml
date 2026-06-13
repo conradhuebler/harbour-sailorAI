@@ -39,6 +39,13 @@ Page {
         defaultValue: 1280
     }
 
+    // Claude Generated: max Ollama web-tool iterations before a final answer is forced
+    ConfigurationValue {
+        id: maxToolIterConfig
+        key: "/SailorAI/max_tool_iter"
+        defaultValue: 8
+    }
+
     // Claude Generated: photo-action behaviour and dedicated vision model
     ConfigurationValue {
         id: photoActionAutoSendConfig
@@ -496,6 +503,44 @@ Page {
                     MenuItem {
                         text: qsTr("3 — Verbose (All Operations)")
                         onClicked: debugLevelConfig.value = "3";
+                    }
+                }
+            }
+
+            // Claude Generated: cap for the Ollama web_search / web_fetch agent loop
+            ComboBox {
+                id: maxToolIterComboBox
+                label: qsTr("Max web tool iterations")
+                description: qsTr("How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.")
+                width: parent.width
+                currentIndex: {
+                    var v = parseInt(maxToolIterConfig.value) || 8;
+                    if (v <= 3) return 0;
+                    if (v <= 5) return 1;
+                    if (v <= 8) return 2;
+                    if (v <= 10) return 3;
+                    return 4;
+                }
+                menu: ContextMenu {
+                    MenuItem {
+                        text: qsTr("3 — minimal")
+                        onClicked: maxToolIterConfig.value = 3;
+                    }
+                    MenuItem {
+                        text: qsTr("5 — low")
+                        onClicked: maxToolIterConfig.value = 5;
+                    }
+                    MenuItem {
+                        text: qsTr("8 — default")
+                        onClicked: maxToolIterConfig.value = 8;
+                    }
+                    MenuItem {
+                        text: qsTr("10 — high")
+                        onClicked: maxToolIterConfig.value = 10;
+                    }
+                    MenuItem {
+                        text: qsTr("15 — maximum")
+                        onClicked: maxToolIterConfig.value = 15;
                     }
                 }
             }

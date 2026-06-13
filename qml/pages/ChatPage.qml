@@ -347,6 +347,54 @@ Page {
         defaultValue: ""
     }
 
+    // Claude Generated: per-session web search toggle for Ollama providers
+    ConfigurationValue {
+        id: webSearchEnabledConfig
+        key: "/SailorAI/web_search_enabled"
+        defaultValue: true
+    }
+    property bool webSearchEnabled: webSearchEnabledConfig.value === true || webSearchEnabledConfig.value === "true"
+
+    // Claude Generated: max number of Ollama web-tool iterations before a final answer is forced
+    ConfigurationValue {
+        id: maxToolIterConfig
+        key: "/SailorAI/max_tool_iter"
+        defaultValue: 8
+    }
+
+    // Claude Generated: opt-in deterministic auto web_fetch of URLs found in the user's message
+    ConfigurationValue {
+        id: autoWebFetchConfig
+        key: "/SailorAI/auto_web_fetch"
+        defaultValue: false
+    }
+    property bool autoWebFetch: autoWebFetchConfig.value === true || autoWebFetchConfig.value === "true"
+
+    // Localized labels handed to the JS tool loop (which has no qsTr) - Claude Generated
+    function webToolLabels() {
+        return {
+            searching: qsTr("🔍 Searching: %1"),
+            reading: qsTr("📄 Reading: %1"),
+            sourcesHeader: qsTr("Sources")
+        };
+    }
+
+    // True iff the currently selected alias is Ollama with at least one web tool enabled - Claude Generated
+    property bool currentAliasSupportsWebTools: {
+        if (!selectedAliasId) return false;
+        var alias = LLMApi.getProviderAlias(selectedAliasId);
+        if (!alias) return false;
+        if (alias.type !== "ollama") return false;
+        return (alias.enableWebSearch || alias.enableWebFetch);
+    }
+
+    // True iff the selected alias is Ollama with web_fetch enabled (gates the auto-fetch toggle) - Claude Generated
+    property bool currentAliasSupportsWebFetch: {
+        if (!selectedAliasId) return false;
+        var alias = LLMApi.getProviderAlias(selectedAliasId);
+        return !!(alias && alias.type === "ollama" && alias.enableWebFetch);
+    }
+
 
     function getProviderDisplayName() {
         if (selectedAliasId) {
@@ -676,9 +724,15 @@ Page {
             DebugLogger.logInfo("ChatPage", "Starting streaming response");
         }
         
+        // Web search toggle: when the user disables it, override the alias's tool flags
+        // for this call only. Claude Generated
+        var aliasForOverride = LLMApi.getProviderAlias(selectedAliasId);
+        var canOverride = aliasForOverride && aliasForOverride.type === "ollama"
+                          && (aliasForOverride.enableWebSearch || aliasForOverride.enableWebFetch);
+        var doCall = function() {
         LLMApi.generateContent(
             selectedAliasId,
-            selectedModel, 
+            selectedModel,
             prompt,
             alias.api_key,
             history,
@@ -716,8 +770,12 @@ Page {
                     chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
                     DebugLogger.logVerbose("ChatPage", "Streaming chunk added, total length: " + streamingContent.length);
                 }
-            } : null
+            } : null,
+            // Options for the Ollama web-tool loop: localized log/source labels, iteration cap,
+            // and the opt-in auto web_fetch flag. Claude Generated
+            { toolLabels: webToolLabels(), maxToolIterations: maxToolIterConfig.value, autoFetchUrls: autoWebFetch }
         );
+        }; if (canOverride) LLMApi.withTemporaryWebToolOverride(selectedAliasId, webSearchEnabled, webSearchEnabled, doCall); else doCall();
     }
 
     function generateResponseWithImages(prompt, images) {
@@ -798,6 +856,11 @@ Page {
                     for (var fi2 = 0; fi2 < imgs.length; fi2++) {
                         DebugLogger.logVerbose("ChatPage", "Final image " + fi2 + ": " + imgs[fi2].mimeType + ", data length=" + imgs[fi2].data.length);
                     }
+                    // Web tool override: when the user disabled web search, suppress the
+                    // tool loop for this call only. Claude Generated
+                    var canOverrideImgs = (alias.type === "ollama")
+                                           && (alias.enableWebSearch || alias.enableWebFetch);
+                    var doCallImgs = function() {
                     LLMApi.generateContentWithImages(
                         selectedAliasId,
                         selectedModel,
@@ -837,6 +900,12 @@ Page {
                             }
                         }
                     );
+                    };
+                    if (canOverrideImgs) {
+                        LLMApi.withTemporaryWebToolOverride(selectedAliasId, webSearchEnabled, webSearchEnabled, doCallImgs);
+                    } else {
+                        doCallImgs();
+                    }
                 };
 
                 // Resize images that exceed the size limit
@@ -1359,6 +1428,29 @@ Page {
                     visible: currentModelSupportsVision
                     icon.source: "image://theme/icon-m-image"
                     onClicked: pageStack.push(imageSourceChooser)
+                }
+
+                // Per-session web search toggle (only for Ollama aliases with web tools enabled).
+                // Toggling writes the config value; the webSearchEnabled binding recomputes from it,
+                // and generateResponse() applies it via withTemporaryWebToolOverride. - Claude Generated
+                IconButton {
+                    id: webSearchButton
+                    visible: currentAliasSupportsWebTools
+                    enabled: currentAliasSupportsWebTools
+                    icon.source: "image://theme/icon-m-search"
+                    opacity: webSearchEnabled ? 1.0 : 0.4
+                    onClicked: webSearchEnabledConfig.value = !webSearchEnabled
+                }
+
+                // Opt-in auto web_fetch toggle: when on, URLs in the user's message are fetched
+                // automatically before the model runs (off by default). - Claude Generated
+                IconButton {
+                    id: autoFetchButton
+                    visible: currentAliasSupportsWebFetch
+                    enabled: currentAliasSupportsWebFetch
+                    icon.source: "image://theme/icon-m-link"
+                    opacity: autoWebFetch ? 1.0 : 0.4
+                    onClicked: autoWebFetchConfig.value = !autoWebFetch
                 }
             }
 

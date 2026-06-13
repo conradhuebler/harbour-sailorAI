@@ -151,6 +151,38 @@
         <source>Optional description to help identify this provider configuration</source>
         <translation>Valinnainen kuvaus tämän palveluntarjoajan tunnistamiseen</translation>
     </message>
+    <message>
+        <source>Web tools</source>
+        <translation>Verkkotyökalut</translation>
+    </message>
+    <message>
+        <source>Enable web search</source>
+        <translation>Ota verkkohaku käyttöön</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <translation>Antaa mallin kutsua Ollaman web_search-työkalua, kun se tarvitsee tuoreita tietoja.</translation>
+    </message>
+    <message>
+        <source>Enable web fetch</source>
+        <translation>Ota web fetch käyttöön</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <translation>Antaa mallin kutsua Ollaman web_fetch-työkalua tietyn sivun lukemiseen.</translation>
+    </message>
+    <message>
+        <source>Web search API key (optional)</source>
+        <translation>Verkkohaun API-avain (valinnainen)</translation>
+    </message>
+    <message>
+        <source>Using provider API key</source>
+        <translation>Käytetään palveluntarjoajan API-avainta</translation>
+    </message>
+    <message>
+        <source>If empty, the provider API key is used.</source>
+        <translation>Jos tyhjä, käytetään palveluntarjoajan API-avainta.</translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -239,6 +271,18 @@
     <message>
         <source>Back to Conversations</source>
         <translation>Takaisin keskusteluihin</translation>
+    </message>
+    <message>
+        <source>🔍 Searching: %1</source>
+        <translation>🔍 Haetaan: %1</translation>
+    </message>
+    <message>
+        <source>📄 Reading: %1</source>
+        <translation>📄 Luetaan: %1</translation>
+    </message>
+    <message>
+        <source>Sources</source>
+        <translation>Lähteet</translation>
     </message>
 </context>
 <context>
@@ -497,6 +541,38 @@
     <message>
         <source>Optional description to help identify this provider configuration</source>
         <translation>Valinnainen kuvaus tämän palveluntarjoajan tunnistamiseen</translation>
+    </message>
+    <message>
+        <source>Web tools</source>
+        <translation>Verkkotyökalut</translation>
+    </message>
+    <message>
+        <source>Enable web search</source>
+        <translation>Ota verkkohaku käyttöön</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <translation>Antaa mallin kutsua Ollaman web_search-työkalua, kun se tarvitsee tuoreita tietoja.</translation>
+    </message>
+    <message>
+        <source>Enable web fetch</source>
+        <translation>Ota web fetch käyttöön</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <translation>Antaa mallin kutsua Ollaman web_fetch-työkalua tietyn sivun lukemiseen.</translation>
+    </message>
+    <message>
+        <source>Web search API key (optional)</source>
+        <translation>Verkkohaun API-avain (valinnainen)</translation>
+    </message>
+    <message>
+        <source>Using provider API key</source>
+        <translation>Käytetään palveluntarjoajan API-avainta</translation>
+    </message>
+    <message>
+        <source>If empty, the provider API key is used.</source>
+        <translation>Jos tyhjä, käytetään palveluntarjoajan API-avainta.</translation>
     </message>
 </context>
 <context>
@@ -787,6 +863,34 @@
     <message>
         <source>New chats start with this model, regardless of provider.</source>
         <translation>Uudet keskustelut alkavat tällä mallilla riippumatta palveluntarjoajasta.</translation>
+    </message>
+    <message>
+        <source>Max web tool iterations</source>
+        <translation>Verkkotyökalujen enimmäiskierrokset</translation>
+    </message>
+    <message>
+        <source>How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.</source>
+        <translation>Kuinka monta web_search-/web_fetch-kierrosta Ollama-malli voi suorittaa ennen kuin lopullinen vastaus pakotetaan.</translation>
+    </message>
+    <message>
+        <source>3 — minimal</source>
+        <translation>3 — minimaalinen</translation>
+    </message>
+    <message>
+        <source>5 — low</source>
+        <translation>5 — matala</translation>
+    </message>
+    <message>
+        <source>8 — default</source>
+        <translation>8 — oletus</translation>
+    </message>
+    <message>
+        <source>10 — high</source>
+        <translation>10 — korkea</translation>
+    </message>
+    <message>
+        <source>15 — maximum</source>
+        <translation>15 — enimmäismäärä</translation>
     </message>
 </context>
 <context>

@@ -151,6 +151,38 @@
         <source>Optional description to help identify this provider configuration</source>
         <translation>Optionale Beschreibung zur Identifizierung dieser Anbieterkonfiguration</translation>
     </message>
+    <message>
+        <source>Web tools</source>
+        <translation>Web-Tools</translation>
+    </message>
+    <message>
+        <source>Enable web search</source>
+        <translation>Websuche aktivieren</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <translation>Erlaubt dem Modell, Ollamas web_search-Werkzeug aufzurufen, wenn es aktuelle Informationen benötigt.</translation>
+    </message>
+    <message>
+        <source>Enable web fetch</source>
+        <translation>Web-Fetch aktivieren</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <translation>Erlaubt dem Modell, Ollamas web_fetch-Werkzeug aufzurufen, um eine bestimmte Seite zu lesen.</translation>
+    </message>
+    <message>
+        <source>Web search API key (optional)</source>
+        <translation>API-Schlüssel für Websuche (optional)</translation>
+    </message>
+    <message>
+        <source>Using provider API key</source>
+        <translation>Anbieter-API-Schlüssel wird verwendet</translation>
+    </message>
+    <message>
+        <source>If empty, the provider API key is used.</source>
+        <translation>Wenn leer, wird der API-Schlüssel des Anbieters verwendet.</translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -239,6 +271,18 @@
     <message>
         <source>Back to Conversations</source>
         <translation>Zurück zu Konversationen</translation>
+    </message>
+    <message>
+        <source>🔍 Searching: %1</source>
+        <translation>🔍 Suche: %1</translation>
+    </message>
+    <message>
+        <source>📄 Reading: %1</source>
+        <translation>📄 Lese: %1</translation>
+    </message>
+    <message>
+        <source>Sources</source>
+        <translation>Quellen</translation>
     </message>
 </context>
 <context>
@@ -497,6 +541,38 @@
     <message>
         <source>Optional description to help identify this provider configuration</source>
         <translation>Optionale Beschreibung zur Identifizierung dieser Anbieterkonfiguration</translation>
+    </message>
+    <message>
+        <source>Web tools</source>
+        <translation>Web-Tools</translation>
+    </message>
+    <message>
+        <source>Enable web search</source>
+        <translation>Websuche aktivieren</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <translation>Erlaubt dem Modell, Ollamas web_search-Werkzeug aufzurufen, wenn es aktuelle Informationen benötigt.</translation>
+    </message>
+    <message>
+        <source>Enable web fetch</source>
+        <translation>Web-Fetch aktivieren</translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <translation>Erlaubt dem Modell, Ollamas web_fetch-Werkzeug aufzurufen, um eine bestimmte Seite zu lesen.</translation>
+    </message>
+    <message>
+        <source>Web search API key (optional)</source>
+        <translation>API-Schlüssel für Websuche (optional)</translation>
+    </message>
+    <message>
+        <source>Using provider API key</source>
+        <translation>Anbieter-API-Schlüssel wird verwendet</translation>
+    </message>
+    <message>
+        <source>If empty, the provider API key is used.</source>
+        <translation>Wenn leer, wird der API-Schlüssel des Anbieters verwendet.</translation>
     </message>
 </context>
 <context>
@@ -787,6 +863,34 @@
     <message>
         <source>New chats start with this model, regardless of provider.</source>
         <translation>Neue Chats starten mit diesem Modell – unabhängig vom Anbieter.</translation>
+    </message>
+    <message>
+        <source>Max web tool iterations</source>
+        <translation>Max. Web-Tool-Durchläufe</translation>
+    </message>
+    <message>
+        <source>How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.</source>
+        <translation>Wie viele web_search-/web_fetch-Runden ein Ollama-Modell ausführen darf, bevor eine endgültige Antwort erzwungen wird.</translation>
+    </message>
+    <message>
+        <source>3 — minimal</source>
+        <translation>3 — minimal</translation>
+    </message>
+    <message>
+        <source>5 — low</source>
+        <translation>5 — niedrig</translation>
+    </message>
+    <message>
+        <source>8 — default</source>
+        <translation>8 — Standard</translation>
+    </message>
+    <message>
+        <source>10 — high</source>
+        <translation>10 — hoch</translation>
+    </message>
+    <message>
+        <source>15 — maximum</source>
+        <translation>15 — Maximum</translation>
     </message>
 </context>
 <context>

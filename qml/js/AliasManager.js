@@ -14,7 +14,7 @@ var aliasAvailability = {};
 // Cached models per alias
 var aliasModels = {};
 
-// Cached vision capability per alias: aliasId → {modelName → bool}
+// Cached per-model vision capability for Ollama aliases (aliasId -> { modelName: bool })
 var aliasModelVision = {};
 
 /**
@@ -29,14 +29,18 @@ var aliasModelVision = {};
  * @param {number} timeout - Request timeout in ms
  * @param {string} favoriteModel - Primary favorite model
  * @param {boolean} enableThinking - Enable thinking mode
+ * @param {boolean} [enableWebSearch] - Enable web_search tool (default: true for ollama)
+ * @param {boolean} [enableWebFetch] - Enable web_fetch tool (default: true for ollama)
+ * @param {string} [webSearchApiKey] - Optional override API key for Ollama web tools
  * @returns {boolean} True if added successfully
  */
-function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking) {
+function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey) {
     if (!aliasId || !type) {
         logError("AliasManager", "aliasId and type are required");
         return false;
     }
 
+    var isOllama = (type === "ollama");
     var alias = {
         name: name || aliasId,
         type: type,
@@ -47,21 +51,91 @@ function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, 
         timeout: timeout || 10000,
         favoriteModel: favoriteModel || "",
         favoriteModels: favoriteModel ? [favoriteModel] : [],
+        visionModels: [],
         enableThinking: enableThinking || false,
+        enableWebSearch: (typeof enableWebSearch === 'undefined') ? isOllama : !!enableWebSearch,
+        enableWebFetch: (typeof enableWebFetch === 'undefined') ? isOllama : !!enableWebFetch,
+        webSearchApiKey: webSearchApiKey || "",
         isDefault: false
     };
 
     providerAliases[aliasId] = alias;
     aliasAvailability[aliasId] = "unchecked";
     aliasModels[aliasId] = [];
-    aliasModelVision[aliasId] = {};
 
     logInfo("AliasManager", "Added alias: " + aliasId + " (" + name + ") type=" + type);
     return true;
 }
 
 /**
- * Remove a provider alias
+ * Initialize default aliases from provider config
+ * Creates one alias per provider type with sensible defaults
+ * @param {object} config - Loaded API configuration
+ */
+function initDefaultAliases(config) {
+    if (!config || !config.api_endpoints) return;
+
+    var defaults = {
+        "openai": {
+            aliasId: "openai",
+            name: "ChatGPT",
+            description: "OpenAI API (GPT-4o, GPT-4o-mini)"
+        },
+        "anthropic": {
+            aliasId: "anthropic",
+            name: "Claude",
+            description: "Anthropic Claude API"
+        },
+        "gemini": {
+            aliasId: "gemini",
+            name: "Gemini",
+            description: "Google Gemini API"
+        },
+        "ollama": {
+            aliasId: "ollama",
+            name: "Ollama",
+            description: "Ollama local server"
+        }
+    };
+
+    for (var type in defaults) {
+        if (!defaults.hasOwnProperty(type)) continue;
+        if (!config.api_endpoints[type]) continue;
+
+        var def = defaults[type];
+        var template = config.api_endpoints[type];
+
+        // Skip if alias already exists
+        if (providerAliases[def.aliasId]) continue;
+
+        var alias = {
+            name: def.name,
+            type: type,
+            url: template.base_url,
+            api_key: "",
+            port: "",
+            description: def.description,
+            timeout: 30000,
+            favoriteModel: "",
+            favoriteModels: [],
+            visionModels: [],
+            enableThinking: false,
+            enableWebSearch: (type === "ollama"),
+            enableWebFetch: (type === "ollama"),
+            webSearchApiKey: "",
+            isDefault: true
+        };
+
+        providerAliases[def.aliasId] = alias;
+        aliasAvailability[def.aliasId] = "unchecked";
+        aliasModels[def.aliasId] = [];
+    }
+
+    logInfo("AliasManager", "Initialized default aliases: " + Object.keys(providerAliases).join(", "));
+}
+
+/**
+ * Remove a provider alias (cannot remove defaults)
  * @param {string} aliasId - Alias identifier
  * @returns {boolean} True if removed
  */
@@ -71,10 +145,14 @@ function removeAlias(aliasId) {
         return false;
     }
 
+    if (providerAliases[aliasId].isDefault) {
+        logError("AliasManager", "Cannot remove default alias: " + aliasId);
+        return false;
+    }
+
     delete providerAliases[aliasId];
     delete aliasAvailability[aliasId];
     delete aliasModels[aliasId];
-    delete aliasModelVision[aliasId];
 
     logInfo("AliasManager", "Removed alias: " + aliasId);
     return true;
@@ -107,20 +185,26 @@ function getAlias(aliasId) {
  * @param {number} timeout - New timeout (optional)
  * @param {string} favoriteModel - New favorite model (optional)
  * @param {boolean} enableThinking - New thinking mode (optional)
+ * @param {boolean} [enableWebSearch] - Web search tool enabled (optional)
+ * @param {boolean} [enableWebFetch] - Web fetch tool enabled (optional)
+ * @param {string} [webSearchApiKey] - Web search API key override (optional)
  * @returns {boolean} True if updated
  */
-function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking) {
+function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey) {
     var alias = providerAliases[aliasId];
     if (!alias) {
         logError("AliasManager", "Alias not found for update: " + aliasId);
         return false;
     }
 
-    if (name) alias.name = name;
-    if (url) alias.url = url;
-    if (description) alias.description = description;
-    if (timeout) alias.timeout = timeout;
+    if (!alias.isDefault) {
+        if (name) alias.name = name;
+        if (url) alias.url = url;
+        if (description) alias.description = description;
+        if (timeout) alias.timeout = timeout;
+    }
 
+    // API key and favorites can always be updated
     if (apiKey !== undefined && apiKey !== null) alias.api_key = apiKey;
     if (favoriteModel) {
         alias.favoriteModel = favoriteModel;
@@ -131,6 +215,15 @@ function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteM
     }
     if (typeof enableThinking !== 'undefined') {
         alias.enableThinking = enableThinking;
+    }
+    if (typeof enableWebSearch !== 'undefined') {
+        alias.enableWebSearch = !!enableWebSearch;
+    }
+    if (typeof enableWebFetch !== 'undefined') {
+        alias.enableWebFetch = !!enableWebFetch;
+    }
+    if (typeof webSearchApiKey !== 'undefined' && webSearchApiKey !== null) {
+        alias.webSearchApiKey = webSearchApiKey;
     }
 
     logInfo("AliasManager", "Updated alias: " + aliasId);
@@ -176,6 +269,9 @@ function resolveAlias(aliasId, config) {
     resolved._timeout = alias.timeout || 10000;
     resolved._favoriteModel = alias.favoriteModel;
     resolved._enableThinking = alias.enableThinking;
+    resolved._enableWebSearch = alias.enableWebSearch;
+    resolved._enableWebFetch = alias.enableWebFetch;
+    resolved._webSearchApiKey = alias.webSearchApiKey || "";
 
     // If template doesn't have a type field, set it from the alias
     if (!resolved.type) resolved.type = alias.type;
@@ -287,39 +383,6 @@ function setModels(aliasId, models) {
 }
 
 /**
- * Reconcile an alias's favorites against its cached (freshly fetched) models.
- * Removes favorites that no longer exist on the server so the app notices when a
- * model was deleted/renamed. Only acts when the cached list is non-empty (an
- * empty list is treated as "no authoritative data", not "all models gone").
- * Claude Generated
- * @param {string} aliasId - Alias identifier
- * @returns {array} Removed model names (favorites no longer available)
- */
-function reconcileFavorites(aliasId) {
-    var alias = providerAliases[aliasId];
-    var models = aliasModels[aliasId] || [];
-    if (!alias || models.length === 0) return [];
-
-    var favs = alias.favoriteModels || [];
-    var kept = [];
-    var removed = [];
-    for (var i = 0; i < favs.length; i++) {
-        if (models.indexOf(favs[i]) !== -1) kept.push(favs[i]);
-        else removed.push(favs[i]);
-    }
-
-    if (removed.length > 0) {
-        alias.favoriteModels = kept;
-        if (alias.favoriteModel && removed.indexOf(alias.favoriteModel) !== -1) {
-            alias.favoriteModel = kept.length > 0 ? kept[0] : "";
-        }
-        logInfo("AliasManager", "Reconciled favorites for " + aliasId +
-            " - removed models no longer on server: " + removed.join(", "));
-    }
-    return removed;
-}
-
-/**
  * Fetch models from the provider API and cache them
  * @param {string} aliasId - Alias identifier
  * @param {object} config - Loaded API configuration
@@ -371,8 +434,6 @@ function fetchModels(aliasId, config, callback, errorCallback) {
                     var response = JSON.parse(xhr.responseText);
                     var models = extractModels(response, resolved);
                     aliasModels[aliasId] = models;
-                    // Fresh authoritative list: drop favorites no longer on server
-                    if (models.length > 0) reconcileFavorites(aliasId);
                     callback && callback(models);
                 } catch (e) {
                     errorCallback && errorCallback("Failed to parse models response");
@@ -475,7 +536,7 @@ function isFavoriteModel(aliasId, model) {
     return favorites.indexOf(model) !== -1;
 }
 
-// --- Vision capability detection (auto via /api/show + manual user tags) ---
+// --- Vision capability detection (Ollama /api/show, with per-alias cache) ---
 
 function isModelVisionKnown(aliasId, modelName) {
     var visionMap = aliasModelVision[aliasId];
@@ -595,6 +656,53 @@ function getThinkingMode(aliasId) {
     return alias ? alias.enableThinking || false : false;
 }
 
+// --- Web tools ---
+
+function setAliasWebSearchMode(aliasId, enabled) {
+    var alias = providerAliases[aliasId];
+    if (!alias) {
+        logError("AliasManager", "Alias not found: " + aliasId);
+        return false;
+    }
+    alias.enableWebSearch = !!enabled;
+    return true;
+}
+
+function getAliasWebSearchMode(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? (alias.enableWebSearch || false) : false;
+}
+
+function setAliasWebFetchMode(aliasId, enabled) {
+    var alias = providerAliases[aliasId];
+    if (!alias) {
+        logError("AliasManager", "Alias not found: " + aliasId);
+        return false;
+    }
+    alias.enableWebFetch = !!enabled;
+    return true;
+}
+
+function getAliasWebFetchMode(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? (alias.enableWebFetch || false) : false;
+}
+
+function setAliasWebSearchApiKey(aliasId, key) {
+    var alias = providerAliases[aliasId];
+    if (!alias) {
+        logError("AliasManager", "Alias not found: " + aliasId);
+        return false;
+    }
+    alias.webSearchApiKey = (typeof key === 'string') ? key : "";
+    return true;
+}
+
+function getAliasWebSearchApiKey(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? (alias.webSearchApiKey || "") : "";
+}
+
 // --- Persistence ---
 
 /**
@@ -632,6 +740,21 @@ function loadAliases(jsonStr, config) {
             if (!alias.favoriteModels) {
                 alias.favoriteModels = alias.favoriteModel ? [alias.favoriteModel] : [];
             }
+            if (!alias.visionModels) {
+                alias.visionModels = [];
+            }
+
+            // Migration: defaults for fields added after the initial release
+            var isOllamaAlias = (alias.type === "ollama");
+            if (typeof alias.enableWebSearch === 'undefined') {
+                alias.enableWebSearch = isOllamaAlias;
+            }
+            if (typeof alias.enableWebFetch === 'undefined') {
+                alias.enableWebFetch = isOllamaAlias;
+            }
+            if (typeof alias.webSearchApiKey === 'undefined') {
+                alias.webSearchApiKey = "";
+            }
 
             providerAliases[aliasId] = alias;
             if (!aliasAvailability[aliasId]) aliasAvailability[aliasId] = "unchecked";
@@ -659,5 +782,4 @@ function clearAliases() {
     providerAliases = {};
     aliasAvailability = {};
     aliasModels = {};
-    aliasModelVision = {};
 }

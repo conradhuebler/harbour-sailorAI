@@ -151,6 +151,38 @@
         <source>Optional description to help identify this provider configuration</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Web tools</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable web search</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable web fetch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Web search API key (optional)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Using provider API key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>If empty, the provider API key is used.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -238,6 +270,18 @@
     </message>
     <message>
         <source>Back to Conversations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>🔍 Searching: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>📄 Reading: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sources</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -496,6 +540,38 @@
     </message>
     <message>
         <source>Optional description to help identify this provider configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Web tools</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable web search</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable web fetch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Web search API key (optional)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Using provider API key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>If empty, the provider API key is used.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -786,6 +862,34 @@
     </message>
     <message>
         <source>New chats start with this model, regardless of provider.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max web tool iterations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3 — minimal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>5 — low</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>8 — default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>10 — high</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>15 — maximum</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

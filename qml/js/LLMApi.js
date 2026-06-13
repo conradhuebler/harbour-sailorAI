@@ -152,12 +152,16 @@ function _enrichAlias(aliasId) {
         alias.authHeader = provider.authentication.header;
         alias.authPrefix = provider.authentication.prefix;
     }
+    // Web tool flags - mirror AliasManager state onto the alias object so QML can bind to them
+    alias.enableWebSearch = _api.getAliasWebSearchMode(aliasId);
+    alias.enableWebFetch = _api.getAliasWebFetchMode(aliasId);
+    alias.webSearchApiKey = _api.getAliasWebSearchApiKey(aliasId);
 }
 
 // --- Alias CRUD ---
 
-function addProviderAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking) {
-    var result = _api.addAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking);
+function addProviderAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey) {
+    var result = _api.addAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey);
     if (result) {
         _enrichAlias(aliasId);
     }
@@ -176,8 +180,8 @@ function getProviderAlias(aliasId) {
     return _api.getAlias(aliasId);
 }
 
-function updateProviderAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking) {
-    return _api.updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking);
+function updateProviderAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey) {
+    return _api.updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey);
 }
 
 // --- Availability ---
@@ -223,7 +227,12 @@ function getModelInfo(aliasId, modelName) {
     return "";
 }
 
-// isModelVisionCapable and checkOllamaModelVision come directly from AliasManager.js (Qt.include)
+// Vision capability helpers (isModelVisionCapable, isModelVisionKnown,
+// checkOllamaModelVision) come directly from AliasManager.js, which is loaded via
+// Qt.include above. Qt.include merges those functions into this library's scope, so
+// QML can call them as LLMApi.isModelVisionCapable(...) etc. without a wrapper here.
+// NOTE: Do NOT redeclare them with the same name in this file - a same-name wrapper
+// would shadow the AliasManager version and recurse into itself. - Claude Generated
 
 function fetchModelsForAlias(aliasId, callback) {
     _api.fetchModelsForAlias(aliasId, callback || null, null);
@@ -235,7 +244,7 @@ function fetchModelsForAlias(aliasId, callback) {
  */
 function fetchModelsForType(type, url, apiKey, callback, errorCallback) {
     var tempId = "__temp_fetch_" + Date.now();
-    _api.addAlias(tempId, "Temp", type, url, apiKey, "", "", 10000, "", false);
+    _api.addAlias(tempId, "Temp", type, url, apiKey, "", "", 10000, "", false, undefined, undefined, "");
     _api.fetchModelsForAlias(tempId, function(models) {
         _api.removeAlias(tempId);
         callback && callback(models);
@@ -299,6 +308,38 @@ function getAliasThinkingMode(aliasId) {
     return _api.getThinkingMode(aliasId);
 }
 
+// --- Web tools ---
+
+function getAliasWebSearchMode(aliasId) {
+    return _api.getAliasWebSearchMode(aliasId);
+}
+
+function setAliasWebSearchMode(aliasId, enabled) {
+    var result = _api.setAliasWebSearchMode(aliasId, enabled);
+    if (result) _enrichAlias(aliasId);
+    return result;
+}
+
+function getAliasWebFetchMode(aliasId) {
+    return _api.getAliasWebFetchMode(aliasId);
+}
+
+function setAliasWebFetchMode(aliasId, enabled) {
+    var result = _api.setAliasWebFetchMode(aliasId, enabled);
+    if (result) _enrichAlias(aliasId);
+    return result;
+}
+
+function getAliasWebSearchApiKey(aliasId) {
+    return _api.getAliasWebSearchApiKey(aliasId);
+}
+
+function setAliasWebSearchApiKey(aliasId, key) {
+    var result = _api.setAliasWebSearchApiKey(aliasId, key);
+    if (result) _enrichAlias(aliasId);
+    return result;
+}
+
 // --- Persistence ---
 
 function loadProviderAliases(jsonStr) {
@@ -316,14 +357,36 @@ function saveProviderAliases() {
 
 // --- Content generation ---
 
-function generateContent(aliasId, model, prompt, apiKey, history, callback, errorCallback, streamCallback) {
+function generateContent(aliasId, model, prompt, apiKey, history, callback, errorCallback, streamCallback, options) {
     // apiKey parameter is ignored - resolved from alias internally
-    _api.generate(aliasId, model, prompt, history, callback, errorCallback, streamCallback);
+    // options (optional): { toolLabels, maxToolIterations } - only used by the Ollama tool loop. Claude Generated
+    _api.generate(aliasId, model, prompt, history, callback, errorCallback, streamCallback, options);
 }
 
 function generateContentWithImages(aliasId, model, prompt, apiKey, history, images, callback, errorCallback, streamCallback) {
     // apiKey parameter is ignored - resolved from alias internally
     _api.generateWithImages(aliasId, model, prompt, history, images, callback, errorCallback, streamCallback);
+}
+
+// Claude Generated: temporarily set the alias web search / fetch flags for the next call.
+// Restores the previous values after the call completes. Used by ChatPage so the per-session
+// web search toggle does not have to be persisted in the alias config.
+function withTemporaryWebToolOverride(aliasId, webSearchOverride, webFetchOverride, fn) {
+    var alias = _api.getAlias(aliasId);
+    if (!alias) {
+        fn();
+        return;
+    }
+    var prevSearch = alias.enableWebSearch;
+    var prevFetch = alias.enableWebFetch;
+    if (typeof webSearchOverride === 'boolean') alias.enableWebSearch = webSearchOverride;
+    if (typeof webFetchOverride === 'boolean') alias.enableWebFetch = webFetchOverride;
+    try {
+        fn();
+    } finally {
+        alias.enableWebSearch = prevSearch;
+        alias.enableWebFetch = prevFetch;
+    }
 }
 
 // --- Image encoding ---

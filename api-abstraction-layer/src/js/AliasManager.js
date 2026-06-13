@@ -14,6 +14,9 @@ var aliasAvailability = {};
 // Cached models per alias
 var aliasModels = {};
 
+// Cached per-model vision capability for Ollama aliases (aliasId -> { modelName: bool })
+var aliasModelVision = {};
+
 /**
  * Add a provider alias
  * @param {string} aliasId - Unique alias identifier
@@ -26,14 +29,18 @@ var aliasModels = {};
  * @param {number} timeout - Request timeout in ms
  * @param {string} favoriteModel - Primary favorite model
  * @param {boolean} enableThinking - Enable thinking mode
+ * @param {boolean} [enableWebSearch] - Enable web_search tool (default: true for ollama)
+ * @param {boolean} [enableWebFetch] - Enable web_fetch tool (default: true for ollama)
+ * @param {string} [webSearchApiKey] - Optional override API key for Ollama web tools
  * @returns {boolean} True if added successfully
  */
-function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking) {
+function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey) {
     if (!aliasId || !type) {
         logError("AliasManager", "aliasId and type are required");
         return false;
     }
 
+    var isOllama = (type === "ollama");
     var alias = {
         name: name || aliasId,
         type: type,
@@ -44,7 +51,11 @@ function addAlias(aliasId, name, type, url, apiKey, port, description, timeout, 
         timeout: timeout || 10000,
         favoriteModel: favoriteModel || "",
         favoriteModels: favoriteModel ? [favoriteModel] : [],
+        visionModels: [],
         enableThinking: enableThinking || false,
+        enableWebSearch: (typeof enableWebSearch === 'undefined') ? isOllama : !!enableWebSearch,
+        enableWebFetch: (typeof enableWebFetch === 'undefined') ? isOllama : !!enableWebFetch,
+        webSearchApiKey: webSearchApiKey || "",
         isDefault: false
     };
 
@@ -107,7 +118,11 @@ function initDefaultAliases(config) {
             timeout: 30000,
             favoriteModel: "",
             favoriteModels: [],
+            visionModels: [],
             enableThinking: false,
+            enableWebSearch: (type === "ollama"),
+            enableWebFetch: (type === "ollama"),
+            webSearchApiKey: "",
             isDefault: true
         };
 
@@ -170,9 +185,12 @@ function getAlias(aliasId) {
  * @param {number} timeout - New timeout (optional)
  * @param {string} favoriteModel - New favorite model (optional)
  * @param {boolean} enableThinking - New thinking mode (optional)
+ * @param {boolean} [enableWebSearch] - Web search tool enabled (optional)
+ * @param {boolean} [enableWebFetch] - Web fetch tool enabled (optional)
+ * @param {string} [webSearchApiKey] - Web search API key override (optional)
  * @returns {boolean} True if updated
  */
-function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking) {
+function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteModel, enableThinking, enableWebSearch, enableWebFetch, webSearchApiKey) {
     var alias = providerAliases[aliasId];
     if (!alias) {
         logError("AliasManager", "Alias not found for update: " + aliasId);
@@ -197,6 +215,15 @@ function updateAlias(aliasId, name, url, apiKey, description, timeout, favoriteM
     }
     if (typeof enableThinking !== 'undefined') {
         alias.enableThinking = enableThinking;
+    }
+    if (typeof enableWebSearch !== 'undefined') {
+        alias.enableWebSearch = !!enableWebSearch;
+    }
+    if (typeof enableWebFetch !== 'undefined') {
+        alias.enableWebFetch = !!enableWebFetch;
+    }
+    if (typeof webSearchApiKey !== 'undefined' && webSearchApiKey !== null) {
+        alias.webSearchApiKey = webSearchApiKey;
     }
 
     logInfo("AliasManager", "Updated alias: " + aliasId);
@@ -242,6 +269,9 @@ function resolveAlias(aliasId, config) {
     resolved._timeout = alias.timeout || 10000;
     resolved._favoriteModel = alias.favoriteModel;
     resolved._enableThinking = alias.enableThinking;
+    resolved._enableWebSearch = alias.enableWebSearch;
+    resolved._enableWebFetch = alias.enableWebFetch;
+    resolved._webSearchApiKey = alias.webSearchApiKey || "";
 
     // If template doesn't have a type field, set it from the alias
     if (!resolved.type) resolved.type = alias.type;
@@ -506,6 +536,110 @@ function isFavoriteModel(aliasId, model) {
     return favorites.indexOf(model) !== -1;
 }
 
+// --- Vision capability detection (Ollama /api/show, with per-alias cache) ---
+
+function isModelVisionKnown(aliasId, modelName) {
+    var visionMap = aliasModelVision[aliasId];
+    return !!(visionMap && (modelName in visionMap));
+}
+
+function isModelVisionCapable(aliasId, modelName) {
+    var alias = providerAliases[aliasId];
+    if (!alias) return false;
+    // Manual user tag always wins
+    if (alias.visionModels && alias.visionModels.indexOf(modelName) !== -1) return true;
+    if (alias.type !== 'ollama') return true;
+    var visionMap = aliasModelVision[aliasId];
+    if (!visionMap || !(modelName in visionMap)) return false;
+    return visionMap[modelName];
+}
+
+function checkOllamaModelVision(aliasId, modelName, callback) {
+    var alias = providerAliases[aliasId];
+    if (!alias || alias.type !== 'ollama') {
+        callback && callback(true);
+        return;
+    }
+    var visionMap = aliasModelVision[aliasId];
+    if (visionMap && (modelName in visionMap)) {
+        callback && callback(visionMap[modelName]);
+        return;
+    }
+    var showUrl = alias.url + "/api/show";
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 10000;
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            var hasVision = false;
+            if (xhr.status === 200) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.capabilities) {
+                        hasVision = resp.capabilities.indexOf("vision") !== -1;
+                    } else if (resp.details && resp.details.families) {
+                        hasVision = resp.details.families.indexOf("clip") !== -1;
+                    }
+                } catch (e) {
+                    logError("AliasManager", "Failed to parse /api/show response: " + e);
+                }
+            }
+            if (!aliasModelVision[aliasId]) aliasModelVision[aliasId] = {};
+            aliasModelVision[aliasId][modelName] = hasVision;
+            logInfo("AliasManager", "Vision check for " + modelName + ": " + hasVision);
+            callback && callback(hasVision);
+        }
+    };
+    try {
+        xhr.open("POST", showUrl, true);
+        if (alias.api_key) xhr.setRequestHeader("Authorization", "Bearer " + alias.api_key);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({model: modelName}));
+    } catch (e) {
+        logError("AliasManager", "checkOllamaModelVision failed: " + e);
+        callback && callback(false);
+    }
+}
+
+// --- Manual vision tags (user-marked, persisted per alias) ---
+
+function getVisionModels(aliasId) {
+    var alias = providerAliases[aliasId];
+    return (alias && alias.visionModels) ? alias.visionModels : [];
+}
+
+function isVisionModelTagged(aliasId, model) {
+    var alias = providerAliases[aliasId];
+    return !!(alias && alias.visionModels && alias.visionModels.indexOf(model) !== -1);
+}
+
+function addVisionModel(aliasId, model) {
+    var alias = providerAliases[aliasId];
+    if (!alias || !model) return false;
+    if (!alias.visionModels) alias.visionModels = [];
+    if (alias.visionModels.indexOf(model) === -1) {
+        alias.visionModels.push(model);
+        return true;
+    }
+    return false;
+}
+
+function removeVisionModel(aliasId, model) {
+    var alias = providerAliases[aliasId];
+    if (!alias || !alias.visionModels) return false;
+    var idx = alias.visionModels.indexOf(model);
+    if (idx !== -1) { alias.visionModels.splice(idx, 1); return true; }
+    return false;
+}
+
+function toggleVisionModel(aliasId, model) {
+    if (isVisionModelTagged(aliasId, model)) {
+        removeVisionModel(aliasId, model);
+        return false;
+    }
+    addVisionModel(aliasId, model);
+    return true;
+}
+
 // --- Thinking mode ---
 
 function setThinkingMode(aliasId, enabled) {
@@ -520,6 +654,53 @@ function setThinkingMode(aliasId, enabled) {
 function getThinkingMode(aliasId) {
     var alias = providerAliases[aliasId];
     return alias ? alias.enableThinking || false : false;
+}
+
+// --- Web tools ---
+
+function setAliasWebSearchMode(aliasId, enabled) {
+    var alias = providerAliases[aliasId];
+    if (!alias) {
+        logError("AliasManager", "Alias not found: " + aliasId);
+        return false;
+    }
+    alias.enableWebSearch = !!enabled;
+    return true;
+}
+
+function getAliasWebSearchMode(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? (alias.enableWebSearch || false) : false;
+}
+
+function setAliasWebFetchMode(aliasId, enabled) {
+    var alias = providerAliases[aliasId];
+    if (!alias) {
+        logError("AliasManager", "Alias not found: " + aliasId);
+        return false;
+    }
+    alias.enableWebFetch = !!enabled;
+    return true;
+}
+
+function getAliasWebFetchMode(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? (alias.enableWebFetch || false) : false;
+}
+
+function setAliasWebSearchApiKey(aliasId, key) {
+    var alias = providerAliases[aliasId];
+    if (!alias) {
+        logError("AliasManager", "Alias not found: " + aliasId);
+        return false;
+    }
+    alias.webSearchApiKey = (typeof key === 'string') ? key : "";
+    return true;
+}
+
+function getAliasWebSearchApiKey(aliasId) {
+    var alias = providerAliases[aliasId];
+    return alias ? (alias.webSearchApiKey || "") : "";
 }
 
 // --- Persistence ---
@@ -558,6 +739,21 @@ function loadAliases(jsonStr, config) {
             // Ensure required fields
             if (!alias.favoriteModels) {
                 alias.favoriteModels = alias.favoriteModel ? [alias.favoriteModel] : [];
+            }
+            if (!alias.visionModels) {
+                alias.visionModels = [];
+            }
+
+            // Migration: defaults for fields added after the initial release
+            var isOllamaAlias = (alias.type === "ollama");
+            if (typeof alias.enableWebSearch === 'undefined') {
+                alias.enableWebSearch = isOllamaAlias;
+            }
+            if (typeof alias.enableWebFetch === 'undefined') {
+                alias.enableWebFetch = isOllamaAlias;
+            }
+            if (typeof alias.webSearchApiKey === 'undefined') {
+                alias.webSearchApiKey = "";
             }
 
             providerAliases[aliasId] = alias;

@@ -5,6 +5,40 @@
 
 Qt.include("DebugLogger.js")
 
+// --- Ollama tool definitions (Ollama Cloud web search / web fetch) ---
+// See https://docs.ollama.com/capabilities/web-search
+// Claude Generated
+var OLLAMA_WEB_SEARCH_TOOL = {
+    type: "function",
+    function: {
+        name: "web_search",
+        description: "Search the web for up-to-date information. Use this when the user asks about recent events, facts you are unsure about, or anything that benefits from live data.",
+        parameters: {
+            type: "object",
+            properties: {
+                query: { type: "string", description: "The search query string." },
+                max_results: { type: "number", description: "Maximum number of results to return (1-10).", default: 5 }
+            },
+            required: ["query"]
+        }
+    }
+};
+
+var OLLAMA_WEB_FETCH_TOOL = {
+    type: "function",
+    function: {
+        name: "web_fetch",
+        description: "Fetch the content of a single web page by URL. Use this when the user references a specific page or when search results point to a page worth reading in full.",
+        parameters: {
+            type: "object",
+            properties: {
+                url: { type: "string", description: "The URL of the page to fetch (e.g. https://example.com/article)." }
+            },
+            required: ["url"]
+        }
+    }
+};
+
 /**
  * Build complete endpoint URL for a provider
  * @param {object} provider - Provider configuration object
@@ -257,6 +291,9 @@ function buildRequestData(provider, model, messages, options) {
             // Ollama native multimodal: images go inside the user message object
             requestData.model = model;
             requestData.stream = Boolean(options.streaming);
+            if (options.tools && Array.isArray(options.tools) && options.tools.length > 0) {
+                requestData.tools = options.tools;
+            }
 
             if (options.images && Array.isArray(options.images) && options.images.length > 0) {
                 // Build base64 image strings for Ollama /api/chat format
@@ -346,6 +383,11 @@ function buildRequestData(provider, model, messages, options) {
         }
 
         requestData.stream = Boolean(options.streaming);
+
+        // Attach Ollama tool definitions (web_search / web_fetch) when present
+        if (options.tools && Array.isArray(options.tools) && options.tools.length > 0) {
+            requestData.tools = options.tools;
+        }
 
         // Add images inside the last user message (Ollama /api/chat format)
         if (options.images && Array.isArray(options.images) && options.images.length > 0) {

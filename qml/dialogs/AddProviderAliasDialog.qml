@@ -19,6 +19,10 @@ Dialog {
     property var availableModels: []
     property bool fetchingModels: false
     property string serverPreset: ""
+    // Web tool flags (Ollama only) - Claude Generated
+    property bool enableWebSearch: true
+    property bool enableWebFetch: true
+    property string webSearchApiKey: ""
 
     // Auto-generate aliasId from aliasName
     property string aliasId: aliasName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
@@ -98,6 +102,14 @@ Dialog {
                                 apiUrl = providerTypes[modelData] ? providerTypes[modelData].defaultUrl : "";
                                 serverPreset = "";
                                 loadModelsForType(modelData);
+                                // Reset web tool defaults when switching provider type - Claude Generated
+                                if (modelData === "ollama") {
+                                    enableWebSearch = true;
+                                    enableWebFetch = true;
+                                } else {
+                                    enableWebSearch = false;
+                                    enableWebFetch = false;
+                                }
                             }
                         }
                     }
@@ -266,6 +278,55 @@ Dialog {
 
             Item { height: Theme.paddingLarge }
 
+            // Web tools - Ollama only - Claude Generated
+            SectionHeader {
+                text: qsTr("Web tools")
+                visible: providerType === "ollama"
+            }
+
+            Column {
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                x: Theme.horizontalPageMargin
+                spacing: Theme.paddingSmall
+                visible: providerType === "ollama"
+
+                TextSwitch {
+                    id: webSearchSwitch
+                    text: qsTr("Enable web search")
+                    description: qsTr("Let the model call Ollama's web_search tool when it needs fresh information.")
+                    checked: enableWebSearch
+                    onCheckedChanged: enableWebSearch = checked
+                }
+
+                TextSwitch {
+                    id: webFetchSwitch
+                    text: qsTr("Enable web fetch")
+                    description: qsTr("Let the model call Ollama's web_fetch tool to read a specific page.")
+                    checked: enableWebFetch
+                    onCheckedChanged: enableWebFetch = checked
+                }
+
+                TextField {
+                    id: webSearchApiKeyField
+                    label: qsTr("Web search API key (optional)")
+                    width: parent.width
+                    text: webSearchApiKey
+                    onTextChanged: webSearchApiKey = text
+                    echoMode: TextInput.Password
+                    placeholderText: apiKey.trim() !== "" ? qsTr("Using provider API key") : ""
+                }
+
+                Label {
+                    width: parent.width
+                    text: qsTr("If empty, the provider API key is used.")
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                    wrapMode: Text.WordWrap
+                }
+            }
+
+            Item { height: Theme.paddingLarge }
+
             // Section 4: Additional Settings
             SectionHeader {
                 text: qsTr("Additional settings")
@@ -334,5 +395,12 @@ Dialog {
 
     onAccepted: {
         DebugLogger.logInfo("AddProviderAliasDialog", "Creating alias: " + aliasId + " (" + aliasName + ") with favorite model: " + favoriteModel);
+
+        // Persist web tool settings via setter before adding the alias - Claude Generated
+        if (providerType === "ollama") {
+            LLMApi.setAliasWebSearchMode(aliasId, enableWebSearch);
+            LLMApi.setAliasWebFetchMode(aliasId, enableWebFetch);
+            LLMApi.setAliasWebSearchApiKey(aliasId, webSearchApiKey);
+        }
     }
 }
