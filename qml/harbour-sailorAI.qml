@@ -26,10 +26,11 @@ ApplicationWindow
     property var pendingPhotoAction: null
 
     // Claude Generated: D-Bus adaptor — handles "Open with" (X-Maemo-* MIME open).
+    // Service name matches harbour.harbour-sailorAI as used by Sailjail / X-Maemo-Service.
     DBusAdaptor {
-        service: "harbour.sailorAI"
-        path: "/harbour/sailorAI"
-        iface: "harbour.sailorAI"
+        service: "harbour.harbour-sailorAI"
+        path: "/harbour/harbour-sailorAI"
+        iface: "harbour.harbour-sailorAI"
 
         function openUrl(url) {
             var path = url.toString()

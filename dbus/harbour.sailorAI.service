@@ -1,3 +1,0 @@
-[D-BUS Service]
-Name=harbour.sailorAI
-Exec=/usr/bin/sailjail -p harbour-sailorAI /usr/bin/sailfish-qml harbour-sailorAI
