@@ -19,6 +19,10 @@ Dialog {
     property var availableModels: []
     property bool fetchingModels: false
     property string serverPreset: ""
+    // Claude Generated: track manual edits so auto-suggested description is not overwritten
+    property bool descriptionEdited: false
+    property bool autoFillingDescription: false
+    property string providerSignupUrl: providerTypes[providerType] ? (providerTypes[providerType].signupUrl || "") : ""
     // Web tool flags (Ollama only) - Claude Generated
     property bool enableWebSearch: true
     property bool enableWebFetch: true
@@ -110,6 +114,8 @@ Dialog {
                                     enableWebSearch = false;
                                     enableWebFetch = false;
                                 }
+                                // Claude Generated: auto-fill description suggestion for this provider type
+                                applySuggestedDescription();
                             }
                         }
                     }
@@ -219,6 +225,33 @@ Dialog {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 text: apiUrl.indexOf("localhost:11434") !== -1 ? qsTr("Ollama doesn't require an API key for local use") : qsTr("Your API key for authentication")
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+            }
+
+            // Claude Generated: link to provider signup / API key page
+            BackgroundItem {
+                visible: providerSignupUrl !== ""
+                width: parent.width
+                height: Theme.itemSizeMedium
+                onClicked: Qt.openUrlExternally(providerSignupUrl)
+
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Sign up or get API key")
+                    color: Theme.highlightColor
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+
+            Label {
+                visible: providerSignupUrl !== ""
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: providerSignupUrl
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap
@@ -338,7 +371,12 @@ Dialog {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 text: description
-                onTextChanged: description = text
+                onTextChanged: {
+                    if (!autoFillingDescription) {
+                        descriptionEdited = true;
+                    }
+                    description = text;
+                }
                 placeholderText: qsTr("Personal account, company proxy, etc.")
             }
 
@@ -360,6 +398,16 @@ Dialog {
         availableModels = [];
         favoriteModel = "";
         DebugLogger.logInfo("AddProviderAliasDialog", "Provider type set to: " + type + " - fetch models to see available options");
+    }
+
+    // Claude Generated: pre-fill description with the provider's suggested text unless the user already typed one
+    function applySuggestedDescription() {
+        var info = providerTypes[providerType];
+        if (!descriptionEdited && info && info.description) {
+            autoFillingDescription = true;
+            description = info.description;
+            autoFillingDescription = false;
+        }
     }
 
     function fetchModelsFromProvider() {
@@ -391,6 +439,8 @@ Dialog {
         if (providerTypes[providerType]) {
             apiUrl = providerTypes[providerType].defaultUrl;
         }
+        // Claude Generated: pre-fill description suggestion on first load
+        applySuggestedDescription();
     }
 
     onAccepted: {

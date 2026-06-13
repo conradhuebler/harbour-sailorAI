@@ -304,6 +304,38 @@ Page {
     // Threshold: base64 chars above this triggers canvas resize
     property int maxImageBase64Size: imageMaxDimension.value > 0 ? imageMaxDimension.value * imageMaxDimension.value * 2 : 4000000
 
+    // Provider aliases configuration - Claude Generated: reload aliases live when they change
+    ConfigurationValue {
+        id: providerAliasesConfig
+        key: "/SailorAI/provider_aliases"
+        defaultValue: ""
+        onValueChanged: {
+            if (value) {
+                try {
+                    LLMApi.loadProviderAliases(value);
+                    loadAliases();
+                    DebugLogger.logInfo("ChatPage", "Provider aliases reloaded from config change");
+                } catch (e) {
+                    DebugLogger.logError("ChatPage", "Failed to reload provider aliases: " + e.toString());
+                }
+            }
+        }
+    }
+
+    // Also reload aliases when the page becomes active again (user returned from SettingsPage) - Claude Generated
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            if (providerAliasesConfig.value) {
+                try {
+                    LLMApi.loadProviderAliases(providerAliasesConfig.value);
+                    loadAliases();
+                } catch (e) {
+                    DebugLogger.logError("ChatPage", "Failed to reload aliases on activation: " + e.toString());
+                }
+            }
+        }
+    }
+
     // Configuration for last selected provider/model
     ConfigurationValue {
         id: lastSelectedAlias
@@ -1638,6 +1670,15 @@ Page {
 
     Component.onCompleted: {
         DebugLogger.logNormal("ChatPage", "Chat page loaded for conversation: " + conversationId)
+
+        // Claude Generated: ensure aliases are loaded from config before selecting one
+        if (providerAliasesConfig.value) {
+            try {
+                LLMApi.loadProviderAliases(providerAliasesConfig.value);
+            } catch (e) {
+                DebugLogger.logError("ChatPage", "Failed to load provider aliases on init: " + e.toString());
+            }
+        }
 
         loadAliases();
 

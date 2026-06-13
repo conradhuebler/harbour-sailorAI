@@ -250,6 +250,10 @@
         <source>If empty, the provider API key is used.</source>
         <translation>Jos tyhjä, käytetään palveluntarjoajan API-avainta.</translation>
     </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>Rekisteröidy tai hanki API-avain</translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -664,6 +668,10 @@
     <message>
         <source>If empty, the provider API key is used.</source>
         <translation>Jos tyhjä, käytetään palveluntarjoajan API-avainta.</translation>
+    </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>Rekisteröidy tai hanki API-avain</translation>
     </message>
 </context>
 <context>

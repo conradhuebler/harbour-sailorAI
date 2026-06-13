@@ -17,6 +17,8 @@ var _apiConfig = {
         "openai": {
             "name": "OpenAI Compatible",
             "type": "openai",
+            "description": "OpenAI API (GPT-4o, GPT-4o-mini, o3, …)",
+            "signupUrl": "https://platform.openai.com/",
             "base_url": "https://api.openai.com/v1",
             "endpoints": {
                 "chat": "/chat/completions",
@@ -41,6 +43,8 @@ var _apiConfig = {
         "anthropic": {
             "name": "Anthropic Claude",
             "type": "anthropic",
+            "description": "Anthropic Claude API (Claude 3.5/4 Sonnet, Opus, Haiku, …)",
+            "signupUrl": "https://platform.claude.com/",
             "base_url": "https://api.anthropic.com/v1",
             "endpoints": {
                 "chat": "/messages",
@@ -67,6 +71,8 @@ var _apiConfig = {
         "gemini": {
             "name": "Google Gemini",
             "type": "gemini",
+            "description": "Google Gemini API (Gemini 1.5/2.0 Pro/Flash, …)",
+            "signupUrl": "https://aistudio.google.com/app/apikey",
             "base_url": "https://generativelanguage.googleapis.com/v1beta/models",
             "endpoints": {
                 "chat": "{model}:generateContent",
@@ -92,6 +98,8 @@ var _apiConfig = {
         "ollama": {
             "name": "Ollama",
             "type": "ollama",
+            "description": "Ollama local server or ollama.com remote endpoint",
+            "signupUrl": "https://ollama.com/signup",
             "base_url": "https://ollama.com",
             "endpoints": {
                 "chat": "/api/chat",
@@ -129,6 +137,8 @@ function getProviderTypes() {
         if (p) {
             types[ids[i]] = {
                 name: p.name,
+                description: p.description || "",
+                signupUrl: p.signupUrl || "",
                 defaultUrl: p.base_url,
                 defaultModels: p.defaultModels || [],
                 authHeader: p.authentication ? p.authentication.header : "",

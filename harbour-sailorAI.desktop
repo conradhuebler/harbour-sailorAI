@@ -10,9 +10,9 @@ Name[fi]=SailorAI
 X-Nemo-Single-Instance=yes
 MimeType=image/jpeg;image/png;image/gif;image/webp;image/bmp;
 X-Share-Methods=sailorAI_share;
-X-Maemo-Service=harbour.sailorAI
-X-Maemo-Object-Path=/harbour/sailorAI
-X-Maemo-Method=harbour.sailorAI.openUrl
+X-Maemo-Service=harbour.harbour-sailorAI
+X-Maemo-Object-Path=/harbour/harbour-sailorAI
+X-Maemo-Method=harbour.harbour-sailorAI.openUrl
 
 # Übersetzbare Beschreibung
 Comment=Chat with your favourite LLM

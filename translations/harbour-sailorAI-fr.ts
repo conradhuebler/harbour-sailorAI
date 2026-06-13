@@ -250,6 +250,10 @@
         <source>If empty, the provider API key is used.</source>
         <translation>Si vide, la clé API du fournisseur est utilisée.</translation>
     </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>S&apos;inscrire ou obtenir une clé d&apos;API</translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -664,6 +668,10 @@
     <message>
         <source>If empty, the provider API key is used.</source>
         <translation>Si vide, la clé API du fournisseur est utilisée.</translation>
+    </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>S&apos;inscrire ou obtenir une clé d&apos;API</translation>
     </message>
 </context>
 <context>

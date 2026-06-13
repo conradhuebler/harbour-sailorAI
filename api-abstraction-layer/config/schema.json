@@ -12,6 +12,15 @@
               "type": "string",
               "description": "Human-readable name for the provider"
             },
+            "description": {
+              "type": "string",
+              "description": "Suggested human-readable description for new provider aliases"
+            },
+            "signupUrl": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL where users can sign up or create an API key"
+            },
             "base_url": {
               "type": "string",
               "format": "uri",

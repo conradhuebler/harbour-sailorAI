@@ -70,7 +70,6 @@ desktop-file-install --delete-original       \
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop
 %{_datadir}/icons/hicolor/*/apps/%{name}.png
-%{_datadir}/dbus-1/services/harbour.sailorAI.service
 %{_datadir}/dbus-1/services/harbour.harbour-sailorAI.service
 # >> files
 # << files

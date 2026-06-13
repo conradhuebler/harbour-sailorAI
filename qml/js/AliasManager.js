@@ -78,23 +78,19 @@ function initDefaultAliases(config) {
     var defaults = {
         "openai": {
             aliasId: "openai",
-            name: "ChatGPT",
-            description: "OpenAI API (GPT-4o, GPT-4o-mini)"
+            name: "ChatGPT"
         },
         "anthropic": {
             aliasId: "anthropic",
-            name: "Claude",
-            description: "Anthropic Claude API"
+            name: "Claude"
         },
         "gemini": {
             aliasId: "gemini",
-            name: "Gemini",
-            description: "Google Gemini API"
+            name: "Gemini"
         },
         "ollama": {
             aliasId: "ollama",
-            name: "Ollama",
-            description: "Ollama local server"
+            name: "Ollama"
         }
     };
 
@@ -114,7 +110,7 @@ function initDefaultAliases(config) {
             url: template.base_url,
             api_key: "",
             port: "",
-            description: def.description,
+            description: template.description || "",
             timeout: 30000,
             favoriteModel: "",
             favoriteModels: [],
