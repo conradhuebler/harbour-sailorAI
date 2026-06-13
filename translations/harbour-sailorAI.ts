@@ -2,6 +2,73 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>AboutPage</name>
+    <message>
+        <source>About SailorAI</source>
+        <translation>About SailorAI</translation>
+    </message>
+    <message>
+        <source>Application</source>
+        <translation>Application</translation>
+    </message>
+    <message>
+        <source>SailorAI is an AI chat interface for Sailfish OS supporting multiple LLM providers with real-time streaming.</source>
+        <translation>SailorAI is an AI chat interface for Sailfish OS supporting multiple LLM providers with real-time streaming.</translation>
+    </message>
+    <message>
+        <source>Version %1</source>
+        <translation>Version %1</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Status</translation>
+    </message>
+    <message>
+        <source>Actively developed with agentic coding (Claude Code). Core chat, multi-provider support, streaming, image/document upload, Markdown rendering, web tools and conversation history are implemented. Some features are still evolving.</source>
+        <translation>Actively developed with agentic coding (Claude Code). Core chat, multi-provider support, streaming, image/document upload, Markdown rendering, web tools and conversation history are implemented. Some features are still evolving.</translation>
+    </message>
+    <message>
+        <source>Best tested with remote ollama.com endpoints; other providers are supported but less regularly exercised.</source>
+        <translation>Best tested with remote ollama.com endpoints; other providers are supported but less regularly exercised.</translation>
+    </message>
+    <message>
+        <source>Supported providers</source>
+        <translation>Supported providers</translation>
+    </message>
+    <message>
+        <source>Contact</source>
+        <translation>Contact</translation>
+    </message>
+    <message>
+        <source>Email</source>
+        <translation>Email</translation>
+    </message>
+    <message>
+        <source>Source code on GitHub</source>
+        <translation>Source code on GitHub</translation>
+    </message>
+    <message>
+        <source>Report an issue</source>
+        <translation>Report an issue</translation>
+    </message>
+    <message>
+        <source>• OpenAI-compatible APIs</source>
+        <translation>• OpenAI-compatible APIs</translation>
+    </message>
+    <message>
+        <source>• Anthropic Claude</source>
+        <translation>• Anthropic Claude</translation>
+    </message>
+    <message>
+        <source>• Google Gemini</source>
+        <translation>• Google Gemini</translation>
+    </message>
+    <message>
+        <source>• Ollama (local or remote)</source>
+        <translation>• Ollama (local or remote)</translation>
+    </message>
+</context>
+<context>
     <name>AddProviderAliasDialog</name>
     <message>
         <source>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</source>
@@ -282,7 +349,7 @@
     </message>
     <message>
         <source>Sources</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Sources</translation>
     </message>
     <message>
         <source>Always answer in %1, regardless of the language the question is written in.</source>
@@ -405,6 +472,14 @@
     </message>
     <message>
         <source>Translate photo</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -949,6 +1024,21 @@
     </message>
 </context>
 <context>
+    <name>SourcesDialog</name>
+    <message>
+        <source>Sources</source>
+        <translation>Sources</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <source>No sources available.</source>
+        <translation>No sources available.</translation>
+    </message>
+</context>
+<context>
     <name>TableViewDialog</name>
     <message>
         <source>Table</source>
@@ -966,21 +1056,6 @@
         <source>Table width</source>
         <translation>Table width</translation>
     </message>
-<context>
-    <name>SourcesDialog</name>
-    <message>
-        <source>Sources</source>
-        <translation>Sources</translation>
-    </message>
-    <message>
-        <source>Close</source>
-        <translation>Close</translation>
-    </message>
-    <message>
-        <source>No sources available.</source>
-        <translation>No sources available.</translation>
-    </message>
-</context>
 </context>
 <context>
     <name>ToolLogDialog</name>
