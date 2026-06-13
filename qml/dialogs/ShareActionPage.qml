@@ -1,4 +1,4 @@
-// Copyright (C) 2024 - 2025 Conrad Hübler <Conrad.Huebler@gmx.net>
+// Copyright (C) 2024 - 2026 Conrad Hübler <Conrad.Huebler@gmx.net>
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -51,24 +51,47 @@ Page {
                 color: Theme.secondaryColor
             }
 
-            Button {
-                text: qsTr("Describe photo")
+            // Claude Generated: action buttons styled like the start-page quick actions.
+            Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                onClicked: {
-                    // Caller (ConversationListPage) navigates via replaceAbove — do not pop here.
-                    page.actionSelected(
-                        qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName),
-                        qsTr("Describe photo"))
-                }
-            }
+                spacing: Theme.itemSizeMedium
 
-            Button {
-                text: qsTr("Translate text from photo")
-                anchors.horizontalCenter: parent.horizontalCenter
-                onClicked: {
-                    page.actionSelected(
-                        qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName),
-                        qsTr("Translate photo"))
+                Column {
+                    spacing: Theme.paddingSmall
+                    IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        icon.source: "image://theme/icon-m-image"
+                        onClicked: {
+                            page.actionSelected(
+                                qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName),
+                                "Describe photo")
+                        }
+                    }
+                    Label {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: qsTr("Describe")
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: Theme.primaryColor
+                    }
+                }
+
+                Column {
+                    spacing: Theme.paddingSmall
+                    IconButton {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        icon.source: "image://theme/icon-m-region"
+                        onClicked: {
+                            page.actionSelected(
+                                qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName),
+                                "Translate photo")
+                        }
+                    }
+                    Label {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: qsTr("Translate")
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: Theme.primaryColor
+                    }
                 }
             }
         }

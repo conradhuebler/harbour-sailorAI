@@ -17,15 +17,15 @@ Dialog {
             spacing: Theme.paddingLarge
             
             DialogHeader {
-                title: "Rename Conversation"
+                title: qsTr("Rename Conversation")
             }
-            
+
             TextField {
                 id: textField
                 width: parent.width
-                label: "Conversation name"
+                label: qsTr("Conversation name")
                 text: originalName
-                placeholderText: "Enter new name"
+                placeholderText: qsTr("Enter new name")
                 
                 Component.onCompleted: {
                     selectAll()

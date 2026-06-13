@@ -1,4 +1,4 @@
-// Copyright (C) 2024 - 2025 Conrad Hübler <Conrad.Huebler@gmx.net>
+// Copyright (C) 2024 - 2026 Conrad Hübler <Conrad.Huebler@gmx.net>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import QtQuick 2.0
@@ -9,7 +9,7 @@ import "../js/LLMApi.js" as LLMApi
 Dialog {
     id: dialog
 
-    property string title: "Models"
+    property string title: qsTr("Models")
     property string aliasId: ""
     property bool canRefresh: false
 
@@ -90,7 +90,7 @@ Dialog {
                 id: dialogHeader
                 title: dialog.title
                 acceptText: ""
-                cancelText: "Close"
+                cancelText: qsTr("Close")
             }
 
             SilicaListView {
@@ -103,7 +103,7 @@ Dialog {
 
                 section.property: "isFavorite"
                 section.delegate: SectionHeader {
-                    text: section === "true" ? "Favorites" : "All Models"
+                    text: section === "true" ? qsTr("Favorites") : qsTr("All Models")
                     visible: _sortedModels.length > 0
                 }
 
@@ -153,17 +153,17 @@ Dialog {
 
                 ViewPlaceholder {
                     enabled: _sortedModels.length === 0
-                    text: "No models loaded"
-                    hintText: canRefresh ? "Tap 'Refresh Models' to fetch from provider" : ""
+                    text: qsTr("No models loaded")
+                    hintText: canRefresh ? qsTr("Tap 'Refresh Models' to fetch from provider") : ""
                 }
             }
 
             Button {
                 visible: canRefresh
-                text: "Refresh Models"
+                text: qsTr("Refresh Models")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
-                    dialogHeader.title = "Fetching models…";
+                    dialogHeader.title = qsTr("Fetching models…");
                     LLMApi.checkAliasAvailability(aliasId, function(available, status) {
                         if (available) {
                             LLMApi.fetchModelsForAlias(aliasId);

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
+<?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" language="fr">
 <context>
     <name>AboutPage</name>
@@ -25,11 +24,11 @@
     </message>
     <message>
         <source>Actively developed with agentic coding (Claude Code). Core chat, multi-provider support, streaming, image/document upload, Markdown rendering, web tools and conversation history are implemented. Some features are still evolving.</source>
-        <translation>Développé activement avec du codage agentique (Claude Code). Le chat principal, le support multi-fournisseurs, le streaming, le téléversement d&apos;images et de documents, le rendu Markdown, les outils Web et l&apos;historique des conversations sont implémentés. Certaines fonctionnalités évoluent encore.</translation>
+        <translation>Développé activement avec du codage agentique (Claude Code). Le chat principal, le support multi-fournisseurs, le streaming, le téléversement d'images et de documents, le rendu Markdown, les outils Web et l'historique des conversations sont implémentés. Certaines fonctionnalités évoluent encore.</translation>
     </message>
     <message>
         <source>Best tested with remote ollama.com endpoints; other providers are supported but less regularly exercised.</source>
-        <translation>Testé au mieux avec les points de terminaison distants ollama.com ; d&apos;autres fournisseurs sont pris en charge mais moins régulièrement testés.</translation>
+        <translation>Testé au mieux avec les points de terminaison distants ollama.com ; d'autres fournisseurs sont pris en charge mais moins régulièrement testés.</translation>
     </message>
     <message>
         <source>Supported providers</source>
@@ -112,7 +111,7 @@
     </message>
     <message>
         <source>Display name. Generated ID: %1</source>
-        <translation>Nom d&apos;affichage. ID généré : %1</translation>
+        <translation>Nom d'affichage. ID généré : %1</translation>
     </message>
     <message>
         <source>Provider type</source>
@@ -136,15 +135,15 @@
     </message>
     <message>
         <source>Select the API server to use</source>
-        <translation>Sélectionnez le serveur d&apos;API à utiliser</translation>
+        <translation>Sélectionnez le serveur d'API à utiliser</translation>
     </message>
     <message>
         <source>API configuration</source>
-        <translation>Configuration de l&apos;API</translation>
+        <translation>Configuration de l'API</translation>
     </message>
     <message>
         <source>API URL</source>
-        <translation>URL de l&apos;API</translation>
+        <translation>URL de l'API</translation>
     </message>
     <message>
         <source>https://api.example.com/v1</source>
@@ -156,23 +155,23 @@
     </message>
     <message>
         <source>API key</source>
-        <translation>Clé d&apos;API</translation>
+        <translation>Clé d'API</translation>
     </message>
     <message>
         <source>API key (optional for local Ollama)</source>
-        <translation>Clé d&apos;API (facultative pour Ollama local)</translation>
+        <translation>Clé d'API (facultative pour Ollama local)</translation>
     </message>
     <message>
         <source>Enter your API key…</source>
-        <translation>Saisissez votre clé d&apos;API …</translation>
+        <translation>Saisissez votre clé d'API …</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
-        <translation>Ollama ne nécessite pas de clé d&apos;API en local</translation>
+        <source>Ollama doesn't require an API key for local use</source>
+        <translation>Ollama ne nécessite pas de clé d'API en local</translation>
     </message>
     <message>
         <source>Your API key for authentication</source>
-        <translation>Votre clé d&apos;API pour l&apos;authentification</translation>
+        <translation>Votre clé d'API pour l'authentification</translation>
     </message>
     <message>
         <source>Fetching models…</source>
@@ -212,7 +211,7 @@
     </message>
     <message>
         <source>Personal account, company proxy, etc.</source>
-        <translation>Compte personnel, proxy d&apos;entreprise, etc.</translation>
+        <translation>Compte personnel, proxy d'entreprise, etc.</translation>
     </message>
     <message>
         <source>Optional description to help identify this provider configuration</source>
@@ -227,16 +226,16 @@
         <translation>Activer la recherche web</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
-        <translation>Permet au modèle d&apos;appeler l&apos;outil web_search d&apos;Ollama lorsqu&apos;il a besoin d&apos;informations récentes.</translation>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
+        <translation>Permet au modèle d'appeler l'outil web_search d'Ollama lorsqu'il a besoin d'informations récentes.</translation>
     </message>
     <message>
         <source>Enable web fetch</source>
         <translation>Activer la récupération web</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
-        <translation>Permet au modèle d&apos;appeler l&apos;outil web_fetch d&apos;Ollama pour lire une page spécifique.</translation>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
+        <translation>Permet au modèle d'appeler l'outil web_fetch d'Ollama pour lire une page spécifique.</translation>
     </message>
     <message>
         <source>Web search API key (optional)</source>
@@ -252,7 +251,7 @@
     </message>
     <message>
         <source>Sign up or get API key</source>
-        <translation>S&apos;inscrire ou obtenir une clé d&apos;API</translation>
+        <translation>S'inscrire ou obtenir une clé d'API</translation>
     </message>
 </context>
 <context>
@@ -267,7 +266,7 @@
     </message>
     <message>
         <source>Controls randomness: 0 = deterministic, 2 = very creative</source>
-        <translation>Contrôle l&apos;aléatoire : 0 = déterministe, 2 = très créatif</translation>
+        <translation>Contrôle l'aléatoire : 0 = déterministe, 2 = très créatif</translation>
     </message>
     <message>
         <source>Seed</source>
@@ -371,6 +370,75 @@
         <source>📚 Sources (%1)</source>
         <translation>📚 Sources (%1)</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Discussion</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>Nouvelle conversation</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Conversation %1</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Décrire la photo</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Traduire la photo</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Réessayer</translation>
+    </message>
+    <message>
+        <source>AI is thinking...</source>
+        <translation>L'IA réfléchit...</translation>
+    </message>
+    <message>
+        <source>AI is responding...</source>
+        <translation>L'IA répond...</translation>
+    </message>
+    <message>
+        <source>Image
+Preview</source>
+        <translation>Image
+Aperçu</translation>
+    </message>
+    <message>
+        <source>Add a message to your images...</source>
+        <translation>Ajouter un message à vos images...</translation>
+    </message>
+    <message>
+        <source>Type a message...</source>
+        <translation>Saisir un message...</translation>
+    </message>
+</context>
+<context>
+    <name>ConversationDialog</name>
+    <message>
+        <source>Conversations</source>
+        <translation>Conversations</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>Nouvelle conversation</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Conversation %1</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Renommer</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Supprimer</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -380,7 +448,7 @@
     </message>
     <message>
         <source>Today</source>
-        <translation>Aujourd&apos;hui</translation>
+        <translation>Aujourd'hui</translation>
     </message>
     <message>
         <source>Yesterday</source>
@@ -486,6 +554,38 @@
         <source>About</source>
         <translation>À propos</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Discussion</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Conversation %1</translation>
+    </message>
+    <message>
+        <source>Conversations</source>
+        <translation>Conversations</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Renommer</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Supprimer</translation>
+    </message>
+    <message>
+        <source>Deleting conversation</source>
+        <translation>Suppression de la conversation</translation>
+    </message>
+    <message>
+        <source>No conversations yet</source>
+        <translation>Aucune conversation pour l'instant</translation>
+    </message>
+    <message>
+        <source>Pull down to access settings or tap 'New Chat' to start</source>
+        <translation>Tirer vers le bas pour accéder aux paramètres ou appuyer sur 'Nouvelle discussion' pour commencer</translation>
+    </message>
 </context>
 <context>
     <name>EditProviderAliasDialog</name>
@@ -515,7 +615,7 @@
     </message>
     <message>
         <source>Display name. Generated ID: %1</source>
-        <translation>Nom d&apos;affichage. ID généré : %1</translation>
+        <translation>Nom d'affichage. ID généré : %1</translation>
     </message>
     <message>
         <source>Provider type</source>
@@ -555,15 +655,15 @@
     </message>
     <message>
         <source>Select the API server to use</source>
-        <translation>Sélectionnez le serveur d&apos;API à utiliser</translation>
+        <translation>Sélectionnez le serveur d'API à utiliser</translation>
     </message>
     <message>
         <source>API configuration</source>
-        <translation>Configuration de l&apos;API</translation>
+        <translation>Configuration de l'API</translation>
     </message>
     <message>
         <source>API URL</source>
-        <translation>URL de l&apos;API</translation>
+        <translation>URL de l'API</translation>
     </message>
     <message>
         <source>https://api.example.com/v1</source>
@@ -571,27 +671,27 @@
     </message>
     <message>
         <source>Base URL for the API endpoint (automatically set based on provider type)</source>
-        <translation>URL de base du point de terminaison de l&apos;API (définie automatiquement selon le type de fournisseur)</translation>
+        <translation>URL de base du point de terminaison de l'API (définie automatiquement selon le type de fournisseur)</translation>
     </message>
     <message>
         <source>API key</source>
-        <translation>Clé d&apos;API</translation>
+        <translation>Clé d'API</translation>
     </message>
     <message>
         <source>API key (optional for local Ollama)</source>
-        <translation>Clé d&apos;API (facultative pour Ollama local)</translation>
+        <translation>Clé d'API (facultative pour Ollama local)</translation>
     </message>
     <message>
         <source>Enter your API key…</source>
-        <translation>Saisissez votre clé d&apos;API …</translation>
+        <translation>Saisissez votre clé d'API …</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
-        <translation>Ollama ne nécessite pas de clé d&apos;API en local</translation>
+        <source>Ollama doesn't require an API key for local use</source>
+        <translation>Ollama ne nécessite pas de clé d'API en local</translation>
     </message>
     <message>
         <source>Your API key for authentication (required for most providers)</source>
-        <translation>Votre clé d&apos;API pour l&apos;authentification (requise pour la plupart des fournisseurs)</translation>
+        <translation>Votre clé d'API pour l'authentification (requise pour la plupart des fournisseurs)</translation>
     </message>
     <message>
         <source>Fetching models…</source>
@@ -631,7 +731,7 @@
     </message>
     <message>
         <source>Personal account, company proxy, etc.</source>
-        <translation>Compte personnel, proxy d&apos;entreprise, etc.</translation>
+        <translation>Compte personnel, proxy d'entreprise, etc.</translation>
     </message>
     <message>
         <source>Optional description to help identify this provider configuration</source>
@@ -646,16 +746,16 @@
         <translation>Activer la recherche web</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
-        <translation>Permet au modèle d&apos;appeler l&apos;outil web_search d&apos;Ollama lorsqu&apos;il a besoin d&apos;informations récentes.</translation>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
+        <translation>Permet au modèle d'appeler l'outil web_search d'Ollama lorsqu'il a besoin d'informations récentes.</translation>
     </message>
     <message>
         <source>Enable web fetch</source>
         <translation>Activer la récupération web</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
-        <translation>Permet au modèle d&apos;appeler l&apos;outil web_fetch d&apos;Ollama pour lire une page spécifique.</translation>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
+        <translation>Permet au modèle d'appeler l'outil web_fetch d'Ollama pour lire une page spécifique.</translation>
     </message>
     <message>
         <source>Web search API key (optional)</source>
@@ -671,7 +771,7 @@
     </message>
     <message>
         <source>Sign up or get API key</source>
-        <translation>S&apos;inscrire ou obtenir une clé d&apos;API</translation>
+        <translation>S'inscrire ou obtenir une clé d'API</translation>
     </message>
 </context>
 <context>
@@ -698,7 +798,7 @@
     </message>
     <message>
         <source>Select export folder</source>
-        <translation>Sélectionner le dossier d&apos;export</translation>
+        <translation>Sélectionner le dossier d'export</translation>
     </message>
     <message>
         <source>Preview</source>
@@ -711,6 +811,10 @@
     <message>
         <source>Copy to clipboard</source>
         <translation>Copier dans le presse-papiers</translation>
+    </message>
+    <message>
+        <source>Markdown</source>
+        <translation>Markdown</translation>
     </message>
 </context>
 <context>
@@ -761,6 +865,38 @@
         <source>Mark as vision-capable</source>
         <translation>Marquer comme compatible vision</translation>
     </message>
+    <message>
+        <source>Models</source>
+        <translation>Modèles</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Fermer</translation>
+    </message>
+    <message>
+        <source>Favorites</source>
+        <translation>Favoris</translation>
+    </message>
+    <message>
+        <source>All Models</source>
+        <translation>Tous les modèles</translation>
+    </message>
+    <message>
+        <source>No models loaded</source>
+        <translation>Aucun modèle chargé</translation>
+    </message>
+    <message>
+        <source>Tap 'Refresh Models' to fetch from provider</source>
+        <translation>Appuyer sur 'Actualiser les modèles' pour récupérer depuis le fournisseur</translation>
+    </message>
+    <message>
+        <source>Refresh Models</source>
+        <translation>Actualiser les modèles</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Récupération des modèles…</translation>
+    </message>
 </context>
 <context>
     <name>ProviderAliasDialog</name>
@@ -787,6 +923,21 @@
     <message>
         <source>Manage favorites</source>
         <translation>Gérer les favoris</translation>
+    </message>
+</context>
+<context>
+    <name>RenameDialog</name>
+    <message>
+        <source>Rename Conversation</source>
+        <translation>Renommer la conversation</translation>
+    </message>
+    <message>
+        <source>Conversation name</source>
+        <translation>Nom de la conversation</translation>
+    </message>
+    <message>
+        <source>Enter new name</source>
+        <translation>Saisir un nouveau nom</translation>
     </message>
 </context>
 <context>
@@ -897,7 +1048,7 @@
     </message>
     <message>
         <source>API key set</source>
-        <translation>Clé d&apos;API définie</translation>
+        <translation>Clé d'API définie</translation>
     </message>
     <message>
         <source>Manage favorites</source>
@@ -937,7 +1088,7 @@
     </message>
     <message>
         <source>Max image size</source>
-        <translation>Taille maximale d&apos;image</translation>
+        <translation>Taille maximale d'image</translation>
     </message>
     <message>
         <source>Advanced</source>
@@ -969,7 +1120,7 @@
     </message>
     <message>
         <source>How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.</source>
-        <translation>Combien de tours web_search / web_fetch un modèle Ollama peut effectuer avant qu&apos;une réponse finale soit forcée.</translation>
+        <translation>Combien de tours web_search / web_fetch un modèle Ollama peut effectuer avant qu'une réponse finale soit forcée.</translation>
     </message>
     <message>
         <source>3 — minimal</source>
@@ -997,7 +1148,7 @@
     </message>
     <message>
         <source>Tell the model to always reply in the device language (%1).</source>
-        <translation>Demande au modèle de toujours répondre dans la langue de l&apos;appareil (%1).</translation>
+        <translation>Demande au modèle de toujours répondre dans la langue de l'appareil (%1).</translation>
     </message>
 </context>
 <context>
@@ -1012,7 +1163,7 @@
     </message>
     <message>
         <source>Describe photo</source>
-        <translation>Décrire la photo</translation>
+        <translation type="vanished">Décrire la photo</translation>
     </message>
     <message>
         <source>Please describe this photo in %1.</source>
@@ -1020,7 +1171,7 @@
     </message>
     <message>
         <source>Translate text from photo</source>
-        <translation>Traduire le texte de la photo</translation>
+        <translation type="vanished">Traduire le texte de la photo</translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
@@ -1028,7 +1179,15 @@
     </message>
     <message>
         <source>Translate photo</source>
-        <translation>Photo übersetzen</translation>
+        <translation type="vanished">Photo übersetzen</translation>
+    </message>
+    <message>
+        <source>Describe</source>
+        <translation>Décrire</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>Traduire</translation>
     </message>
 </context>
 <context>

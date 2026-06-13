@@ -245,6 +245,18 @@ Page {
         return key
     }
 
+    // Claude Generated: translate canonical fallback conversation names for display.
+    function displayConversationName(name) {
+        if (!name) return qsTr("New Conversation")
+        if (name === "New Conversation") return qsTr("New Conversation")
+        if (name === "Chat") return qsTr("Chat")
+        var m = name.match(/^Conversation (\d+)$/)
+        if (m) return qsTr("Conversation %1").arg(parseInt(m[1], 10))
+        if (name === "Describe photo") return qsTr("Describe photo")
+        if (name === "Translate photo") return qsTr("Translate photo")
+        return name
+    }
+
     function newConversation() {
         // Conversation is created lazily in ChatPage.saveMessage() on first send
         pageStack.push(Qt.resolvedUrl("ChatPage.qml"), {
@@ -283,7 +295,7 @@ Page {
         onTriggered: {
             pageStack.replaceAbove(page, Qt.resolvedUrl("ChatPage.qml"), {
                 "conversationId": 0,
-                "conversationName": _photoChatName || qsTr("New Conversation"),
+                "conversationName": _photoChatName || "New Conversation",
                 "initialImages": [_photoChatPath],
                 "initialPrompt": _photoChatPrompt
             })
@@ -293,7 +305,7 @@ Page {
     function _openChatWithPhoto(imagePath, prompt, name) {
         _photoChatPath = imagePath
         _photoChatPrompt = prompt
-        _photoChatName = name || qsTr("New Conversation")
+        _photoChatName = name || "New Conversation"
         openChatTimer.restart()
     }
 
@@ -302,7 +314,7 @@ Page {
         var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
         if (!camPage) return
         var capturedPrompt = prompt
-        var capturedName = name || qsTr("New Conversation")
+        var capturedName = name || "New Conversation"
         camPage.photoCaptured.connect(function(path) {
             _openChatWithPhoto(path, capturedPrompt, capturedName)
         })
@@ -342,7 +354,7 @@ Page {
             if (!action) return
             app.pendingPhotoAction = null
             if (action.mode === "camera") {
-                openPhotoAction(action.prompt, action.name || qsTr("New Conversation"))
+                openPhotoAction(action.prompt, action.name || "New Conversation")
             } else if (action.mode === "share") {
                 handleSharedImage(action.imagePath)
             }
@@ -406,7 +418,7 @@ Page {
 
             PageHeader {
                 title: "SailorAI"
-                description: "Conversations"
+                description: qsTr("Conversations")
             }
 
             Row {
@@ -449,7 +461,7 @@ Page {
                         enabled: app.hasActiveProviders
                         onClicked: openPhotoAction(
                             qsTr("Please describe this photo in %1.").arg(Qt.locale().nativeLanguageName),
-                            qsTr("Describe photo"))
+                            "Describe photo")
                     }
                     Label {
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -467,7 +479,7 @@ Page {
                         enabled: app.hasActiveProviders
                         onClicked: openPhotoAction(
                             qsTr("Please translate all text visible in this photo to %1.").arg(Qt.locale().nativeLanguageName),
-                            qsTr("Translate photo"))
+                            "Translate photo")
                     }
                     Label {
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -509,7 +521,7 @@ Page {
                         spacing: Theme.paddingSmall
                         
                         Label {
-                            text: model.name || ("Conversation " + model.id)
+                            text: model.name ? displayConversationName(model.name) : qsTr("Conversation %1").arg(model.id)
                             width: parent.width
                             font.pixelSize: Theme.fontSizeMedium
                             color: Theme.primaryColor
@@ -567,10 +579,10 @@ Page {
 
                     menu: ContextMenu {
                         MenuItem {
-                            text: "Rename"
+                            text: qsTr("Rename")
                             onClicked: {
                                 var dialog = pageStack.push(Qt.resolvedUrl("../dialogs/RenameDialog.qml"), {
-                                    "originalName": model.name || ("Conversation " + model.id)
+                                    "originalName": model.name || qsTr("Conversation %1").arg(model.id)
                                 });
                                 dialog.accepted.connect(function() {
                                     if (app.database.updateConversationName(model.id, dialog.newName)) {
@@ -583,11 +595,11 @@ Page {
                             }
                         }
                         MenuItem {
-                            text: "Delete"
+                            text: qsTr("Delete")
                             onClicked: {
                                 // Find the ListItem to apply remorse action
                                 var listItem = parent.parent.parent; // Navigate from MenuItem -> ContextMenu -> ListItem
-                                listItem.remorseAction("Deleting conversation", function() {
+                                listItem.remorseAction(qsTr("Deleting conversation"), function() {
                                     deleteConversation(model.id);
                                 });
                             }
@@ -595,7 +607,7 @@ Page {
                         MenuItem {
                             text: qsTr("Export")
                             onClicked: {
-                                var displayName = model.name || ("Conversation " + model.id)
+                                var displayName = model.name ? displayConversationName(model.name) : qsTr("Conversation %1").arg(model.id)
                                 pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
                                     "conversationId": model.id,
                                     "conversationName": displayName
@@ -607,8 +619,8 @@ Page {
 
                 ViewPlaceholder {
                     enabled: conversationList.count === 0
-                    text: "No conversations yet"
-                    hintText: "Pull down to access settings or tap 'New Chat' to start"
+                    text: qsTr("No conversations yet")
+                    hintText: qsTr("Pull down to access settings or tap 'New Chat' to start")
                 }
             }
         }

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
+<?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" language="de">
 <context>
     <name>AboutPage</name>
@@ -167,7 +166,7 @@
         <translation>Gib deinen API-Schlüssel ein …</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <source>Ollama doesn't require an API key for local use</source>
         <translation>Ollama benötigt für die lokale Nutzung keinen API-Schlüssel</translation>
     </message>
     <message>
@@ -227,7 +226,7 @@
         <translation>Websuche aktivieren</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
         <translation>Erlaubt dem Modell, Ollamas web_search-Werkzeug aufzurufen, wenn es aktuelle Informationen benötigt.</translation>
     </message>
     <message>
@@ -235,7 +234,7 @@
         <translation>Web-Fetch aktivieren</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
         <translation>Erlaubt dem Modell, Ollamas web_fetch-Werkzeug aufzurufen, um eine bestimmte Seite zu lesen.</translation>
     </message>
     <message>
@@ -371,6 +370,75 @@
         <source>📚 Sources (%1)</source>
         <translation>📚 Quellen (%1)</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Chat</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>Neues Gespräch</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Gespräch %1</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Foto beschreiben</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Foto übersetzen</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Wiederholen</translation>
+    </message>
+    <message>
+        <source>AI is thinking...</source>
+        <translation>KI denkt nach...</translation>
+    </message>
+    <message>
+        <source>AI is responding...</source>
+        <translation>KI antwortet...</translation>
+    </message>
+    <message>
+        <source>Image
+Preview</source>
+        <translation>Bild
+Vorschau</translation>
+    </message>
+    <message>
+        <source>Add a message to your images...</source>
+        <translation>Nachricht zu Bildern hinzufügen...</translation>
+    </message>
+    <message>
+        <source>Type a message...</source>
+        <translation>Nachricht eingeben...</translation>
+    </message>
+</context>
+<context>
+    <name>ConversationDialog</name>
+    <message>
+        <source>Conversations</source>
+        <translation>Gespräche</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>Neues Gespräch</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Gespräch %1</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Umbenennen</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Löschen</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -486,6 +554,38 @@
         <source>About</source>
         <translation>Über</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Chat</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Gespräch %1</translation>
+    </message>
+    <message>
+        <source>Conversations</source>
+        <translation>Gespräche</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Umbenennen</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Löschen</translation>
+    </message>
+    <message>
+        <source>Deleting conversation</source>
+        <translation>Gespräch löschen</translation>
+    </message>
+    <message>
+        <source>No conversations yet</source>
+        <translation>Noch keine Gespräche</translation>
+    </message>
+    <message>
+        <source>Pull down to access settings or tap 'New Chat' to start</source>
+        <translation>Zum Einstellungen aufrufen nach unten ziehen oder auf 'Neuer Chat' tippen</translation>
+    </message>
 </context>
 <context>
     <name>EditProviderAliasDialog</name>
@@ -586,7 +686,7 @@
         <translation>Gib deinen API-Schlüssel ein …</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <source>Ollama doesn't require an API key for local use</source>
         <translation>Ollama benötigt für die lokale Nutzung keinen API-Schlüssel</translation>
     </message>
     <message>
@@ -646,7 +746,7 @@
         <translation>Websuche aktivieren</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
         <translation>Erlaubt dem Modell, Ollamas web_search-Werkzeug aufzurufen, wenn es aktuelle Informationen benötigt.</translation>
     </message>
     <message>
@@ -654,7 +754,7 @@
         <translation>Web-Fetch aktivieren</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
         <translation>Erlaubt dem Modell, Ollamas web_fetch-Werkzeug aufzurufen, um eine bestimmte Seite zu lesen.</translation>
     </message>
     <message>
@@ -712,6 +812,10 @@
         <source>Copy to clipboard</source>
         <translation>In Zwischenablage kopieren</translation>
     </message>
+    <message>
+        <source>Markdown</source>
+        <translation>Markdown</translation>
+    </message>
 </context>
 <context>
     <name>FavoriteModelsDialog</name>
@@ -761,6 +865,38 @@
         <source>Mark as vision-capable</source>
         <translation>Als bildfähig markieren</translation>
     </message>
+    <message>
+        <source>Models</source>
+        <translation>Modelle</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Schließen</translation>
+    </message>
+    <message>
+        <source>Favorites</source>
+        <translation>Favoriten</translation>
+    </message>
+    <message>
+        <source>All Models</source>
+        <translation>Alle Modelle</translation>
+    </message>
+    <message>
+        <source>No models loaded</source>
+        <translation>Keine Modelle geladen</translation>
+    </message>
+    <message>
+        <source>Tap 'Refresh Models' to fetch from provider</source>
+        <translation>Auf 'Modelle aktualisieren' tippen, um vom Anbieter abzurufen</translation>
+    </message>
+    <message>
+        <source>Refresh Models</source>
+        <translation>Modelle aktualisieren</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Modelle werden abgerufen…</translation>
+    </message>
 </context>
 <context>
     <name>ProviderAliasDialog</name>
@@ -787,6 +923,21 @@
     <message>
         <source>Manage favorites</source>
         <translation>Favoriten verwalten</translation>
+    </message>
+</context>
+<context>
+    <name>RenameDialog</name>
+    <message>
+        <source>Rename Conversation</source>
+        <translation>Gespräch umbenennen</translation>
+    </message>
+    <message>
+        <source>Conversation name</source>
+        <translation>Name des Gesprächs</translation>
+    </message>
+    <message>
+        <source>Enter new name</source>
+        <translation>Neuen Namen eingeben</translation>
     </message>
 </context>
 <context>
@@ -1012,7 +1163,7 @@
     </message>
     <message>
         <source>Describe photo</source>
-        <translation>Foto beschreiben</translation>
+        <translation type="vanished">Foto beschreiben</translation>
     </message>
     <message>
         <source>Please describe this photo in %1.</source>
@@ -1020,7 +1171,7 @@
     </message>
     <message>
         <source>Translate text from photo</source>
-        <translation>Text im Foto übersetzen</translation>
+        <translation type="vanished">Text im Foto übersetzen</translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
@@ -1028,7 +1179,15 @@
     </message>
     <message>
         <source>Translate photo</source>
-        <translation>Foto übersetzen</translation>
+        <translation type="vanished">Foto übersetzen</translation>
+    </message>
+    <message>
+        <source>Describe</source>
+        <translation>Beschreiben</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>Übersetzen</translation>
     </message>
 </context>
 <context>

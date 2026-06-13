@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.1">
+<?xml version='1.0' encoding='utf-8'?>
+<TS version="2.1" language="en">
 <context>
     <name>AboutPage</name>
     <message>
@@ -72,183 +71,183 @@
     <name>AddProviderAliasDialog</name>
     <message>
         <source>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</source>
-        <translation type="unfinished"></translation>
+        <translation>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</translation>
     </message>
     <message>
         <source>Anthropic Claude API (or compatible endpoint).</source>
-        <translation type="unfinished"></translation>
+        <translation>Anthropic Claude API (or compatible endpoint).</translation>
     </message>
     <message>
         <source>Google Gemini API.</source>
-        <translation type="unfinished"></translation>
+        <translation>Google Gemini API.</translation>
     </message>
     <message>
         <source>Ollama server (local or remote).</source>
-        <translation type="unfinished"></translation>
+        <translation>Ollama server (local or remote).</translation>
     </message>
     <message>
         <source>Create provider</source>
-        <translation type="unfinished"></translation>
+        <translation>Create provider</translation>
     </message>
     <message>
         <source>Create</source>
-        <translation type="unfinished"></translation>
+        <translation>Create</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Basic information</source>
-        <translation type="unfinished"></translation>
+        <translation>Basic information</translation>
     </message>
     <message>
         <source>Provider name</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider name</translation>
     </message>
     <message>
         <source>My Gemini account</source>
-        <translation type="unfinished"></translation>
+        <translation>My Gemini account</translation>
     </message>
     <message>
         <source>Display name. Generated ID: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Display name. Generated ID: %1</translation>
     </message>
     <message>
         <source>Provider type</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider type</translation>
     </message>
     <message>
         <source>Server / endpoint</source>
-        <translation type="unfinished"></translation>
+        <translation>Server / endpoint</translation>
     </message>
     <message>
         <source>Official API</source>
-        <translation type="unfinished"></translation>
+        <translation>Official API</translation>
     </message>
     <message>
         <source>Ollama compatible</source>
-        <translation type="unfinished"></translation>
+        <translation>Ollama compatible</translation>
     </message>
     <message>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Custom</translation>
     </message>
     <message>
         <source>Select the API server to use</source>
-        <translation type="unfinished"></translation>
+        <translation>Select the API server to use</translation>
     </message>
     <message>
         <source>API configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>API configuration</translation>
     </message>
     <message>
         <source>API URL</source>
-        <translation type="unfinished"></translation>
+        <translation>API URL</translation>
     </message>
     <message>
         <source>https://api.example.com/v1</source>
-        <translation type="unfinished"></translation>
+        <translation>https://api.example.com/v1</translation>
     </message>
     <message>
         <source>Base URL (auto-filled from provider type)</source>
-        <translation type="unfinished"></translation>
+        <translation>Base URL (auto-filled from provider type)</translation>
     </message>
     <message>
         <source>API key</source>
-        <translation type="unfinished"></translation>
+        <translation>API key</translation>
     </message>
     <message>
         <source>API key (optional for local Ollama)</source>
-        <translation type="unfinished"></translation>
+        <translation>API key (optional for local Ollama)</translation>
     </message>
     <message>
         <source>Enter your API key…</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter your API key…</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
-        <translation type="unfinished"></translation>
+        <source>Ollama doesn't require an API key for local use</source>
+        <translation>Ollama doesn't require an API key for local use</translation>
     </message>
     <message>
         <source>Your API key for authentication</source>
-        <translation type="unfinished"></translation>
+        <translation>Your API key for authentication</translation>
     </message>
     <message>
         <source>Fetching models…</source>
-        <translation type="unfinished"></translation>
+        <translation>Fetching models…</translation>
     </message>
     <message>
         <source>Fetch available models</source>
-        <translation type="unfinished"></translation>
+        <translation>Fetch available models</translation>
     </message>
     <message>
         <source>Fetching models from provider, please wait…</source>
-        <translation type="unfinished"></translation>
+        <translation>Fetching models from provider, please wait…</translation>
     </message>
     <message>
         <source>Model selection</source>
-        <translation type="unfinished"></translation>
+        <translation>Model selection</translation>
     </message>
     <message>
         <source>Favorite model</source>
-        <translation type="unfinished"></translation>
+        <translation>Favorite model</translation>
     </message>
     <message>
         <source>Select from %1 available models</source>
-        <translation type="unfinished"></translation>
+        <translation>Select from %1 available models</translation>
     </message>
     <message>
         <source>Optional — fetch models to choose, or set it later</source>
-        <translation type="unfinished"></translation>
+        <translation>Optional — fetch models to choose, or set it later</translation>
     </message>
     <message>
         <source>Additional settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Additional settings</translation>
     </message>
     <message>
         <source>Description (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Description (optional)</translation>
     </message>
     <message>
         <source>Personal account, company proxy, etc.</source>
-        <translation type="unfinished"></translation>
+        <translation>Personal account, company proxy, etc.</translation>
     </message>
     <message>
         <source>Optional description to help identify this provider configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>Optional description to help identify this provider configuration</translation>
     </message>
     <message>
         <source>Web tools</source>
-        <translation type="unfinished"></translation>
+        <translation>Web tools</translation>
     </message>
     <message>
         <source>Enable web search</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable web search</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
-        <translation type="unfinished"></translation>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
+        <translation>Let the model call Ollama's web_search tool when it needs fresh information.</translation>
     </message>
     <message>
         <source>Enable web fetch</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable web fetch</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
-        <translation type="unfinished"></translation>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
+        <translation>Let the model call Ollama's web_fetch tool to read a specific page.</translation>
     </message>
     <message>
         <source>Web search API key (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Web search API key (optional)</translation>
     </message>
     <message>
         <source>Using provider API key</source>
-        <translation type="unfinished"></translation>
+        <translation>Using provider API key</translation>
     </message>
     <message>
         <source>If empty, the provider API key is used.</source>
-        <translation type="unfinished"></translation>
+        <translation>If empty, the provider API key is used.</translation>
     </message>
     <message>
         <source>Sign up or get API key</source>
@@ -259,105 +258,105 @@
     <name>AdvancedSettingsDialog</name>
     <message>
         <source>Advanced Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Advanced Settings</translation>
     </message>
     <message>
         <source>Temperature</source>
-        <translation type="unfinished"></translation>
+        <translation>Temperature</translation>
     </message>
     <message>
         <source>Controls randomness: 0 = deterministic, 2 = very creative</source>
-        <translation type="unfinished"></translation>
+        <translation>Controls randomness: 0 = deterministic, 2 = very creative</translation>
     </message>
     <message>
         <source>Seed</source>
-        <translation type="unfinished"></translation>
+        <translation>Seed</translation>
     </message>
     <message>
         <source>Seed (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Seed (optional)</translation>
     </message>
     <message>
         <source>Leave empty for random</source>
-        <translation type="unfinished"></translation>
+        <translation>Leave empty for random</translation>
     </message>
     <message>
         <source>Same seed = same response (if supported). Leave empty for random.</source>
-        <translation type="unfinished"></translation>
+        <translation>Same seed = same response (if supported). Leave empty for random.</translation>
     </message>
     <message>
         <source>Reset to Defaults</source>
-        <translation type="unfinished"></translation>
+        <translation>Reset to Defaults</translation>
     </message>
 </context>
 <context>
     <name>CameraCapturePage</name>
     <message>
         <source>Camera not available</source>
-        <translation type="unfinished"></translation>
+        <translation>Camera not available</translation>
     </message>
 </context>
 <context>
     <name>ChatPage</name>
     <message>
         <source>Export chat</source>
-        <translation type="unfinished"></translation>
+        <translation>Export chat</translation>
     </message>
     <message>
         <source>Select image</source>
-        <translation type="unfinished"></translation>
+        <translation>Select image</translation>
     </message>
     <message>
         <source>Add image</source>
-        <translation type="unfinished"></translation>
+        <translation>Add image</translation>
     </message>
     <message>
         <source>From gallery</source>
-        <translation type="unfinished"></translation>
+        <translation>From gallery</translation>
     </message>
     <message>
         <source>From files</source>
-        <translation type="unfinished"></translation>
+        <translation>From files</translation>
     </message>
     <message>
         <source>Select document</source>
-        <translation type="unfinished"></translation>
+        <translation>Select document</translation>
     </message>
     <message>
         <source>file truncated at 32000 chars</source>
-        <translation type="unfinished"></translation>
+        <translation>file truncated at 32000 chars</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Settings</translation>
     </message>
     <message>
         <source>Advanced LLM Parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Advanced LLM Parameters</translation>
     </message>
     <message>
         <source>Provider</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider</translation>
     </message>
     <message>
         <source>Back to Conversations</source>
-        <translation type="unfinished"></translation>
+        <translation>Back to Conversations</translation>
     </message>
     <message>
         <source>🔍 Searching: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>🔍 Searching: %1</translation>
     </message>
     <message>
         <source>📄 Reading: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>📄 Reading: %1</translation>
     </message>
     <message>
         <source>Sources</source>
-        <translation type="unfinished">Sources</translation>
+        <translation>Sources</translation>
     </message>
     <message>
         <source>Always answer in %1, regardless of the language the question is written in.</source>
-        <translation type="unfinished"></translation>
+        <translation>Always answer in %1, regardless of the language the question is written in.</translation>
     </message>
     <message>
         <source>🔍 Web-Tools used (%1 calls)</source>
@@ -371,303 +370,404 @@
         <source>📚 Sources (%1)</source>
         <translation>📚 Sources (%1)</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Chat</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>New Conversation</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Conversation %1</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Describe photo</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Translate photo</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Retry</translation>
+    </message>
+    <message>
+        <source>AI is thinking...</source>
+        <translation>AI is thinking...</translation>
+    </message>
+    <message>
+        <source>AI is responding...</source>
+        <translation>AI is responding...</translation>
+    </message>
+    <message>
+        <source>Image
+Preview</source>
+        <translation>Image
+Preview</translation>
+    </message>
+    <message>
+        <source>Add a message to your images...</source>
+        <translation>Add a message to your images...</translation>
+    </message>
+    <message>
+        <source>Type a message...</source>
+        <translation>Type a message...</translation>
+    </message>
+</context>
+<context>
+    <name>ConversationDialog</name>
+    <message>
+        <source>Conversations</source>
+        <translation>Conversations</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>New Conversation</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Conversation %1</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Rename</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Delete</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
     <message>
         <source>Export</source>
-        <translation type="unfinished"></translation>
+        <translation>Export</translation>
     </message>
     <message>
         <source>Today</source>
-        <translation type="unfinished"></translation>
+        <translation>Today</translation>
     </message>
     <message>
         <source>Yesterday</source>
-        <translation type="unfinished"></translation>
+        <translation>Yesterday</translation>
     </message>
     <message>
         <source>This week</source>
-        <translation type="unfinished"></translation>
+        <translation>This week</translation>
     </message>
     <message>
         <source>Last week</source>
-        <translation type="unfinished"></translation>
+        <translation>Last week</translation>
     </message>
     <message>
         <source>Older</source>
-        <translation type="unfinished"></translation>
+        <translation>Older</translation>
     </message>
     <message>
         <source>January</source>
-        <translation type="unfinished"></translation>
+        <translation>January</translation>
     </message>
     <message>
         <source>February</source>
-        <translation type="unfinished"></translation>
+        <translation>February</translation>
     </message>
     <message>
         <source>March</source>
-        <translation type="unfinished"></translation>
+        <translation>March</translation>
     </message>
     <message>
         <source>April</source>
-        <translation type="unfinished"></translation>
+        <translation>April</translation>
     </message>
     <message>
         <source>May</source>
-        <translation type="unfinished"></translation>
+        <translation>May</translation>
     </message>
     <message>
         <source>June</source>
-        <translation type="unfinished"></translation>
+        <translation>June</translation>
     </message>
     <message>
         <source>July</source>
-        <translation type="unfinished"></translation>
+        <translation>July</translation>
     </message>
     <message>
         <source>August</source>
-        <translation type="unfinished"></translation>
+        <translation>August</translation>
     </message>
     <message>
         <source>September</source>
-        <translation type="unfinished"></translation>
+        <translation>September</translation>
     </message>
     <message>
         <source>October</source>
-        <translation type="unfinished"></translation>
+        <translation>October</translation>
     </message>
     <message>
         <source>November</source>
-        <translation type="unfinished"></translation>
+        <translation>November</translation>
     </message>
     <message>
         <source>December</source>
-        <translation type="unfinished"></translation>
+        <translation>December</translation>
     </message>
     <message>
         <source>New Conversation</source>
-        <translation type="unfinished"></translation>
+        <translation>New Conversation</translation>
     </message>
     <message>
         <source>New Chat</source>
-        <translation type="unfinished"></translation>
+        <translation>New Chat</translation>
     </message>
     <message>
         <source>Please describe this photo in %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Please describe this photo in %1.</translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Please translate all text visible in this photo to %1.</translation>
     </message>
     <message>
         <source>Describe</source>
-        <translation type="unfinished"></translation>
+        <translation>Describe</translation>
     </message>
     <message>
         <source>Translate</source>
-        <translation type="unfinished"></translation>
+        <translation>Translate</translation>
     </message>
     <message>
         <source>Describe photo</source>
-        <translation type="unfinished"></translation>
+        <translation>Describe photo</translation>
     </message>
     <message>
         <source>Translate photo</source>
-        <translation type="unfinished"></translation>
+        <translation>Translate photo</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Settings</translation>
     </message>
     <message>
         <source>About</source>
-        <translation type="unfinished"></translation>
+        <translation>About</translation>
+    </message>
+    <message>
+        <source>Chat</source>
+        <translation>Chat</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Conversation %1</translation>
+    </message>
+    <message>
+        <source>Conversations</source>
+        <translation>Conversations</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Rename</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Delete</translation>
+    </message>
+    <message>
+        <source>Deleting conversation</source>
+        <translation>Deleting conversation</translation>
+    </message>
+    <message>
+        <source>No conversations yet</source>
+        <translation>No conversations yet</translation>
+    </message>
+    <message>
+        <source>Pull down to access settings or tap 'New Chat' to start</source>
+        <translation>Pull down to access settings or tap 'New Chat' to start</translation>
     </message>
 </context>
 <context>
     <name>EditProviderAliasDialog</name>
     <message>
         <source>Edit provider</source>
-        <translation type="unfinished"></translation>
+        <translation>Edit provider</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Save</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Basic information</source>
-        <translation type="unfinished"></translation>
+        <translation>Basic information</translation>
     </message>
     <message>
         <source>Provider name</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider name</translation>
     </message>
     <message>
         <source>My Gemini account</source>
-        <translation type="unfinished"></translation>
+        <translation>My Gemini account</translation>
     </message>
     <message>
         <source>Display name. Generated ID: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Display name. Generated ID: %1</translation>
     </message>
     <message>
         <source>Provider type</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider type</translation>
     </message>
     <message>
         <source>OpenAI Compatible</source>
-        <translation type="unfinished"></translation>
+        <translation>OpenAI Compatible</translation>
     </message>
     <message>
         <source>Anthropic Claude</source>
-        <translation type="unfinished"></translation>
+        <translation>Anthropic Claude</translation>
     </message>
     <message>
         <source>Google Gemini</source>
-        <translation type="unfinished"></translation>
+        <translation>Google Gemini</translation>
     </message>
     <message>
         <source>Ollama Local</source>
-        <translation type="unfinished"></translation>
+        <translation>Ollama Local</translation>
     </message>
     <message>
         <source>Server / endpoint</source>
-        <translation type="unfinished"></translation>
+        <translation>Server / endpoint</translation>
     </message>
     <message>
         <source>Official API</source>
-        <translation type="unfinished"></translation>
+        <translation>Official API</translation>
     </message>
     <message>
         <source>Ollama compatible</source>
-        <translation type="unfinished"></translation>
+        <translation>Ollama compatible</translation>
     </message>
     <message>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Custom</translation>
     </message>
     <message>
         <source>Select the API server to use</source>
-        <translation type="unfinished"></translation>
+        <translation>Select the API server to use</translation>
     </message>
     <message>
         <source>API configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>API configuration</translation>
     </message>
     <message>
         <source>API URL</source>
-        <translation type="unfinished"></translation>
+        <translation>API URL</translation>
     </message>
     <message>
         <source>https://api.example.com/v1</source>
-        <translation type="unfinished"></translation>
+        <translation>https://api.example.com/v1</translation>
     </message>
     <message>
         <source>Base URL for the API endpoint (automatically set based on provider type)</source>
-        <translation type="unfinished"></translation>
+        <translation>Base URL for the API endpoint (automatically set based on provider type)</translation>
     </message>
     <message>
         <source>API key</source>
-        <translation type="unfinished"></translation>
+        <translation>API key</translation>
     </message>
     <message>
         <source>API key (optional for local Ollama)</source>
-        <translation type="unfinished"></translation>
+        <translation>API key (optional for local Ollama)</translation>
     </message>
     <message>
         <source>Enter your API key…</source>
-        <translation type="unfinished"></translation>
+        <translation>Enter your API key…</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
-        <translation type="unfinished"></translation>
+        <source>Ollama doesn't require an API key for local use</source>
+        <translation>Ollama doesn't require an API key for local use</translation>
     </message>
     <message>
         <source>Your API key for authentication (required for most providers)</source>
-        <translation type="unfinished"></translation>
+        <translation>Your API key for authentication (required for most providers)</translation>
     </message>
     <message>
         <source>Fetching models…</source>
-        <translation type="unfinished"></translation>
+        <translation>Fetching models…</translation>
     </message>
     <message>
         <source>Fetch available models</source>
-        <translation type="unfinished"></translation>
+        <translation>Fetch available models</translation>
     </message>
     <message>
         <source>Fetching models from provider, please wait…</source>
-        <translation type="unfinished"></translation>
+        <translation>Fetching models from provider, please wait…</translation>
     </message>
     <message>
         <source>Model selection</source>
-        <translation type="unfinished"></translation>
+        <translation>Model selection</translation>
     </message>
     <message>
         <source>Favorite model</source>
-        <translation type="unfinished"></translation>
+        <translation>Favorite model</translation>
     </message>
     <message>
         <source>Select from %1 available models</source>
-        <translation type="unfinished"></translation>
+        <translation>Select from %1 available models</translation>
     </message>
     <message>
         <source>Optional — fetch models to choose, or set it later</source>
-        <translation type="unfinished"></translation>
+        <translation>Optional — fetch models to choose, or set it later</translation>
     </message>
     <message>
         <source>Additional settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Additional settings</translation>
     </message>
     <message>
         <source>Description (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Description (optional)</translation>
     </message>
     <message>
         <source>Personal account, company proxy, etc.</source>
-        <translation type="unfinished"></translation>
+        <translation>Personal account, company proxy, etc.</translation>
     </message>
     <message>
         <source>Optional description to help identify this provider configuration</source>
-        <translation type="unfinished"></translation>
+        <translation>Optional description to help identify this provider configuration</translation>
     </message>
     <message>
         <source>Web tools</source>
-        <translation type="unfinished"></translation>
+        <translation>Web tools</translation>
     </message>
     <message>
         <source>Enable web search</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable web search</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
-        <translation type="unfinished"></translation>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
+        <translation>Let the model call Ollama's web_search tool when it needs fresh information.</translation>
     </message>
     <message>
         <source>Enable web fetch</source>
-        <translation type="unfinished"></translation>
+        <translation>Enable web fetch</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
-        <translation type="unfinished"></translation>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
+        <translation>Let the model call Ollama's web_fetch tool to read a specific page.</translation>
     </message>
     <message>
         <source>Web search API key (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Web search API key (optional)</translation>
     </message>
     <message>
         <source>Using provider API key</source>
-        <translation type="unfinished"></translation>
+        <translation>Using provider API key</translation>
     </message>
     <message>
         <source>If empty, the provider API key is used.</source>
-        <translation type="unfinished"></translation>
+        <translation>If empty, the provider API key is used.</translation>
     </message>
     <message>
         <source>Sign up or get API key</source>
@@ -678,357 +778,404 @@
     <name>ExportDialog</name>
     <message>
         <source>Export Conversation</source>
-        <translation type="unfinished"></translation>
+        <translation>Export Conversation</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished"></translation>
+        <translation>Format</translation>
     </message>
     <message>
         <source>Plain text</source>
-        <translation type="unfinished"></translation>
+        <translation>Plain text</translation>
     </message>
     <message>
         <source>Save to</source>
-        <translation type="unfinished"></translation>
+        <translation>Save to</translation>
     </message>
     <message>
         <source>Change folder...</source>
-        <translation type="unfinished"></translation>
+        <translation>Change folder...</translation>
     </message>
     <message>
         <source>Select export folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Select export folder</translation>
     </message>
     <message>
         <source>Preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Preview</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>Save</translation>
     </message>
     <message>
         <source>Copy to clipboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Copy to clipboard</translation>
+    </message>
+    <message>
+        <source>Markdown</source>
+        <translation>Markdown</translation>
     </message>
 </context>
 <context>
     <name>FavoriteModelsDialog</name>
     <message>
         <source>Manage favorite models</source>
-        <translation type="unfinished"></translation>
+        <translation>Manage favorite models</translation>
     </message>
     <message>
         <source>Save (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Save (%1)</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Provider: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider: %1</translation>
     </message>
     <message>
         <source>%1 favorite models selected</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 favorite models selected</translation>
     </message>
     <message>
         <source>Available models (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Available models (%1)</translation>
     </message>
 </context>
 <context>
     <name>InfoDialog</name>
     <message>
         <source>Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Information</translation>
     </message>
     <message>
         <source>Close</source>
-        <translation type="unfinished">Close</translation>
+        <translation>Close</translation>
     </message>
 </context>
 <context>
     <name>ModelListDialog</name>
     <message>
         <source>Unmark as vision-capable</source>
-        <translation type="unfinished"></translation>
+        <translation>Unmark as vision-capable</translation>
     </message>
     <message>
         <source>Mark as vision-capable</source>
-        <translation type="unfinished"></translation>
+        <translation>Mark as vision-capable</translation>
+    </message>
+    <message>
+        <source>Models</source>
+        <translation>Models</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Close</translation>
+    </message>
+    <message>
+        <source>Favorites</source>
+        <translation>Favorites</translation>
+    </message>
+    <message>
+        <source>All Models</source>
+        <translation>All Models</translation>
+    </message>
+    <message>
+        <source>No models loaded</source>
+        <translation>No models loaded</translation>
+    </message>
+    <message>
+        <source>Tap 'Refresh Models' to fetch from provider</source>
+        <translation>Tap 'Refresh Models' to fetch from provider</translation>
+    </message>
+    <message>
+        <source>Refresh Models</source>
+        <translation>Refresh Models</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Fetching models…</translation>
     </message>
 </context>
 <context>
     <name>ProviderAliasDialog</name>
     <message>
         <source>Select Provider &amp; Model</source>
-        <translation type="unfinished"></translation>
+        <translation>Select Provider &amp; Model</translation>
     </message>
     <message>
         <source>Select</source>
-        <translation type="unfinished"></translation>
+        <translation>Select</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>Provider</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider</translation>
     </message>
     <message>
         <source>Model</source>
-        <translation type="unfinished"></translation>
+        <translation>Model</translation>
     </message>
     <message>
         <source>Manage favorites</source>
-        <translation type="unfinished"></translation>
+        <translation>Manage favorites</translation>
+    </message>
+</context>
+<context>
+    <name>RenameDialog</name>
+    <message>
+        <source>Rename Conversation</source>
+        <translation>Rename Conversation</translation>
+    </message>
+    <message>
+        <source>Conversation name</source>
+        <translation>Conversation name</translation>
+    </message>
+    <message>
+        <source>Enter new name</source>
+        <translation>Enter new name</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Send photo actions immediately</source>
-        <translation type="unfinished"></translation>
+        <translation>Send photo actions immediately</translation>
     </message>
     <message>
         <source>When off, the chat opens with the photo and prompt ready for you to send.</source>
-        <translation type="unfinished"></translation>
+        <translation>When off, the chat opens with the photo and prompt ready for you to send.</translation>
     </message>
     <message>
         <source>Not set — photo actions use the last chat model. Pick a vision-capable model.</source>
-        <translation type="unfinished"></translation>
+        <translation>Not set — photo actions use the last chat model. Pick a vision-capable model.</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Settings</translation>
     </message>
     <message>
         <source>0 — None (Production)</source>
-        <translation type="unfinished"></translation>
+        <translation>0 — None (Production)</translation>
     </message>
     <message>
         <source>1 — Normal (Errors &amp; Important)</source>
-        <translation type="unfinished"></translation>
+        <translation>1 — Normal (Errors &amp; Important)</translation>
     </message>
     <message>
         <source>2 — Informative (API Calls)</source>
-        <translation type="unfinished"></translation>
+        <translation>2 — Informative (API Calls)</translation>
     </message>
     <message>
         <source>3 — Verbose (All Operations)</source>
-        <translation type="unfinished"></translation>
+        <translation>3 — Verbose (All Operations)</translation>
     </message>
     <message>
         <source>512 px — compact</source>
-        <translation type="unfinished"></translation>
+        <translation>512 px — compact</translation>
     </message>
     <message>
         <source>768 px — medium</source>
-        <translation type="unfinished"></translation>
+        <translation>768 px — medium</translation>
     </message>
     <message>
         <source>1024 px — good quality</source>
-        <translation type="unfinished"></translation>
+        <translation>1024 px — good quality</translation>
     </message>
     <message>
         <source>1280 px — default</source>
-        <translation type="unfinished"></translation>
+        <translation>1280 px — default</translation>
     </message>
     <message>
         <source>1920 px — high quality</source>
-        <translation type="unfinished"></translation>
+        <translation>1920 px — high quality</translation>
     </message>
     <message>
         <source>Original — no resize</source>
-        <translation type="unfinished"></translation>
+        <translation>Original — no resize</translation>
     </message>
     <message>
         <source>Provider: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Provider: %1</translation>
     </message>
     <message>
         <source>Status: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Status: %1</translation>
     </message>
     <message>
         <source>✓ Available</source>
-        <translation type="unfinished"></translation>
+        <translation>✓ Available</translation>
     </message>
     <message>
         <source>URL: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>URL: %1</translation>
     </message>
     <message>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Unknown</translation>
     </message>
     <message>
         <source>Connection Test</source>
-        <translation type="unfinished"></translation>
+        <translation>Connection Test</translation>
     </message>
     <message>
         <source>Add provider</source>
-        <translation type="unfinished"></translation>
+        <translation>Add provider</translation>
     </message>
     <message>
         <source>Providers</source>
-        <translation type="unfinished"></translation>
+        <translation>Providers</translation>
     </message>
     <message>
         <source>No providers yet. Pull down to add one and choose its type.</source>
-        <translation type="unfinished"></translation>
+        <translation>No providers yet. Pull down to add one and choose its type.</translation>
     </message>
     <message>
         <source>Type: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Type: %1</translation>
     </message>
     <message>
         <source>Favorite: ★ %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Favorite: ★ %1</translation>
     </message>
     <message>
         <source>Favorites: ★ %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Favorites: ★ %1</translation>
     </message>
     <message>
         <source>API key set</source>
-        <translation type="unfinished"></translation>
+        <translation>API key set</translation>
     </message>
     <message>
         <source>Manage favorites</source>
-        <translation type="unfinished"></translation>
+        <translation>Manage favorites</translation>
     </message>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Edit</translation>
     </message>
     <message>
         <source>Test connection</source>
-        <translation type="unfinished"></translation>
+        <translation>Test connection</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>Delete</translation>
     </message>
     <message>
         <source>Photo &amp; Vision</source>
-        <translation type="unfinished"></translation>
+        <translation>Photo &amp; Vision</translation>
     </message>
     <message>
         <source>Default model for photo actions</source>
-        <translation type="unfinished"></translation>
+        <translation>Default model for photo actions</translation>
     </message>
     <message>
         <source>Not set</source>
-        <translation type="unfinished"></translation>
+        <translation>Not set</translation>
     </message>
     <message>
         <source>Used for cover, share and photo actions. Pick a vision-capable model.</source>
-        <translation type="unfinished"></translation>
+        <translation>Used for cover, share and photo actions. Pick a vision-capable model.</translation>
     </message>
     <message>
         <source>Images</source>
-        <translation type="unfinished"></translation>
+        <translation>Images</translation>
     </message>
     <message>
         <source>Max image size</source>
-        <translation type="unfinished"></translation>
+        <translation>Max image size</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>Advanced</translation>
     </message>
     <message>
         <source>Debug level</source>
-        <translation type="unfinished"></translation>
+        <translation>Debug level</translation>
     </message>
     <message>
         <source>Deleting %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Deleting %1</translation>
     </message>
     <message>
         <source>Default model</source>
-        <translation type="unfinished"></translation>
+        <translation>Default model</translation>
     </message>
     <message>
         <source>Model for new chats</source>
-        <translation type="unfinished"></translation>
+        <translation>Model for new chats</translation>
     </message>
     <message>
         <source>New chats start with this model, regardless of provider.</source>
-        <translation type="unfinished"></translation>
+        <translation>New chats start with this model, regardless of provider.</translation>
     </message>
     <message>
         <source>Max web tool iterations</source>
-        <translation type="unfinished"></translation>
+        <translation>Max web tool iterations</translation>
     </message>
     <message>
         <source>How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.</source>
-        <translation type="unfinished"></translation>
+        <translation>How many web_search / web_fetch rounds an Ollama model may run before a final answer is forced.</translation>
     </message>
     <message>
         <source>3 — minimal</source>
-        <translation type="unfinished"></translation>
+        <translation>3 — minimal</translation>
     </message>
     <message>
         <source>5 — low</source>
-        <translation type="unfinished"></translation>
+        <translation>5 — low</translation>
     </message>
     <message>
         <source>8 — default</source>
-        <translation type="unfinished"></translation>
+        <translation>8 — default</translation>
     </message>
     <message>
         <source>10 — high</source>
-        <translation type="unfinished"></translation>
+        <translation>10 — high</translation>
     </message>
     <message>
         <source>15 — maximum</source>
-        <translation type="unfinished"></translation>
+        <translation>15 — maximum</translation>
     </message>
     <message>
         <source>Answer in system language</source>
-        <translation type="unfinished"></translation>
+        <translation>Answer in system language</translation>
     </message>
     <message>
         <source>Tell the model to always reply in the device language (%1).</source>
-        <translation type="unfinished"></translation>
+        <translation>Tell the model to always reply in the device language (%1).</translation>
     </message>
 </context>
 <context>
     <name>ShareActionPage</name>
     <message>
         <source>Use photo in AI chat</source>
-        <translation type="unfinished"></translation>
+        <translation>Use photo in AI chat</translation>
     </message>
     <message>
         <source>What would you like to do with this photo?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Describe photo</source>
-        <translation type="unfinished"></translation>
+        <translation>What would you like to do with this photo?</translation>
     </message>
     <message>
         <source>Please describe this photo in %1.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Translate text from photo</source>
-        <translation type="unfinished"></translation>
+        <translation>Please describe this photo in %1.</translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Please translate all text visible in this photo to %1.</translation>
     </message>
     <message>
-        <source>Translate photo</source>
-        <translation type="unfinished"></translation>
+        <source>Describe</source>
+        <translation>Describe</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>Translate</translation>
     </message>
 </context>
 <context>
@@ -1084,19 +1231,19 @@
     <name>harbour-sailorAI</name>
     <message>
         <source>Please describe this photo in %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Please describe this photo in %1.</translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Please translate all text visible in this photo to %1.</translation>
     </message>
     <message>
         <source>Describe photo</source>
-        <translation type="unfinished"></translation>
+        <translation>Describe photo</translation>
     </message>
     <message>
         <source>Translate photo</source>
-        <translation type="unfinished"></translation>
+        <translation>Translate photo</translation>
     </message>
 </context>
 </TS>

@@ -117,7 +117,7 @@ Dialog {
                 label: qsTr("Format")
                 currentIndex: format === "markdown" ? 0 : 1
                 menu: ContextMenu {
-                    MenuItem { text: "Markdown"; onClicked: format = "markdown" }
+                    MenuItem { text: qsTr("Markdown"); onClicked: format = "markdown" }
                     MenuItem { text: qsTr("Plain text"); onClicked: format = "text" }
                 }
             }

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
+<?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" language="fi">
 <context>
     <name>AboutPage</name>
@@ -167,7 +166,7 @@
         <translation>Syötä API-avaimesi …</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <source>Ollama doesn't require an API key for local use</source>
         <translation>Ollama ei vaadi API-avainta paikalliseen käyttöön</translation>
     </message>
     <message>
@@ -227,7 +226,7 @@
         <translation>Ota verkkohaku käyttöön</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
         <translation>Antaa mallin kutsua Ollaman web_search-työkalua, kun se tarvitsee tuoreita tietoja.</translation>
     </message>
     <message>
@@ -235,7 +234,7 @@
         <translation>Ota web fetch käyttöön</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
         <translation>Antaa mallin kutsua Ollaman web_fetch-työkalua tietyn sivun lukemiseen.</translation>
     </message>
     <message>
@@ -371,6 +370,75 @@
         <source>📚 Sources (%1)</source>
         <translation>📚 Lähteet (%1)</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Keskustelu</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>Uusi keskustelu</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Keskustelu %1</translation>
+    </message>
+    <message>
+        <source>Describe photo</source>
+        <translation>Kuvaile kuva</translation>
+    </message>
+    <message>
+        <source>Translate photo</source>
+        <translation>Käännä kuva</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Yritä uudelleen</translation>
+    </message>
+    <message>
+        <source>AI is thinking...</source>
+        <translation>Tekoäly miettii...</translation>
+    </message>
+    <message>
+        <source>AI is responding...</source>
+        <translation>Tekoäly vastaa...</translation>
+    </message>
+    <message>
+        <source>Image
+Preview</source>
+        <translation>Kuva
+Esikatselu</translation>
+    </message>
+    <message>
+        <source>Add a message to your images...</source>
+        <translation>Lisää viesti kuvillesi...</translation>
+    </message>
+    <message>
+        <source>Type a message...</source>
+        <translation>Kirjoita viesti...</translation>
+    </message>
+</context>
+<context>
+    <name>ConversationDialog</name>
+    <message>
+        <source>Conversations</source>
+        <translation>Keskustelut</translation>
+    </message>
+    <message>
+        <source>New Conversation</source>
+        <translation>Uusi keskustelu</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Keskustelu %1</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Nimeä uudelleen</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Poista</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -486,6 +554,38 @@
         <source>About</source>
         <translation>Tietoja</translation>
     </message>
+    <message>
+        <source>Chat</source>
+        <translation>Keskustelu</translation>
+    </message>
+    <message>
+        <source>Conversation %1</source>
+        <translation>Keskustelu %1</translation>
+    </message>
+    <message>
+        <source>Conversations</source>
+        <translation>Keskustelut</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Nimeä uudelleen</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Poista</translation>
+    </message>
+    <message>
+        <source>Deleting conversation</source>
+        <translation>Poistetaan keskustelua</translation>
+    </message>
+    <message>
+        <source>No conversations yet</source>
+        <translation>Ei keskusteluja vielä</translation>
+    </message>
+    <message>
+        <source>Pull down to access settings or tap 'New Chat' to start</source>
+        <translation>Avaa asetukset vetämällä alas tai aloita napauttamalla 'Uusi keskustelu'</translation>
+    </message>
 </context>
 <context>
     <name>EditProviderAliasDialog</name>
@@ -586,7 +686,7 @@
         <translation>Syötä API-avaimesi …</translation>
     </message>
     <message>
-        <source>Ollama doesn&apos;t require an API key for local use</source>
+        <source>Ollama doesn't require an API key for local use</source>
         <translation>Ollama ei vaadi API-avainta paikalliseen käyttöön</translation>
     </message>
     <message>
@@ -646,7 +746,7 @@
         <translation>Ota verkkohaku käyttöön</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_search tool when it needs fresh information.</source>
+        <source>Let the model call Ollama's web_search tool when it needs fresh information.</source>
         <translation>Antaa mallin kutsua Ollaman web_search-työkalua, kun se tarvitsee tuoreita tietoja.</translation>
     </message>
     <message>
@@ -654,7 +754,7 @@
         <translation>Ota web fetch käyttöön</translation>
     </message>
     <message>
-        <source>Let the model call Ollama&apos;s web_fetch tool to read a specific page.</source>
+        <source>Let the model call Ollama's web_fetch tool to read a specific page.</source>
         <translation>Antaa mallin kutsua Ollaman web_fetch-työkalua tietyn sivun lukemiseen.</translation>
     </message>
     <message>
@@ -712,6 +812,10 @@
         <source>Copy to clipboard</source>
         <translation>Kopioi leikepöydälle</translation>
     </message>
+    <message>
+        <source>Markdown</source>
+        <translation>Markdown</translation>
+    </message>
 </context>
 <context>
     <name>FavoriteModelsDialog</name>
@@ -761,6 +865,38 @@
         <source>Mark as vision-capable</source>
         <translation>Merkitse näkökykyiseksi</translation>
     </message>
+    <message>
+        <source>Models</source>
+        <translation>Mallit</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Sulje</translation>
+    </message>
+    <message>
+        <source>Favorites</source>
+        <translation>Suosikit</translation>
+    </message>
+    <message>
+        <source>All Models</source>
+        <translation>Kaikki mallit</translation>
+    </message>
+    <message>
+        <source>No models loaded</source>
+        <translation>Malleja ei ladattu</translation>
+    </message>
+    <message>
+        <source>Tap 'Refresh Models' to fetch from provider</source>
+        <translation>Napauta 'Päivitä mallit' hakeaksesi palveluntarjoajalta</translation>
+    </message>
+    <message>
+        <source>Refresh Models</source>
+        <translation>Päivitä mallit</translation>
+    </message>
+    <message>
+        <source>Fetching models…</source>
+        <translation>Haetaan malleja…</translation>
+    </message>
 </context>
 <context>
     <name>ProviderAliasDialog</name>
@@ -787,6 +923,21 @@
     <message>
         <source>Manage favorites</source>
         <translation>Hallitse suosikkeja</translation>
+    </message>
+</context>
+<context>
+    <name>RenameDialog</name>
+    <message>
+        <source>Rename Conversation</source>
+        <translation>Nimeä keskustelu uudelleen</translation>
+    </message>
+    <message>
+        <source>Conversation name</source>
+        <translation>Keskustelun nimi</translation>
+    </message>
+    <message>
+        <source>Enter new name</source>
+        <translation>Anna uusi nimi</translation>
     </message>
 </context>
 <context>
@@ -1012,7 +1163,7 @@
     </message>
     <message>
         <source>Describe photo</source>
-        <translation>Kuvaile valokuva</translation>
+        <translation type="vanished">Kuvaile valokuva</translation>
     </message>
     <message>
         <source>Please describe this photo in %1.</source>
@@ -1020,7 +1171,7 @@
     </message>
     <message>
         <source>Translate text from photo</source>
-        <translation>Käännä valokuvan teksti</translation>
+        <translation type="vanished">Käännä valokuvan teksti</translation>
     </message>
     <message>
         <source>Please translate all text visible in this photo to %1.</source>
@@ -1028,7 +1179,15 @@
     </message>
     <message>
         <source>Translate photo</source>
-        <translation>Käännä valokuva</translation>
+        <translation type="vanished">Käännä valokuva</translation>
+    </message>
+    <message>
+        <source>Describe</source>
+        <translation>Kuvaile</translation>
+    </message>
+    <message>
+        <source>Translate</source>
+        <translation>Käännä</translation>
     </message>
 </context>
 <context>

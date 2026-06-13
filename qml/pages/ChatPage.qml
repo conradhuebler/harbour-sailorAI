@@ -57,6 +57,19 @@ Page {
         });
     }
 
+    // Claude Generated: translate the canonical fallback conversation names used internally
+    // ("Chat", "New Conversation", "Conversation N") into the current UI language for display.
+    function displayConversationName(name) {
+        if (!name) return qsTr("Chat")
+        if (name === "Chat") return qsTr("Chat")
+        if (name === "New Conversation") return qsTr("New Conversation")
+        var m = name.match(/^Conversation (\d+)$/)
+        if (m) return qsTr("Conversation %1").arg(parseInt(m[1], 10))
+        if (name === "Describe photo") return qsTr("Describe photo")
+        if (name === "Translate photo") return qsTr("Translate photo")
+        return name
+    }
+
     // Claude Generated: Push camera page; on capture return to this chat and attach the photo.
     function openCameraAction(prompt) {
         var camPage = pageStack.push(Qt.resolvedUrl("CameraCapturePage.qml"))
@@ -1098,7 +1111,7 @@ Page {
                 onClicked: {
                     var displayName = conversationName && conversationName !== "Chat"
                                       ? conversationName
-                                      : ("Conversation " + currentConversationId)
+                                      : qsTr("Conversation %1").arg(currentConversationId)
                     pageStack.push(Qt.resolvedUrl("../dialogs/ExportDialog.qml"), {
                         "conversationId": currentConversationId,
                         "conversationName": displayName
@@ -1114,7 +1127,7 @@ Page {
 
             PageHeader {
                 id: pageHeader
-                title: conversationName
+                title: displayConversationName(conversationName)
                 description: getProviderDisplayName() + " (" + selectedModel + ")"
             }
 
@@ -1349,7 +1362,7 @@ Page {
                         // Retry button for error messages
                         Button {
                             visible: messageItem.isErrorMessage
-                            text: "Retry"
+                            text: qsTr("Retry")
                             width: Theme.buttonWidthSmall
                             anchors.top: messageBubble.bottom
                             anchors.topMargin: Theme.paddingSmall
@@ -1409,7 +1422,7 @@ Page {
     // Status indicators positioned between chat and input
     Label {
         visible: isGenerating && streamingMessageIndex < 0
-        text: "AI is thinking..."
+        text: qsTr("AI is thinking...")
         anchors.bottom: messageInputContainer.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: Theme.paddingSmall
@@ -1419,7 +1432,7 @@ Page {
     
     Label {
         visible: isGenerating && streamingMessageIndex >= 0
-        text: "AI is responding..."
+        text: qsTr("AI is responding...")
         anchors.bottom: messageInputContainer.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottomMargin: Theme.paddingSmall
@@ -1491,7 +1504,7 @@ Page {
                             Label {
                                 visible: previewImage.status === Image.Error
                                 anchors.centerIn: parent
-                                text: "Image\nPreview"
+                                text: qsTr("Image\nPreview")
                                 font.pixelSize: Theme.fontSizeExtraSmall
                                 color: Theme.secondaryColor
                                 horizontalAlignment: Text.AlignHCenter
@@ -1529,7 +1542,7 @@ Page {
         TextArea {
             id: textField
             width: parent.width
-            placeholderText: hasImages ? "Add a message to your images..." : "Type a message..."
+            placeholderText: hasImages ? qsTr("Add a message to your images...") : qsTr("Type a message...")
             
             // Ensure the text area can receive focus and input
             focus: true

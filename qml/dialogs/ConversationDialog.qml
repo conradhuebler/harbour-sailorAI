@@ -20,11 +20,11 @@ Dialog {
             spacing: Theme.paddingLarge
             
             DialogHeader {
-                title: "Conversations"
+                title: qsTr("Conversations")
             }
-            
+
             Button {
-                text: "New Conversation"
+                text: qsTr("New Conversation")
                 anchors.horizontalCenter: parent.horizontalCenter
                 onClicked: {
                     newConversation()
@@ -45,7 +45,7 @@ Dialog {
                     }
                     
                     Label {
-                        text: model.name || "Conversation " + model.id
+                        text: qsTr("Conversation %1").arg(model.id)
                         anchors.left: parent.left
                         anchors.leftMargin: Theme.horizontalPageMargin
                         anchors.verticalCenter: parent.verticalCenter
@@ -54,10 +54,10 @@ Dialog {
                     
                     menu: ContextMenu {
                         MenuItem {
-                            text: "Rename"
+                            text: qsTr("Rename")
                             onClicked: {
                                 var renameDialog = pageStack.push(Qt.resolvedUrl("RenameDialog.qml"), {
-                                    "originalName": model.name || "Conversation " + model.id
+                                    "originalName": model.name || qsTr("Conversation %1").arg(model.id)
                                 })
                                 renameDialog.accepted.connect(function() {
                                     // Rename conversation in database
@@ -66,7 +66,7 @@ Dialog {
                             }
                         }
                         MenuItem {
-                            text: "Delete"
+                            text: qsTr("Delete")
                             onClicked: {
                                 console.log("Delete not implemented yet")
                             }
