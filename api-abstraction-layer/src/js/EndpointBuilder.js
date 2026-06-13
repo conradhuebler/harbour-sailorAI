@@ -248,6 +248,37 @@ function substituteVariables(path, variables) {
 }
 
 /**
+ * Apply a system prompt to an already-built request, per provider format. Claude Generated.
+ * - Gemini: merged into systemInstruction.parts
+ * - Anthropic: prepended to the top-level `system` field
+ * - OpenAI-compatible / Ollama: prepended as a { role: "system" } message
+ * @param {object} requestData - The request object to mutate
+ * @param {string} providerType - Provider type
+ * @param {string} systemPrompt - System prompt text (no-op if empty)
+ */
+function applySystemPrompt(requestData, providerType, systemPrompt) {
+    if (!systemPrompt) return;
+    if (providerType === 'gemini') {
+        var part = { text: systemPrompt };
+        if (requestData.systemInstruction && requestData.systemInstruction.parts) {
+            requestData.systemInstruction.parts.push(part);
+        } else {
+            requestData.systemInstruction = { parts: [part] };
+        }
+    } else if (providerType === 'anthropic') {
+        requestData.system = systemPrompt + (requestData.system ? ("\n\n" + requestData.system) : "");
+    } else {
+        // OpenAI-compatible and Ollama both accept a leading system message
+        if (!requestData.messages) requestData.messages = [];
+        if (requestData.messages[0] && requestData.messages[0].role === 'system') {
+            requestData.messages[0].content = systemPrompt + "\n\n" + requestData.messages[0].content;
+        } else {
+            requestData.messages.unshift({ role: 'system', content: systemPrompt });
+        }
+    }
+}
+
+/**
  * Build request data object for API calls
  * @param {object} provider - Provider configuration object
  * @param {string} model - Model name
@@ -273,6 +304,7 @@ function buildRequestData(provider, model, messages, options) {
                 parts: [{text: "Think step by step and show your reasoning process."}]
             };
         }
+        applySystemPrompt(requestData, providerType, options.systemPrompt);
         logInfo("EndpointBuilder", "Built request data with custom contents (multimodal)");
         return requestData;
     }
@@ -333,6 +365,7 @@ function buildRequestData(provider, model, messages, options) {
                 requestData.stream = true;
             }
         }
+        applySystemPrompt(requestData, providerType, options.systemPrompt);
         logInfo("EndpointBuilder", "Built request data with custom messages (multimodal) for " + providerType);
         return requestData;
     }
@@ -434,11 +467,6 @@ function buildRequestData(provider, model, messages, options) {
             }
         }
 
-        // Add system prompt if provided
-        if (options.systemPrompt) {
-            requestData.system = options.systemPrompt;
-        }
-
         requestData.temperature = options.temperature || 0.7;
 
         // Add streaming flag if supported and requested
@@ -484,6 +512,7 @@ function buildRequestData(provider, model, messages, options) {
         }
     }
 
+    applySystemPrompt(requestData, providerType, options.systemPrompt);
     logInfo("EndpointBuilder", "Built request data with " + (requestData.messages ? requestData.messages.length : (requestData.contents ? requestData.contents.length : 0)) + " messages");
     return requestData;
 }

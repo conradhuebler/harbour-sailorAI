@@ -363,9 +363,10 @@ function generateContent(aliasId, model, prompt, apiKey, history, callback, erro
     _api.generate(aliasId, model, prompt, history, callback, errorCallback, streamCallback, options);
 }
 
-function generateContentWithImages(aliasId, model, prompt, apiKey, history, images, callback, errorCallback, streamCallback) {
+function generateContentWithImages(aliasId, model, prompt, apiKey, history, images, callback, errorCallback, streamCallback, options) {
     // apiKey parameter is ignored - resolved from alias internally
-    _api.generateWithImages(aliasId, model, prompt, history, images, callback, errorCallback, streamCallback);
+    // options (optional): { systemPrompt, ... } - Claude Generated
+    _api.generateWithImages(aliasId, model, prompt, history, images, callback, errorCallback, streamCallback, options);
 }
 
 // Claude Generated: temporarily set the alias web search / fetch flags for the next call.

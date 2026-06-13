@@ -766,6 +766,9 @@ ApiAbstraction.prototype.generate = function(aliasId, model, prompt, history, ca
     var apiKey = resolved._apiKey;
     var providerType = resolved.type || resolved._type || '';
 
+    // Capture caller options before the local `options` below shadows the parameter. Claude Generated
+    var callerOptions = options || {};
+
     // Check API key (Ollama doesn't need one)
     if (!apiKey && providerType !== 'ollama') {
         errorCallback && errorCallback("No API key configured for alias: " + aliasId);
@@ -809,7 +812,8 @@ ApiAbstraction.prototype.generate = function(aliasId, model, prompt, history, ca
         timeout: resolved._timeout * 3,  // Triple timeout for generation
         enableThinking: resolved._enableThinking,
         temperature: 0.7,
-        maxTokens: 2048
+        maxTokens: 2048,
+        systemPrompt: callerOptions.systemPrompt
     };
 
     // Build request
@@ -902,12 +906,15 @@ ApiAbstraction.prototype.generate = function(aliasId, model, prompt, history, ca
  * @param {function} errorCallback - Error callback
  * @param {function} [streamCallback] - Streaming callback
  */
-ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, history, images, callback, errorCallback, streamCallback) {
+ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, history, images, callback, errorCallback, streamCallback, options) {
     var resolved = resolveAlias(aliasId, this.config);
     if (!resolved) {
         errorCallback && errorCallback("Unknown provider alias: " + aliasId);
         return;
     }
+
+    // Capture caller options before the local `options` below shadows the parameter. Claude Generated
+    var callerOptions = options || {};
 
     var apiKey = resolved._apiKey;
     var providerType = resolved.type || resolved._type || '';
@@ -1058,7 +1065,8 @@ ApiAbstraction.prototype.generateWithImages = function(aliasId, model, prompt, h
         temperature: 0.7,
         maxTokens: 2048,
         customContents: customContents,
-        customMessages: customMessages
+        customMessages: customMessages,
+        systemPrompt: callerOptions.systemPrompt
     };
 
     // Add Ollama images to options (set in ollama branch above)
@@ -1402,7 +1410,8 @@ ApiAbstraction.prototype._generateWithTools = function(aliasId, resolved, model,
             timeout: resolved._timeout * 3,
             enableThinking: resolved._enableThinking,
             temperature: 0.7,
-            maxTokens: 2048
+            maxTokens: 2048,
+            systemPrompt: options.systemPrompt
         };
 
         var url = buildEndpointUrl(resolved, 'chat', { model: model }, { apiKey: apiKey });

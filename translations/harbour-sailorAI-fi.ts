@@ -284,6 +284,10 @@
         <source>Sources</source>
         <translation>Lähteet</translation>
     </message>
+    <message>
+        <source>Always answer in %1, regardless of the language the question is written in.</source>
+        <translation>Vastaa aina kielellä %1 riippumatta siitä, millä kielellä kysymys on kirjoitettu.</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -891,6 +895,14 @@
     <message>
         <source>15 — maximum</source>
         <translation>15 — enimmäismäärä</translation>
+    </message>
+    <message>
+        <source>Answer in system language</source>
+        <translation>Vastaa järjestelmän kielellä</translation>
+    </message>
+    <message>
+        <source>Tell the model to always reply in the device language (%1).</source>
+        <translation>Käske mallia vastaamaan aina laitteen kielellä (%1).</translation>
     </message>
 </context>
 <context>

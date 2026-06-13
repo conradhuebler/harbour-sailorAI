@@ -284,6 +284,10 @@
         <source>Sources</source>
         <translation>Sources</translation>
     </message>
+    <message>
+        <source>Always answer in %1, regardless of the language the question is written in.</source>
+        <translation>Réponds toujours en %1, quelle que soit la langue de la question.</translation>
+    </message>
 </context>
 <context>
     <name>ConversationListPage</name>
@@ -891,6 +895,14 @@
     <message>
         <source>15 — maximum</source>
         <translation>15 — maximum</translation>
+    </message>
+    <message>
+        <source>Answer in system language</source>
+        <translation>Répondre dans la langue du système</translation>
+    </message>
+    <message>
+        <source>Tell the model to always reply in the device language (%1).</source>
+        <translation>Demande au modèle de toujours répondre dans la langue de l&apos;appareil (%1).</translation>
     </message>
 </context>
 <context>

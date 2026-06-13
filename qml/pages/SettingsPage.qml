@@ -46,6 +46,13 @@ Page {
         defaultValue: 8
     }
 
+    // Claude Generated: instruct the model to answer in the device language
+    ConfigurationValue {
+        id: respondInSystemLanguageConfig
+        key: "/SailorAI/respond_in_system_language"
+        defaultValue: true
+    }
+
     // Claude Generated: photo-action behaviour and dedicated vision model
     ConfigurationValue {
         id: photoActionAutoSendConfig
@@ -543,6 +550,15 @@ Page {
                         onClicked: maxToolIterConfig.value = 15;
                     }
                 }
+            }
+
+            // Claude Generated: answer in the device language regardless of question language
+            TextSwitch {
+                id: respondInSystemLanguageSwitch
+                text: qsTr("Answer in system language")
+                description: qsTr("Tell the model to always reply in the device language (%1).").arg(Qt.locale().nativeLanguageName)
+                checked: respondInSystemLanguageConfig.value === true || respondInSystemLanguageConfig.value === "true"
+                onClicked: respondInSystemLanguageConfig.value = checked
             }
 
             Item {

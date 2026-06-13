@@ -370,6 +370,21 @@ Page {
     }
     property bool autoWebFetch: autoWebFetchConfig.value === true || autoWebFetchConfig.value === "true"
 
+    // Claude Generated: make the model answer in the device language (default on)
+    ConfigurationValue {
+        id: respondInSystemLanguageConfig
+        key: "/SailorAI/respond_in_system_language"
+        defaultValue: true
+    }
+    property bool respondInSystemLanguage: respondInSystemLanguageConfig.value === true || respondInSystemLanguageConfig.value === "true"
+
+    // System prompt instructing the model to reply in the device language; "" when disabled. Claude Generated
+    function languageSystemPrompt() {
+        if (!respondInSystemLanguage) return "";
+        return qsTr("Always answer in %1, regardless of the language the question is written in.")
+                 .arg(Qt.locale().nativeLanguageName);
+    }
+
     // Localized labels handed to the JS tool loop (which has no qsTr) - Claude Generated
     function webToolLabels() {
         return {
@@ -771,9 +786,10 @@ Page {
                     DebugLogger.logVerbose("ChatPage", "Streaming chunk added, total length: " + streamingContent.length);
                 }
             } : null,
-            // Options for the Ollama web-tool loop: localized log/source labels, iteration cap,
-            // and the opt-in auto web_fetch flag. Claude Generated
-            { toolLabels: webToolLabels(), maxToolIterations: maxToolIterConfig.value, autoFetchUrls: autoWebFetch }
+            // Options: web-tool log/source labels, iteration cap, opt-in auto web_fetch,
+            // and the system-language instruction. Claude Generated
+            { toolLabels: webToolLabels(), maxToolIterations: maxToolIterConfig.value,
+              autoFetchUrls: autoWebFetch, systemPrompt: languageSystemPrompt() }
         );
         }; if (canOverride) LLMApi.withTemporaryWebToolOverride(selectedAliasId, webSearchEnabled, webSearchEnabled, doCall); else doCall();
     }
@@ -898,7 +914,9 @@ Page {
                                 chatModel.setProperty(streamingMessageIndex, "message", streamingContent);
                                 DebugLogger.logVerbose("ChatPage", "Multimodal streaming chunk added, total length: " + streamingContent.length);
                             }
-                        }
+                        },
+                        // System-language instruction for multimodal chats too. Claude Generated
+                        { systemPrompt: languageSystemPrompt() }
                     );
                     };
                     if (canOverrideImgs) {
