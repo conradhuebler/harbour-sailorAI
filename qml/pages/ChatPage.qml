@@ -5,9 +5,14 @@ import Nemo.Configuration 1.0
 import "../js/LLMApi.js" as LLMApi
 import "../js/DebugLogger.js" as DebugLogger
 import "../js/DatabaseQueries.js" as DatabaseQueries
+import "../js/MarkdownRenderer.js" as Markdown
 
 Page {
     id: page
+
+    // Claude Generated: allow the chat to rotate into landscape so wide tables/code can use
+    // the full screen width.
+    allowedOrientations: Orientation.All
 
     // Properties passed from ConversationListPage
     property int conversationId: -1
@@ -25,6 +30,9 @@ Page {
     property string selectedAliasId: ""
     property string selectedModel: "gemini-1.5-flash"
     property bool currentModelSupportsVision: true
+
+    // Claude Generated: landscape detection for layout tweaks (e.g. wider chat bubbles).
+    property bool landscapeMode: width > height
 
     function updateVisionCapability() {
         // Don't hide button during transient empty states while loading
@@ -1073,7 +1081,10 @@ Page {
                                 var imgW = messageItem.itemImages.length > 0
                                     ? (Theme.itemSizeLarge * 2 + 2 * Theme.paddingMedium + 2 * Theme.paddingSmall)
                                     : 0
-                                return Math.min(Math.max(textW, imgW), parent.width * 0.85)
+                                // Claude Generated: use more horizontal space in landscape so
+                                // wide tables and code blocks remain readable.
+                                var maxRatio = page.landscapeMode ? 0.95 : 0.85
+                                return Math.min(Math.max(textW, imgW), parent.width * maxRatio)
                             }
                             height: messageColumn.implicitHeight + 2 * Theme.paddingSmall
                             
@@ -1098,12 +1109,22 @@ Page {
                                 Label {
                                     id: messageText
                                     width: parent.width
-                                    text: model ? model.message : ""
+                                    // Render Markdown (bold/italic/code/lists/tables/links) as RichText;
+                                    // error messages stay plain text. Claude Generated
+                                    textFormat: messageItem.isErrorMessage ? Text.PlainText : Text.RichText
+                                    text: messageItem.isErrorMessage
+                                          ? (model ? model.message : "")
+                                          : Markdown.toRichText(model ? model.message : "")
                                     wrapMode: Text.WordWrap
                                     color: {
                                         if (messageItem.isOwnMessage) return Theme.highlightColor
                                         if (messageItem.isErrorMessage) return "white"
                                         return Theme.primaryColor
+                                    }
+                                    linkColor: Theme.highlightColor
+                                    onLinkActivated: {
+                                        if (link.indexOf("http://") === 0 || link.indexOf("https://") === 0)
+                                            Qt.openUrlExternally(link)
                                     }
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
