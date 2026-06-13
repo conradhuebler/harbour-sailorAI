@@ -183,6 +183,10 @@
         <source>If empty, the provider API key is used.</source>
         <translation>Wenn leer, wird der API-Schlüssel des Anbieters verwendet.</translation>
     </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>Anmelden oder API-Schlüssel holen</translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -589,6 +593,10 @@
     <message>
         <source>If empty, the provider API key is used.</source>
         <translation>Wenn leer, wird der API-Schlüssel des Anbieters verwendet.</translation>
+    </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>Anmelden oder API-Schlüssel holen</translation>
     </message>
 </context>
 <context>

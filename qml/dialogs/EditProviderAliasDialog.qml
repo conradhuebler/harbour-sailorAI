@@ -19,6 +19,9 @@ Dialog {
     property var availableModels: []
     property bool fetchingModels: false
     property string serverPreset: ""
+    // Claude Generated: provider metadata for signup/API-key link
+    property var providerTypes: LLMApi.getProviderTypes()
+    property string providerSignupUrl: providerTypes[providerType] ? (providerTypes[providerType].signupUrl || "") : ""
     // Web tool flags (Ollama only) - Claude Generated
     property bool enableWebSearch: true
     property bool enableWebFetch: true
@@ -211,6 +214,33 @@ Dialog {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 text: apiUrl.indexOf("localhost:11434") !== -1 ? qsTr("Ollama doesn't require an API key for local use") : qsTr("Your API key for authentication (required for most providers)")
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                wrapMode: Text.WordWrap
+            }
+
+            // Claude Generated: link to provider signup / API key page
+            BackgroundItem {
+                visible: providerSignupUrl !== ""
+                width: parent.width
+                height: Theme.itemSizeMedium
+                onClicked: Qt.openUrlExternally(providerSignupUrl)
+
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Sign up or get API key")
+                    color: Theme.highlightColor
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+            }
+
+            Label {
+                visible: providerSignupUrl !== ""
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: providerSignupUrl
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 wrapMode: Text.WordWrap

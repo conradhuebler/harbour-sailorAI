@@ -183,6 +183,10 @@
         <source>If empty, the provider API key is used.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>Sign up or get API key</translation>
+    </message>
 </context>
 <context>
     <name>AdvancedSettingsDialog</name>
@@ -590,6 +594,10 @@
         <source>If empty, the provider API key is used.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Sign up or get API key</source>
+        <translation>Sign up or get API key</translation>
+    </message>
 </context>
 <context>
     <name>ExportDialog</name>
@@ -966,6 +974,7 @@
         <source>Table width</source>
         <translation>Table width</translation>
     </message>
+</context>
 <context>
     <name>SourcesDialog</name>
     <message>
@@ -980,7 +989,6 @@
         <source>No sources available.</source>
         <translation>No sources available.</translation>
     </message>
-</context>
 </context>
 <context>
     <name>ToolLogDialog</name>
