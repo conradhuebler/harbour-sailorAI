@@ -17,6 +17,7 @@ CONFIG += sailfishapp_qml
 DISTFILES += qml/harbour-sailorAI.qml \
     qml/cover/CoverPage.qml \
     qml/pages/MainPage.qml \
+    qml/pages/AboutPage.qml \
     qml/pages/SettingsPage.qml \
     qml/dialogs/RenameDialog.qml \
     qml/js/LLMApi.js \

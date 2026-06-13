@@ -2,6 +2,73 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de">
 <context>
+    <name>AboutPage</name>
+    <message>
+        <source>About SailorAI</source>
+        <translation>Über SailorAI</translation>
+    </message>
+    <message>
+        <source>Application</source>
+        <translation>Anwendung</translation>
+    </message>
+    <message>
+        <source>SailorAI is an AI chat interface for Sailfish OS supporting multiple LLM providers with real-time streaming.</source>
+        <translation>SailorAI ist eine KI-Chat-Oberfläche für Sailfish OS, die mehrere LLM-Anbieter mit Echtzeit-Streaming unterstützt.</translation>
+    </message>
+    <message>
+        <source>Version %1</source>
+        <translation>Version %1</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Status</translation>
+    </message>
+    <message>
+        <source>Actively developed with agentic coding (Claude Code). Core chat, multi-provider support, streaming, image/document upload, Markdown rendering, web tools and conversation history are implemented. Some features are still evolving.</source>
+        <translation>Aktiv entwickelt mit Agentic Coding (Claude Code). Kern-Chat, Multi-Provider-Unterstützung, Streaming, Bild-/Dokumenten-Upload, Markdown-Rendering, Web-Tools und Gesprächsverlauf sind implementiert. Einige Funktionen entwickeln sich noch.</translation>
+    </message>
+    <message>
+        <source>Best tested with remote ollama.com endpoints; other providers are supported but less regularly exercised.</source>
+        <translation>Am besten mit entfernten ollama.com-Endpunkten getestet; andere Anbieter werden unterstützt, aber seltener geprüft.</translation>
+    </message>
+    <message>
+        <source>Supported providers</source>
+        <translation>Unterstützte Anbieter</translation>
+    </message>
+    <message>
+        <source>Contact</source>
+        <translation>Kontakt</translation>
+    </message>
+    <message>
+        <source>Email</source>
+        <translation>E-Mail</translation>
+    </message>
+    <message>
+        <source>Source code on GitHub</source>
+        <translation>Quellcode auf GitHub</translation>
+    </message>
+    <message>
+        <source>Report an issue</source>
+        <translation>Ein Problem melden</translation>
+    </message>
+    <message>
+        <source>• OpenAI-compatible APIs</source>
+        <translation>• OpenAI-kompatible APIs</translation>
+    </message>
+    <message>
+        <source>• Anthropic Claude</source>
+        <translation>• Anthropic Claude</translation>
+    </message>
+    <message>
+        <source>• Google Gemini</source>
+        <translation>• Google Gemini</translation>
+    </message>
+    <message>
+        <source>• Ollama (local or remote)</source>
+        <translation>• Ollama (lokal oder entfernt)</translation>
+    </message>
+</context>
+<context>
     <name>AddProviderAliasDialog</name>
     <message>
         <source>OpenAI-compatible — also Mistral, Nvidia, local servers, proxies …</source>
@@ -406,6 +473,14 @@
     <message>
         <source>Translate photo</source>
         <translation>Foto übersetzen</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Einstellungen</translation>
+    </message>
+    <message>
+        <source>About</source>
+        <translation>Über</translation>
     </message>
 </context>
 <context>
