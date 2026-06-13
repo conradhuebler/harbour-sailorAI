@@ -2,6 +2,8 @@
 
 A modern AI chat application for Sailfish OS supporting multiple LLM providers with real-time streaming capabilities.
 
+**Status:** Actively developed with agentic coding (Claude Code). Core chat, multi-provider support, streaming, image/document upload, Markdown rendering, web tools and conversation history are implemented. Tested most thoroughly with remote ollama.com endpoints; other providers are supported but less regularly exercised. Some features are still evolving.
+
 ## 🚀 Features
 
 ### Multi-Provider Support

@@ -30,7 +30,8 @@ BuildRequires:  desktop-file-utils
 %description
 SailorAI is an AI chat interface for Sailfish OS supporting multiple LLM providers
 (OpenAI, Anthropic Claude, Google Gemini, Ollama) with real-time streaming,
-image and document upload, and conversation history.
+Markdown rendering, image/document upload, web tools and conversation history.
+Best tested with remote ollama.com endpoints. Actively developed with agentic coding.
 
 
 %prep
